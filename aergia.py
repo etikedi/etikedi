@@ -9,13 +9,17 @@ with app.app_context():
     #  db.create_all()
 
     @app.route('/')
-    def show_cv_list():
-        return render_template('pages/show_cvs.html')
+    def show_resumee_list():
+        return render_template('pages/show_resumees.html')
 
-    @app.route('/cv/<int:cv_id>')
-    def show_cv(cv_id):
-        return render_template('pages/show_cv.html', cv_id=cv_id)
-        #  return "display cv and the features next to each word" + str(cv_id)
+    @app.route('/resumee/<int:resumee_id>')
+    def show_resumee(resumee_id):
+        # resumee_content = db.query
+        resumee_content = "lorem ipsum etc."
+        return render_template('pages/show_resumee.html',
+                               resumee_id=resumee_id,
+                               resumee_content=resumee_content)
+        #  return "display resumee and the features next to each word" + str(resumee_id)
 
 
 if __name__ == '__main__':
