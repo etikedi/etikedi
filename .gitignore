@@ -162,6 +162,11 @@ tags
 
 # End of https://www.gitignore.io/api/vim,python,jupyternotebook,jupyternotebooks
 
+# elm
+frontend/elm-stuff
+frontend/repl-temp-*
+
+
 .idea
 *.csv
 .vim/
