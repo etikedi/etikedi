@@ -1,16 +1,22 @@
 <template>
     <div id="app">
-        <Header msg="AERGIA" content="Creating labeled datasets like a true lazy greek god."/>
+        <Header title="AERGIA" subtitle="Creating labeled datasets like a true lazy greek god."/>
+        <CV />
+        <Footer title="AERGIA" homepage="https://jgonsior.de" author="Julius Gonsior"/>
     </div>
 </template>
 
 <script>
 import Header from "./components/Header.vue";
+import Footer from "./components/Footer.vue";
+import CV from "./components/CV.vue";
 
 export default {
     name: "app",
     components: {
-        Header
+        Header,
+        Footer,
+        CV
     }
 };
 </script>
@@ -22,8 +28,8 @@ export default {
 // Set your colors
 $primary: #8c67ef;
 $primary-invert: findColorInvert($primary);
-$twitter: #4099FF;
-$twitter-invert: findColorInvert($twitter);
+//$twitter: #4099FF;
+//$twitter-invert: findColorInvert($twitter);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
@@ -36,7 +42,7 @@ $colors: (
     "success": ($success, $success-invert),
     "warning": ($warning, $warning-invert),
     "danger": ($danger, $danger-invert),
-    "twitter": ($twitter, $twitter-invert)
+ //   "twitter": ($twitter, $twitter-invert)
 );
 
 // Links

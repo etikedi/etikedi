@@ -3,10 +3,12 @@ import App from "./App.vue";
 import Buefy from "buefy";
 import "buefy/dist/buefy.css";
 import "./registerServiceWorker";
-
+import "@mdi/font/css/materialdesignicons.min.css";
 Vue.config.productionTip = false;
 
-Vue.use(Buefy);
+Vue.use(Buefy, {
+    defaultIconPack: "mdi",
+});
 
 new Vue({
   render: h => h(App)

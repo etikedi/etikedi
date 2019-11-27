@@ -10,6 +10,7 @@ pylint = "*"
 flask = "*"
 flask-sqlalchemy = "*"
 flask-restful = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.7"
