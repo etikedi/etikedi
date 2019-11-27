@@ -2,10 +2,10 @@
     <section class="section">
         <div class="container">
             <h1 class="title">{{ cv_id }}</h1>
-            <b-button icon-left="chevron-left" @click="loadPrevCv">
+            <b-button icon-left="chevron-left" @click="loadPrevCv" :disabled=prevButtonDisabled>
                 Prev
             </b-button>
-            <b-button icon-right="chevron-right" @click="loadNevtCv">
+            <b-button icon-right="chevron-right" @click="loadNextCv" :disabled=nevtButtonDisable>
                 Next
             </b-button>
             <pre>
@@ -28,7 +28,9 @@ export default {
             cv: {
                 content: "Loading CV…",
                 label: ""
-            }
+            },
+            prevButtonDisabled: false,
+            nevtButtonDisable: false
         }
     },
     mounted() {
@@ -48,10 +50,17 @@ export default {
                 });
         },
         loadNextCv() {
+            if (this.cv_id == 1)
+                this.prevButtonDisabled = false
             this.cv_id += 1;
         },
         loadPrevCv() {
-            this.cv_id -= 1;
+            if (this.cv_id == 2) {
+                this.prevButtonDisabled = true;
+                this.cv_id -= 1;
+            } else {
+                this.cv_id -= 1;
+            }
         }
     },
     watch: {
@@ -68,7 +77,4 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-/*h3 {
-    margin: 40px 0 0;
-}*/
 </style>
