@@ -3,8 +3,11 @@ import math
 
 import nltk
 from nltk.corpus import stopwords
+from flask_sqlalchemy import SQLAlchemy
+from models.resumees import Resumees
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from models import db
-from models.resumee import Resumee
 ''' 
 s1: convert cv into tokens
 s2: features per token
@@ -19,14 +22,18 @@ feature ideas:
 POS -> skills sind genau NICHT pos getagged
  kommas zwischen wörtern, etc.
 '''
+app = Flask(__name__)
+app.config.from_object('config.Config')
 
-#  corpus = []
+with app.app_context():
+    db.init_app(app)
+    corpus = []
 
-for resumee in Resumee.query.limit(100).all():
-    #  corpus.append(resumee.content)
+    for resumee in Resumees.query.limit(1).all():
+        corpus.append(resumee.content)
 
-    #  corpus_text = "".join([c for c in corpus])
-    corpus_text = resumee.content
+        corpus_text = "".join([c for c in corpus])
+        #  corpus_text = resumee.content
 
     tokens = nltk.word_tokenize(corpus_text)
 
@@ -42,8 +49,8 @@ for resumee in Resumee.query.limit(100).all():
     print(counter_var.most_common(300))
 
     tagged = nltk.pos_tag(no_stop_tokens)
-    #  print(tagged)
+    print(tagged)
 
     entities = nltk.chunk.ne_chunk(tagged)
     print(entities)
-    print("\n" * 10)
+    #  print("\n" * 10)

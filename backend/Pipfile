@@ -11,6 +11,8 @@ flask = "*"
 flask-sqlalchemy = "*"
 flask-restful = "*"
 flask-cors = "*"
+nltk = "*"
+numpy = "*"
 
 [requires]
 python_version = "3.7"
