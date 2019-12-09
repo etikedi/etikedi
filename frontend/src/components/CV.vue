@@ -12,6 +12,8 @@
                 <b-tooltip
                     v-if="feature[0].trim() != '' && !feature[0].includes('<br>')"
                     :label="JSON.stringify(feature[1], null, '\n')"
+                    position="is-bottom"
+                    size="is-large"
                     multilined>
                     <span v-html="feature[0]" style="border: 1px darkgrey dashed;"></span>
                 </b-tooltip>

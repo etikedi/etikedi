@@ -44,6 +44,9 @@ class Resumees(db.Model):
             feature = {}
             feature['pos'] = tagging[1]
             feature['length'] = len(tagging[0])
+            feature['length2'] = len(tagging[1])
+            for i in range(1, 10):
+                feature['long' + str(i)] = "test" * 10
             if "\n" in tagging[0]:
                 tagging = ("<br>" * tagging[0].count("\n"), feature)
             features.append((tagging[0], feature))
