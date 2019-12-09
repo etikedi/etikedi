@@ -32,8 +32,7 @@ with app.app_context():
     for resumee in Resumees.query.limit(1).all():
         corpus.append(resumee.content)
 
-        corpus_text = "".join([c for c in corpus])
-        #  corpus_text = resumee.content
+    corpus_text = "".join([c for c in corpus])
 
     tokens = nltk.word_tokenize(corpus_text)
 
@@ -46,11 +45,12 @@ with app.app_context():
 
     counter_var = collections.Counter(no_stop_tokens)
 
-    print(counter_var.most_common(300))
-
+    # pos tuples
     tagged = nltk.pos_tag(no_stop_tokens)
+
+    # pos tree
+    entities = nltk.chunk.ne_chunk(tagged)
+
     print(tagged)
 
-    entities = nltk.chunk.ne_chunk(tagged)
-    print(entities)
-    #  print("\n" * 10)
+    # output: [(token, [feature1, feature2, feature3]), (token, [feature1, feature2, feature 3])]

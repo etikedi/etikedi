@@ -8,8 +8,22 @@
             <b-button icon-right="chevron-right" @click="loadNextCv" :disabled=nevtButtonDisable>
                 Next
             </b-button>
+            <span v-for="(feature, index) in cv.features" :key="index" style="white-sepace: pre-line;">
+                <b-tooltip
+                    v-if="feature[0].trim() != '' && !feature[0].includes('<br>')"
+                    :label="JSON.stringify(feature[1], null, '\n')"
+                    multilined>
+                    <span v-html="feature[0]" style="border: 1px darkgrey dashed;"></span>
+                </b-tooltip>
+                <span
+                    v-else
+                    v-html="feature[0]"
+                    style="color:red;"
+                    >
+                </span>
+            </span>
             <pre>
-                {{ cv.content }}
+                {{ cv.content}}
             </pre>
             <p>
                 {{ cv.label }}
@@ -24,10 +38,11 @@ export default {
     props: {},
     data() {
         return {
-            cv_id: 5,
+            cv_id: 6,
             cv: {
                 content: "Loading CV…",
-                label: ""
+                label: "",
+                features: []
             },
             prevButtonDisabled: false,
             nevtButtonDisable: false
@@ -35,12 +50,9 @@ export default {
     },
     mounted() {
         this.fetchCv().catch(error => {
-            console.error(error);
+            window.console.error(error);
         });
     },
-    /*created: function() {
-        this.loadCv(this.cv_id);
-    },*/
     methods: {
         async fetchCv() {
             this.cv = await fetch('http://127.0.0.1:5000/api/resumees/' + this.cv_id)
@@ -67,7 +79,7 @@ export default {
         cv_id: {
             handler: function() {
                 this.fetchCv().catch(error => {
-                    console.error(error)
+                    window.console.error(error)
                 })
             }
         }
