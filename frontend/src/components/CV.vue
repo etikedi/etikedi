@@ -8,25 +8,27 @@
             <b-button icon-right="chevron-right" @click="loadNextCv" :disabled=nevtButtonDisable>
                 Next
             </b-button>
-            <span v-for="(feature, index) in cv.features" :key="index" style="white-sepace: pre-line;">
-                <b-tooltip
-                    v-if="feature[0].trim() != '' && !feature[0].includes('<br>')"
-                    :label="JSON.stringify(feature[1], null, '\n')"
-                    position="is-bottom"
-                    size="is-large"
-                    multilined>
-                    <span v-html="feature[0]" style="border: 1px darkgrey dashed;"></span>
-                </b-tooltip>
-                <span
-                    v-else
-                    v-html="feature[0]"
-                    style="color:red;"
-                    >
+            <div>
+                <span v-for="(feature, index) in cv.features" :key="index" style="white-sepace: pre-line;">
+                    <b-tooltip
+                        v-if="feature[0].trim() != '' && !feature[0].includes('<br>')"
+                        :label="JSON.stringify(feature[1], null, '\n')"
+                        position="is-bottom"
+                        size="is-large"
+                        multilined>
+                        <span v-html="feature[0]" style="border: 1px darkgrey dashed;"></span>
+                    </b-tooltip>
+                    <span
+                        v-else
+                        v-html="feature[0]"
+                        style="color:red;"
+                        >
+                    </span>
                 </span>
-            </span>
-            <pre>
-                {{ cv.content}}
-            </pre>
+            </div>
+            <!-- <pre> -->
+                <!-- {{ cv.content}} -->
+            <!-- </pre> -->
             <p>
                 {{ cv.label }}
             </p>

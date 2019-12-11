@@ -13,6 +13,7 @@ flask-restful = "*"
 flask-cors = "*"
 nltk = "*"
 numpy = "*"
+pyspellchecker = "*"
 
 [requires]
 python_version = "3.7"

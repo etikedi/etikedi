@@ -1,7 +1,8 @@
 import collections
 import re
 from datetime import datetime
-
+from pprint import pprint
+from spellchecker import SpellChecker
 import nltk
 import sqlalchemy
 from flask_restful import Resource, reqparse
@@ -40,20 +41,53 @@ class Resumees(db.Model):
 
         features = []
 
+        # create current_line -> tokens
+
+        lines = {0: ""}
+        tokens_context = []
+
+        current_line_index = 0
         for tagging in tagged:
+            token = tagging[0]
+            tokens_context.append((token, tagging[1], current_line_index))
+            if "\n" not in token:
+                lines[current_line_index] += token
+            else:
+                current_line_index += 1
+                lines[current_line_index] = ""
+
+        speller = SpellChecker()
+
+        for tagging in tokens_context:
+            token = tagging[0]
+            line = lines[tagging[2]]
             feature = {}
             feature['pos'] = tagging[1]
-            feature['length'] = len(tagging[0])
-            feature['length2'] = len(tagging[1])
-            for i in range(1, 10):
-                feature['long' + str(i)] = "test" * 10
+
+            feature['term_length'] = len(token)
+
+            # if beginning charachter is not in ascii we guess that it is a bullet list
+            feature['is_begginning_of_line_non_ascii'] = False if 0 <= ord(
+                line[0]) <= 127 else True
+
+            feature['is_beginning_of_line_number'] = True if '0' <= line[
+                0] <= '9' else False
+
+            feature['amount_of_commas_in_line'] = sum(c == ',' for c in line)
+
+            feature['amount_of_uppercase_letters_in_term'] = sum(
+                c.isupper() for c in token)
+            feature['amount_of_digits_in_term'] = sum(c.isdigit()
+                                                      for c in token)
+            #  feature['count_spell_corrections'] = len(
+            #  speller.candidates(word=token))
+
+            # convert line breaks to html
             if "\n" in tagging[0]:
                 tagging = ("<br>" * tagging[0].count("\n"), feature)
             features.append((tagging[0], feature))
 
         return features
-
-        # output: [(token, [feature1, feature2, feature3]), (token, [feature1, feature2, feature 3])]
 
     def as_dict(self):
         result = {

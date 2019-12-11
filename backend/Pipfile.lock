@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "5ab5206c95335061c944ab6657d5e2ae8adcde7024d74250b34b99e07d767067"
+            "sha256": "3ec166de12ee41f227e998836d1ad0105ce52a49900d841a267a56d05a7182ca"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -142,6 +142,14 @@
             ],
             "index": "pypi",
             "version": "==1.17.4"
+        },
+        "pyspellchecker": {
+            "hashes": [
+                "sha256:36f3ca27154593dd9c78bc38782d27d6f7461c47802cf550e50438a7587c7eaf",
+                "sha256:d02b5566ca7d76a8c571de8997b06d84565ce500c15377adac3daac060564af8"
+            ],
+            "index": "pypi",
+            "version": "==0.5.3"
         },
         "pytz": {
             "hashes": [
