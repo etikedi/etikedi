@@ -22,6 +22,11 @@ export default {
 </script>
 
 <style lang="scss">
+
+#app {
+    padding-top: 12.25rem;
+}
+
 // Import Bulma's core
 @import "~bulma/sass/utilities/_all";
 
