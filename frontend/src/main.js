@@ -12,9 +12,9 @@ Vue.use(Buefy, {
     defaultIconPack: "mdi",
 });
 
-const app = new Vue({
-    el: '#app',
+new Vue({
     store,
+    el: '#app',
     render: h => h(App),
 });
 

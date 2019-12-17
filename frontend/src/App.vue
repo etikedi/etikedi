@@ -17,7 +17,12 @@ export default {
         Header,
         Footer,
         CV
+    },
+    mounted() {
+        this.$store.dispatch('loadCv');
     }
+
+
 };
 </script>
 

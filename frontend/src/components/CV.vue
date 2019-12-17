@@ -37,24 +37,19 @@
 </template>
 
 <script>
-import CV_Service from '@/api/CV_Service';
+import { mapState } from 'vuex';
 
 export default {
     name: "CV",
     props: {},
     data() {
         return {
-            cv_id: 6,
-            cv: {
-                content: "Loading CV…",
-                label: "",
-                features: []
-            },
-            prevButtonDisabled: false,
-            nevtButtonDisable: false
         }
     },
-    mounted() {
+    computed: 
+        mapState(['cv_id', 'cv', 'prevButtonDisabled', 'nextButtonDisabled'])
+        ,
+    /*mounted() {
         this.fetchCv().catch(error => {
             window.console.error(error);
         });
@@ -86,7 +81,7 @@ export default {
                 })
             }
         }
-    }
+    }*/
 };
 </script>
 
