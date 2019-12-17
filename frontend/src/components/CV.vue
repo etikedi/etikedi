@@ -59,6 +59,7 @@ export default {
     },
     methods: {
         async fetchCv() {
+            // todo: change to axios
             this.cv = await fetch('http://127.0.0.1:5000/api/resumees/' + this.cv_id)
                 .then(result => result.json())
                 .catch(function (error) {

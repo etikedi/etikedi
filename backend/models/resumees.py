@@ -82,6 +82,10 @@ class Resumees(db.Model):
             #  feature['count_spell_corrections'] = len(
             #  speller.candidates(word=token))
 
+            #TODOS:
+            # save features in ?
+            # select text by selecting it -> click button label as X -> save labels for selected tokens -> display selected labels
+
             # convert line breaks to html
             if "\n" in tagging[0]:
                 tagging = ("<br>" * tagging[0].count("\n"), feature)

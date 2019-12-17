@@ -4,12 +4,17 @@ import Buefy from "buefy";
 import "buefy/dist/buefy.css";
 import "./registerServiceWorker";
 import "@mdi/font/css/materialdesignicons.min.css";
+import store from "./store"
+
 Vue.config.productionTip = false;
 
 Vue.use(Buefy, {
     defaultIconPack: "mdi",
 });
 
-new Vue({
-  render: h => h(App)
-}).$mount("#app");
+const app = new Vue({
+    el: '#app',
+    store,
+    render: h => h(App),
+});
+

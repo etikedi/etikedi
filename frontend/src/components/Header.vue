@@ -21,7 +21,7 @@
                         label 1 
                         label2
                         <a class="navbar-item is-active">
-                            Home
+                            Home + {{ count }}
                         </a>
                         <a class="navbar-item">
                             Examples
@@ -46,12 +46,17 @@
 </template>
 
 <script>
+
+import { mapState } from 'vuex';
+
 export default {
     name: "Header",
     props: {
         title: String,
         subtitle: String
-    }
+    },
+    computed:
+        mapState(['count'])
 };
 </script>
 
