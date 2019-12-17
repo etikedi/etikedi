@@ -2,10 +2,10 @@
     <section class="section">
         <div class="container">
             <h1 class="title">{{ cv_id }}</h1>
-            <b-button icon-left="chevron-left" @click="loadPrevCv" :disabled=prevButtonDisabled>
+            <b-button icon-left="chevron-left" @click="prevCv" :disabled=prevButtonDisabled>
                 Prev
             </b-button>
-            <b-button icon-right="chevron-right" @click="loadNextCv" :disabled=nevtButtonDisable>
+            <b-button icon-right="chevron-right" @click="nextCv" :disabled=nextButtonDisabled>
                 Next
             </b-button>
             <div>
@@ -37,18 +37,16 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
     name: "CV",
     props: {},
-    data() {
-        return {
-        }
-    },
     computed: 
         mapState(['cv_id', 'cv', 'prevButtonDisabled', 'nextButtonDisabled'])
         ,
+    methods:
+        mapActions(['nextCv', 'prevCv']),
     /*mounted() {
         this.fetchCv().catch(error => {
             window.console.error(error);
