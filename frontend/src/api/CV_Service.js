@@ -1,7 +1,7 @@
-import Api from '@api/api.js'
+import Api from '@/api/api'
 
 export default {
-    getCvs(params) {
+    getCv(params) {
         return Api().get('/resumees/' + params.cv_id);
     }
 }

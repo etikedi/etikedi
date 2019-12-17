@@ -37,6 +37,8 @@
 </template>
 
 <script>
+import CV_Service from '@/api/CV_Service';
+
 export default {
     name: "CV",
     props: {},
@@ -59,12 +61,8 @@ export default {
     },
     methods: {
         async fetchCv() {
-            // todo: change to axios
-            this.cv = await fetch('http://127.0.0.1:5000/api/resumees/' + this.cv_id)
-                .then(result => result.json())
-                .catch(function (error) {
-                    this.cv.content= "Error! Could not reach the API. " + error
-                });
+            const response = await CV_Service.getCv({cv_id: this.cv_id});
+            this.cv = response.data;
         },
         loadNextCv() {
             if (this.cv_id == 1)
