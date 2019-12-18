@@ -1,5 +1,6 @@
 export const setCv = (state, data) => {
     state.cv = data;
+    state.loading = false;
 }
 
 export const nextCv = state => {
@@ -18,5 +19,5 @@ export const prevCv = state => {
 }
 
 export const start_loading = state => {
-    state.cv.features = [["Loading…<br>", ""]];
+    state.loading = true;
 }

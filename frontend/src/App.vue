@@ -29,7 +29,7 @@ export default {
 <style lang="scss">
 
 #app {
-    //padding-top: 12.25rem;
+    padding-top: 18.25rem;
 }
 
 // Import Bulma's core

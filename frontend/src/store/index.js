@@ -10,6 +10,7 @@ const debug = process.env.NODE_ENV !== 'production';
 
 const state = {
     cv_id: 3,
+    loading: false,
     cv: {},
     prevButtonDisabled: false,
     nextButtonDisabled: false,

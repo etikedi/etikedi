@@ -1,6 +1,6 @@
 <template>
     <header>
-        <nav class="navbar hero is-info is-bold" role="navigation" aria-label="main navigation">
+        <nav class="navbar is-fixed-top hero is-info is-bold" role="navigation" aria-label="main navigation">
             <div class="hero-head">
                 <div class="container">
                     <div class="navbar-menu">
