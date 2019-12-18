@@ -16,3 +16,7 @@ export const prevCv = state => {
         state.cv_id--;
     }
 }
+
+export const start_loading = state => {
+    state.cv.features = [["Loading…<br>", ""]];
+}

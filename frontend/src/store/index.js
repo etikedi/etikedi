@@ -9,16 +9,10 @@ Vue.use(Vuex)
 const debug = process.env.NODE_ENV !== 'production';
 
 const state = {
-    cv_id: 21,
-    cv: {
-        content: "Loading CV…",
-        label: "",
-        features: [],
-        id: 21
-    },
+    cv_id: 3,
+    cv: {},
     prevButtonDisabled: false,
     nextButtonDisabled: false,
-    // history: []
 }
 
 const store = new Vuex.Store({

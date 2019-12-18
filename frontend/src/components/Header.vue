@@ -9,37 +9,43 @@
                     </p>
                 </div>
             </div>
-            
-            <div class="hero-foot">
-            <div class="container">
-                <div id="navbarMenuHeroA" class="navbar-menu">
-                    <div class="navbar-start">
-                        prev next
-                    </div>
 
-                    <div class="navbar-end">
-                        label 1 
-                        label2
-                        <a class="navbar-item is-active">
-                            Home + {{ count }}
-                        </a>
-                        <a class="navbar-item">
-                            Examples
-                        </a>
-                        <a class="navbar-item">
-                            Documentation
-                        </a>
-                        <span class="navbar-item">
-                            <a class="button is-primary is-inverted">
-                                <span class="icon">
-                                    <i class="fab fa-github"></i>
-                                </span>
-                                <span>Download</span>
+            <div class="hero-foot">
+                <div class="container">
+                    <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-start">
+                            <b-button icon-left="chevron-left" @click="prevCv" :disabled=prevButtonDisabled>
+                                Prev
+                            </b-button>
+                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ cv_id }}</h2>
+                            <b-button icon-right="chevron-right" @click="nextCv" :disabled=nextButtonDisabled>
+                                Next
+                            </b-button>
+                        </div>
+
+                        <div class="navbar-end">
+                            label 1 
+                            label2
+                            <a class="navbar-item is-active">
+                                Home + {{ count }}
                             </a>
-                        </span>
+                            <a class="navbar-item">
+                                Examples
+                            </a>
+                            <a class="navbar-item">
+                                Documentation
+                            </a>
+                            <span class="navbar-item">
+                                <a class="button is-primary is-inverted">
+                                    <span class="icon">
+                                        <i class="fab fa-github"></i>
+                                    </span>
+                                    <span>Download</span>
+                                </a>
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
             </div>
         </nav>
     </header>
@@ -47,7 +53,7 @@
 
 <script>
 
-import { mapState } from 'vuex';
+import { mapState, mapActions } from 'vuex';
 
 export default {
     name: "Header",
@@ -56,13 +62,15 @@ export default {
         subtitle: String
     },
     computed:
-        mapState(['count'])
+        mapState(['cv_id', 'prevButtonDisabled', 'nextButtonDisabled']),
+    methods:
+        mapActions(['nextCv', 'prevCv']),
 };
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
 /*h3 {
-margin: 40px 0 0;
+    margin: 40px 0 0;
 }*/
 </style>
