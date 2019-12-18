@@ -17,3 +17,7 @@ export const loadCv = ({commit, state}) => {
         commit('setCv', data);
     })
 }
+
+export const labelThis = ({dispatch, commit, state}) => {
+    window.console.log(dispatch);
+}

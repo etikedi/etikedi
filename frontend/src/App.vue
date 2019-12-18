@@ -29,14 +29,15 @@ export default {
 <style lang="scss">
 
 #app {
-    padding-top: 12.25rem;
+    //padding-top: 12.25rem;
 }
 
 // Import Bulma's core
 @import "~bulma/sass/utilities/_all";
 
 // Set your colors
-$primary: #8c67ef;
+//$primary: #8c67ef;
+$primary: $info;
 $primary-invert: findColorInvert($primary);
 //$twitter: #4099FF;
 //$twitter-invert: findColorInvert($twitter);
@@ -47,7 +48,7 @@ $colors: (
     "black": ($black, $white),
     "light": ($light, $light-invert),
     "dark": ($dark, $dark-invert),
-    "primary": ($primary, $primary-invert),
+    "primary": ($info, $info-invert),
     "info": ($info, $info-invert),
     "success": ($success, $success-invert),
     "warning": ($warning, $warning-invert),

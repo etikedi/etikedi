@@ -8,6 +8,7 @@
                         :label="JSON.stringify(feature[1], null, '\n')"
                         position="is-bottom"
                         size="is-large"
+                        type="is-info"
                         multilined>
                         <span v-html="feature[0]" style="border: 1px darkgrey dashed;"></span>
                     </b-tooltip>
