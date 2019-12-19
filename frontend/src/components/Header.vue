@@ -41,6 +41,10 @@
                             </b-button>
                         </div>
                         <div class="navbar-end">
+                            <b-switch 
+                                class="navbar-item"
+                                v-model="local_display_feature_tooltips"
+                                type="is-warning"> Tooltips </b-switch>
                             <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a" type="is-link" @click="labelThis(label)" inverted outlined>
                                 {{ label }}
                             </b-button>
@@ -54,7 +58,7 @@
 
 <script>
 
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapActions,mapGetters } from 'vuex';
 
 export default {
     name: "Header",
@@ -67,9 +71,18 @@ export default {
             labels: ['skill', 'noskill']
         }
     },
-    computed: 
-    mapState(['cv_id', 'prevButtonDisabled', 'nextButtonDisabled'])
-    ,
+    computed: {
+        ...mapState(['cv_id', 'prevButtonDisabled', 'nextButtonDisabled']),
+        local_display_feature_tooltips: {
+            get() {
+
+                return this.$store.state.display_feature_tooltips;
+            },
+            set(new_value) {
+                this.$store.commit("toggle_show_feature_tooltips", new_value);
+            }
+        }
+    },
     methods: 
     mapActions(['nextCv', 'prevCv', 'labelThis']),
     handleHeaderScroll(event) {

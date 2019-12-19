@@ -14,6 +14,7 @@ const state = {
     cv: {},
     prevButtonDisabled: false,
     nextButtonDisabled: false,
+    display_feature_tooltips: true,
 }
 
 const store = new Vuex.Store({
