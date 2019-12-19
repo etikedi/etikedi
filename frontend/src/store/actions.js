@@ -27,14 +27,23 @@ export const labelThis = ({commit}, label) => {
         selection = document.selection.createRange();
     }
 
-    // parse term ids from selection
-    // change state of selected items to reflect the newly selected labels
-    var startId = Number(selection.anchorNode.parentElement.parentElement.parentElement.id);
-    var endId = Number(selection.focusNode.parentElement.parentElement.parentElement.id);
     window.console.log(label);
     window.console.log(selection);
+    function find_feature_id(target) {
+        if (target.nodeType != 1) {
+            target = target.parentElement;
+        }
+        while (!target.hasAttribute("feature_id")) {
+            target = target.parentElement;
+            window.console.log(target);
+        }
+        return target;
+    }
+    var startId = Number(find_feature_id(selection.anchorNode).getAttribute("feature_id"));
+    var endId = Number(find_feature_id(selection.focusNode).getAttribute("feature_id"));
 
-    window.console.log("start" + startId);
+
+    window.console.log(startId);
     window.console.log("end" + endId);
     if (startId > endId) {
         let temp = startId;

@@ -5,7 +5,7 @@
                 <span 
                     v-for="(feature, index) in cv.features" 
                     :key="index"
-                    :id="index"
+                    :feature_id="index"
                     style="white-sepace: pre-line;">
                     <template v-if="feature[0].trim() != '' && !feature[0].includes('<br>')">
                         <template v-if="display_feature_tooltips">
@@ -15,14 +15,12 @@
                                 size="is-large"
                                 type="is-info"
                                 multilined>
-                                <Feature :text="feature[0]" label="feature[1]['label']" /> 
+                                <Feature :text="feature[0]" :label="feature[1]['label']" /> 
                             </b-tooltip>
                         </template>
                         <template v-else>
                             <!-- this is important but only for cosmetic reasons -->
-                            <span class="is-large is-info b-tooltip">
-                                <Feature :text="feature[0]" label="feature[1]['label']" /> 
-                            </span>
+                                <Feature :text="feature[0]" :label="feature[1]['label']" /> 
                         </template>
                     </template>
                     <template v-else>
