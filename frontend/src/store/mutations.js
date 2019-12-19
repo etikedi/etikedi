@@ -21,3 +21,9 @@ export const prevCv = state => {
 export const start_loading = state => {
     state.loading = true;
 }
+
+export const changeLabel = (state, payload) => {
+    for (var i = payload.startId; i <= payload.endId; i++) {
+        state.cv.features[i][1]['label'] = payload.label;
+    }
+}

@@ -5,6 +5,7 @@
                 <span 
                     v-for="(feature, index) in cv.features" 
                     :key="index"
+                    :id="index"
                     style="white-sepace: pre-line;">
                     <b-tooltip
                         v-if="feature[0].trim() != '' && !feature[0].includes('<br>')"
@@ -15,7 +16,8 @@
                         multilined>
                         <span 
                             v-html="feature[0]" 
-                            style="border: 1px darkgrey dashed;"></span>
+                            style="border: 1px darkgrey dashed;"
+                            :class="feature[1]['label']"></span>
                     </b-tooltip>
                     <span
                         v-else
@@ -39,18 +41,32 @@ import { mapState } from 'vuex';
 export default {
     name: "CV",
     props: {},
-    computed: 
-        mapState(['cv', 'loading'])
-    ,
+    computed: { 
+        ...mapState(['cv', 'loading']),
+    },
+    methods: {
+        labelClass: function(feature) {
+            window.console.log(feature[1]['label']);
+            return feature[1]['label'];
+        }
+    }
 
 };
 </script>
 
 <style scoped lang="scss">
-    .loading-overlay {
-        left: 0;
-        top: 0;
-        position: fixed;
-        transform: translateX(-50%, -50%);
-    }
+.loading-overlay {
+    left: 0;
+    top: 0;
+    position: fixed;
+    transform: translateX(-50%, -50%);
+}
+
+.skill {
+    color: red;
+}
+
+.noskill {
+    color: blue;
+}
 </style>

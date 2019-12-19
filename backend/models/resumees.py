@@ -17,7 +17,8 @@ class Resumees(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(), unique=False, nullable=False)
-    label = db.Column(db.Integer)
+
+    #  label = db.Column(db.Integer, default=0)
 
     def generateFeatures(self):
 
@@ -86,6 +87,8 @@ class Resumees(db.Model):
             # save features in ?
             # select text by selecting it -> click button label as X -> save labels for selected tokens -> display selected labels
 
+            feature['label'] = 'unspecified'
+
             # convert line breaks to html
             if "\n" in tagging[0]:
                 tagging = ("<br>" * tagging[0].count("\n"), feature)
@@ -104,14 +107,14 @@ class Resumees(db.Model):
 
 class ResumeesApi(Resource):
     def get(self, resumeeId):
-        return Resumees.query.get(resumeeId).as_dict()
+        result = Resumees.query.get(resumeeId).as_dict()
+        pprint(result)
+        return result
 
 
 class ResumeesListApi(Resource):
     def get(self):
         resumees = []
         for r in Resumees.query.all():
-            #  p
-            #  resumee = _prepare_dict_for_json(r.__dict__)
             resumees.append(r.as_dict())
         return resumees

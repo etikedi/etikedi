@@ -41,7 +41,7 @@
                             </b-button>
                         </div>
                         <div class="navbar-end">
-                            <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a" type="is-link" @click="labelThis" inverted outlined>
+                            <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a" type="is-link" @click="labelThis(label)" inverted outlined>
                                 {{ label }}
                             </b-button>
                         </div>
