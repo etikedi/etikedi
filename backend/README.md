@@ -45,4 +45,7 @@ To test the Api without the frontend you can use f. e. curl:
 curl http://127.0.0.1:5000/api/resumees/2
 ```
 
-The files `datasetPreparer.py` were used to initially populate the sqlite databes with the Resumee dataset and can be safely removed in the future.
+## test.db
+The file `datasetPreparer.py` was used to initially populate the sqlite database with the Resumee dataset. 
+In a later version this should be removed by a frontend enabling the users to easily add new datasets.
+Note that by now only the raw data is stored in the database, it has to be adjusted of course to contain the features as new rows in addition to the original data.
