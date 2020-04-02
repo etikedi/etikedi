@@ -23,7 +23,7 @@ class Resumees(db.Model):
     def generateFeatures(self):
 
         #  tokens = nltk.word_tokenize(self.content)
-        tokens = RegexpTokenizer(r'(\s+)', gaps=True).tokenize(self.content)
+        tokens = RegexpTokenizer(r"(\s+)", gaps=True).tokenize(self.content)
         # Tokenizing lower-case article into alphanumeric words [no punctuation]
         #  lower_alpha_tokens = [w for w in tokens if w.isalpha()]
 
@@ -63,31 +63,33 @@ class Resumees(db.Model):
             token = tagging[0]
             line = lines[tagging[2]]
             feature = {}
-            feature['pos'] = tagging[1]
+            feature["pos"] = tagging[1]
 
-            feature['term_length'] = len(token)
+            feature["term_length"] = len(token)
 
             # if beginning charachter is not in ascii we guess that it is a bullet list
-            feature['is_begginning_of_line_non_ascii'] = False if 0 <= ord(
-                line[0]) <= 127 else True
+            feature["is_begginning_of_line_non_ascii"] = (
+                False if 0 <= ord(line[0]) <= 127 else True
+            )
 
-            feature['is_beginning_of_line_number'] = True if '0' <= line[
-                0] <= '9' else False
+            feature["is_beginning_of_line_number"] = (
+                True if "0" <= line[0] <= "9" else False
+            )
 
-            feature['amount_of_commas_in_line'] = sum(c == ',' for c in line)
+            feature["amount_of_commas_in_line"] = sum(c == "," for c in line)
 
-            feature['amount_of_uppercase_letters_in_term'] = sum(
-                c.isupper() for c in token)
-            feature['amount_of_digits_in_term'] = sum(c.isdigit()
-                                                      for c in token)
+            feature["amount_of_uppercase_letters_in_term"] = sum(
+                c.isupper() for c in token
+            )
+            feature["amount_of_digits_in_term"] = sum(c.isdigit() for c in token)
             #  feature['count_spell_corrections'] = len(
             #  speller.candidates(word=token))
 
-            #TODOS:
+            # TODOS:
             # save features in ?
             # select text by selecting it -> click button label as X -> save labels for selected tokens -> display selected labels
 
-            feature['label'] = 'unspecified'
+            feature["label"] = "unspecified"
 
             # convert line breaks to html
             if "\n" in tagging[0]:
@@ -97,11 +99,8 @@ class Resumees(db.Model):
         return features
 
     def as_dict(self):
-        result = {
-            c.name: getattr(self, c.name)
-            for c in self.__table__.columns
-        }
-        result['features'] = self.generateFeatures()
+        result = {c.name: getattr(self, c.name) for c in self.__table__.columns}
+        result["features"] = self.generateFeatures()
         return result
 
 

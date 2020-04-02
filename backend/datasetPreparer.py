@@ -9,8 +9,8 @@ from models.resumees import Resumees
 
 app = Flask(__name__)
 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///testdb.db'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///testdb.db"
 
 with app.app_context():
     db.init_app(app)
@@ -19,27 +19,27 @@ with app.app_context():
     # source: https://dataturks.com/projects/abhishek.narayanan/Entity%20Recognition%20in%20Resumes
     def import_data_turks():
         with open(
-                '../../resumee-dataset-creator/datasets/Entity Recognition in Resumes.json'
+            "../../resumee-dataset-creator/datasets/Entity Recognition in Resumes.json"
         ) as f:
             for line in f:
                 data = json.loads(line)
-                resumee = Resumees(content=data['content'])
+                resumee = Resumees(content=data["content"])
                 db.session.add(resumee)
 
         db.session.commit()
 
     # source: https://www.kaggle.com/maitrip/resumes/data
     def import_kaggle_one():
-        with open('../../resumee-dataset-creator/datasets/resumes.csv',
-                  "r",
-                  encoding='utf-8') as f:
+        with open(
+            "../../resumee-dataset-creator/datasets/resumes.csv", "r", encoding="utf-8"
+        ) as f:
             csvReader = csv.DictReader(f)
             for line in csvReader:
                 try:
-                    content = ast.literal_eval(line['Resume']).decode()
+                    content = ast.literal_eval(line["Resume"]).decode()
                 except SyntaxError:
                     print("Not parsable Resumees String found:")
-                    print(line['Resume'])
+                    print(line["Resume"])
                     continue
                 resumee = Resumees(content=content)
                 db.session.add(resumee)
@@ -47,11 +47,10 @@ with app.app_context():
 
     # source: https://www.kaggle.com/dhainjeamita/resumedataset
     def import_kaggle_two():
-        with open('../../resumee-dataset-creator/datasets/resume_dataset.csv'
-                  ) as f:
+        with open("../../resumee-dataset-creator/datasets/resume_dataset.csv") as f:
             csvReader = csv.DictReader(f)
             for line in csvReader:
-                resumee = Resumees(content=line['Resume'])
+                resumee = Resumees(content=line["Resume"])
                 db.session.add(resumee)
         db.session.commit()
 
