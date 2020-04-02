@@ -1,24 +1,23 @@
-# aergia-frontend
+# Frontend
 
-## Project setup
+You need the following software preinstalled: [yarn](https://yarnpkg.com/).
+
+To install everything:
+
 ```
 yarn install
 ```
 
-### Compiles and hot-reloads for development
+To start the frontend (if the source code is changed the webpage will automatically reload):
+
 ```
 yarn serve
 ```
 
-### Compiles and minifies for production
+To produce a production ready build:
 ```
 yarn build
 ```
 
-### Lints and fixes files
-```
-yarn lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+vue js nennen, vue state, buefy nennen
