@@ -4,18 +4,13 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pylint = "*"
-jedi = "*"
-yapf = "*"
 
 [packages]
-flask = "*"
-flask-sqlalchemy = "*"
 flask-restful = "*"
 flask-cors = "*"
-nltk = "*"
-numpy = "*"
+flask-sqlalchemy = "*"
 pyspellchecker = "*"
+nltk = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3"

@@ -27,8 +27,8 @@ export const labelThis = ({commit}, label) => {
         selection = document.selection.createRange();
     }
 
-    window.console.log(label);
-    window.console.log(selection);
+    // window.console.log(label);
+    // window.console.log(selection);
     function find_feature_id(target) {
         if (target.nodeType != 1) {
             target = target.parentElement;
@@ -43,16 +43,15 @@ export const labelThis = ({commit}, label) => {
     var endId = Number(find_feature_id(selection.focusNode).getAttribute("feature_id"));
 
 
-    window.console.log(startId);
-    window.console.log("end" + endId);
+    // window.console.log(startId);
+    // window.console.log("end" + endId);
     if (startId > endId) {
         let temp = startId;
         startId = endId;
         endId = temp;
     }
-    window.console.log("start" + startId);
-    window.console.log("end" + endId);
-
+    // window.console.log("start" + startId);
+    // window.console.log("end" + endId);
 
     commit('changeLabel', {startId, endId, label});
     if (window.getSelection) {
