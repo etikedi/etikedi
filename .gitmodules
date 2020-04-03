@@ -1,0 +1,3 @@
+[submodule "backend/active_learning"]
+	path = backend/active_learning
+	url = git@gitlab.hrz.tu-chemnitz.de:ddsg/aergia/active_learning.git
