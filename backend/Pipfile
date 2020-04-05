@@ -8,6 +8,7 @@ pylint = "*"
 pydocstyle = "*"
 rope = "*"
 black = "==19.10b0"
+jedi = "*"
 
 [packages]
 flask-restful = "*"
@@ -15,6 +16,13 @@ flask-cors = "*"
 flask-sqlalchemy = "*"
 pyspellchecker = "*"
 nltk = "*"
+json-tricks = "*"
+sklearn = "*"
+matplotlib = "*"
+pandas = "*"
+peewee = "*"
+psycopg2 = "*"
+tabulate = "*"
 
 [requires]
 python_version = "3"

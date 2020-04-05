@@ -172,3 +172,4 @@ tags
 datasets/
 *.db
 Pipfile.lock
+log.txt
