@@ -1,3 +1,6 @@
+import traceback
+import warnings
+
 import numpy as np
 import pandas as pd
 from sklearn import datasets
@@ -9,11 +12,23 @@ from active_learning.experiment_setup_lib import (
     init_logger,
     standard_config,
 )
+from aergia_oracle import AergiaOracle
 
+_formatwarning = warnings.formatwarning
+
+
+def formatwarning_tb(*args, **kwargs):
+    s = _formatwarning(*args, **kwargs)
+    tb = traceback.format_stack()
+    s += "".join(tb[:-1])
+    return s
+
+
+#  warnings.formatwarning = formatwarning_tb
 config = {
     "SAMPLING": "uncertainty_max_margin",
     "CLUSTER": "MostUncertain_max_margin",
-    "NR_QUERIES_PER_ITERATION": 10,
+    "NR_QUERIES_PER_ITERATION": 100,
     "WITH_UNCERTAINTY_RECOMMENDATION": True,
     "WITH_CLUSTER_RECOMMENDATION": True,
     "WITH_SNUBA_LITE": False,
@@ -68,8 +83,11 @@ label_encoder.fit(label_encoder_classes)
     label_encoder,
     START_SET_SIZE=3,
     hyper_parameters=config,
+    oracle=AergiaOracle(),  # this class needs to be extended!
 )
 
 print(
-    "Done with labeling {} new datapoints".format(len(metrics_per_al_cycle["acc_test"]))
+    "Done with labeling {} new datapoints".format(
+        sum(metrics_per_al_cycle["query_length"])
+    )
 )
