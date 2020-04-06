@@ -51,3 +51,9 @@ curl http://127.0.0.1:5000/api/resumees/2
 The file `datasetPreparer.py` was used to initially populate the sqlite database with the Resumee dataset. 
 In a later version this should be removed by a frontend enabling the users to easily add new datasets.
 Note that by now only the raw data is stored in the database, it has to be adjusted of course to contain the features as new rows in addition to the original data.
+
+### example_active_learning_run.py
+In this file we've shown how to start the Active Learning Module for the basic iris data set.
+This code needs to be combined with the back end Flask code.
+For now an example oracle `aergia_oracle.py` is used, which just randomly guesses the correct label.
+Instead the user input from the frontend should be used of course.
