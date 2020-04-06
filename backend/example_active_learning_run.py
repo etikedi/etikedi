@@ -14,17 +14,6 @@ from active_learning.experiment_setup_lib import (
 )
 from aergia_oracle import AergiaOracle
 
-_formatwarning = warnings.formatwarning
-
-
-def formatwarning_tb(*args, **kwargs):
-    s = _formatwarning(*args, **kwargs)
-    tb = traceback.format_stack()
-    s += "".join(tb[:-1])
-    return s
-
-
-#  warnings.formatwarning = formatwarning_tb
 config = {
     "SAMPLING": "uncertainty_max_margin",
     "CLUSTER": "MostUncertain_max_margin",
