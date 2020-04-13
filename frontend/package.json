@@ -60,7 +60,7 @@
   },
   "prettier": {
     "tabWidth": 4,
-    "useTabs": true
+    "bracketSpacing": false
   },
   "postcss": {
     "plugins": {

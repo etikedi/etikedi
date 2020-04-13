@@ -5,8 +5,7 @@ export const setCv = (state: State, data: any) => {
 };
 
 export const nextCv = (state: State) => {
-    if (state.cvId == 1)
-        state.prevButtonDisabled = false;
+    if (state.cvId == 1) state.prevButtonDisabled = false;
     state.cvId++;
 };
 
