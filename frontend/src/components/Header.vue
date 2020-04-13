@@ -45,7 +45,7 @@
                         <div class="navbar-end">
                             <b-switch
                                     class="navbar-item"
-                                    v-model="local_display_feature_tooltips"
+                                    v-model="localDisplayFeatureTooltips"
                                     type="is-warning"> Tooltips
                             </b-switch>
                             <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
@@ -62,6 +62,7 @@
 
 <script lang="ts">
     import {mapState, mapActions, mapGetters} from 'vuex';
+    import store from "@/store";
 
     export default {
         name: "Header",
@@ -76,28 +77,30 @@
         },
         computed: {
             ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled']),
-            local_display_feature_tooltips: {
+            localDisplayFeatureTooltips: {
                 get(): boolean {
 
-                    return this.$store.state.display_feature_tooltips;
+                    return store.state.displayFeatureTooltips;
                 },
-                set(new_value: boolean) {
-                    this.$store.commit("toggle_show_feature_tooltips", new_value);
+                set(newValue: boolean) {
+                    store.commit("toggleShowFeatureTooltips", newValue);
                 }
             }
         },
         methods:
             mapActions(['nextCv', 'prevCv', 'labelThis']),
-        handleHeaderScroll(event) {
-            window.console.log("oh oh");
-            error("ui");
-        },
-        created() {
-            window.addEventListener('scroll', this.handleHeaderScroll);
-        },
-        destroyed() {
-            window.removeEventListener('scroll', this.handleHeaderScroll);
-        }
+            handleHeaderScroll(event: Event) {
+                window.console.log("oh oh");
+                // don't know where function 'error(string)' is declared, neither what it's supposed to do so replaced it with 'alert("ui")'
+                // error("ui");
+                alert("ui")
+            },
+            created() {
+                window.addEventListener('scroll', this.handleHeaderScroll);
+            },
+            destroyed() {
+                window.removeEventListener('scroll', this.handleHeaderScroll);
+            }
     };
 </script>
 

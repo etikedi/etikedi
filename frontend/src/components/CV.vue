@@ -8,7 +8,7 @@
                         :feature_id="index"
                         style="white-sepace: pre-line;">
                     <template v-if="feature[0].trim() != '' && !feature[0].includes('<br>')">
-                        <template v-if="display_feature_tooltips">
+                        <template v-if="displayFeatureTooltips">
                             <b-tooltip
                                     :label="JSON.stringify(feature[1], null, '\n')"
                                     position="is-bottom"
@@ -47,10 +47,10 @@
         props: {},
         components: {Feature},
         computed: {
-            ...mapState(['cv', 'loading', 'display_feature_tooltips']),
+            ...mapState(['cv', 'loading', 'displayFeatureTooltips']),
         },
         methods: {
-            labelClass: function (feature) {
+            labelClass: function (feature: Array<any>) {
                 window.console.log(feature[1]['label']);
                 return feature[1]['label'];
             }

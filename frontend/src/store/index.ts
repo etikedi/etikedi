@@ -1,26 +1,27 @@
 import Vue from "vue"
 import Vuex from "vuex"
-// @ts-ignore
-import * as getters from "./getters"
+// Enable again if there is something in getters.ts
+// import * as getters from "./getters"
 import * as actions from "./actions"
 import * as mutations from "./mutations"
+import {State} from "@/store/models";
 
 Vue.use(Vuex);
 
 const debug = process.env.NODE_ENV !== "production";
 
-const state = {
+const state: State = {
     cvId: 3,
     loading: false,
     cv: {},
     prevButtonDisabled: false,
     nextButtonDisabled: false,
-    display_feature_tooltips: true,
+    displayFeatureTooltips: true,
 };
 
 const store = new Vuex.Store({
     state,
-    getters,
+    getters: {},
     actions,
     mutations,
     modules: {},
