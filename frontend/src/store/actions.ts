@@ -3,21 +3,21 @@ import CV_service from '@/api/CV_Service';
 export const nextCv = ({dispatch, commit}) => {
     commit('nextCv');
     dispatch('loadCv');
-}
+};
 
 
 export const prevCv = ({dispatch, commit}) => {
     commit('prevCv');
     dispatch('loadCv');
-}
+};
 
 export const loadCv = ({commit, state}) => {
     commit("start_loading");
-    return CV_service.getCv({cv_id: state.cv_id}).then(({data}) => {
+    return CV_service.getCv({cvId: state.cvId}).then(({data}) => {
         commit('setCv', data);
         commit("end_loading");
     })
-}
+};
 
 export const labelThis = ({commit}, label) => {
     var selection = "";
@@ -39,8 +39,8 @@ export const labelThis = ({commit}, label) => {
         }
         return target;
     }
-    var startId = Number(find_feature_id(selection.anchorNode).getAttribute("feature_id"));
-    var endId = Number(find_feature_id(selection.focusNode).getAttribute("feature_id"));
+    let startId = Number(find_feature_id(selection.anchorNode).getAttribute("feature_id"));
+    let endId = Number(find_feature_id(selection.focusNode).getAttribute("feature_id"));
 
 
     // window.console.log(startId);
@@ -60,4 +60,4 @@ export const labelThis = ({commit}, label) => {
     else if (document.selection) {
         document.selection.empty();
     }
-}
+};
