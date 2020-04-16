@@ -2,7 +2,7 @@
 `Note` after cloning this repo you first need to initialize the git submodules, which you can in laymen terms think of as including the active learning code from a different git repository.
 
 ```
-git init submodule
+git submodule init
 git submodule update
 ```
 
