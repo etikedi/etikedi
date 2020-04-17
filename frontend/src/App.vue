@@ -41,15 +41,19 @@ export default Vue.extend({
         updateBody: function(objectType){
             switch (objectType) {
                 case "1":{
+                    //methods for CIFAR
                     break;
                 }
                 case "2":{
+                    //methods for DWTC
                     break;
                 }
                 case "3":{
+                    //methods for Equations
                     break;
                 }
                 case "4":{
+                    //methods for Religious Texts
                     break;
                 }
                 case "5":{
