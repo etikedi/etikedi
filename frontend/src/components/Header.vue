@@ -80,7 +80,7 @@
         },
         data: function () {
             return {
-                objectType: null,
+                objectType: "",
                 labels: ['skill', 'noskill']
             }
         },
@@ -103,7 +103,7 @@
         handleHeaderScroll(event: Event) {
                 window.console.log("oh oh");
                 // don't know where function 'error(string)' is declared, neither what it's supposed to do so replaced it with 'alert("ui")'
-                // error("ui");
+                // error("ui")
                 alert("ui")
         },
         created() {
@@ -113,8 +113,8 @@
                 window.removeEventListener('scroll', this.handleHeaderScroll);
         },
         watch:{
-            objectType: function(value){
-                this.$emit("updateObjectType", value);
+            objectType: function(value: any){
+                return this.$emit("updateObjectType", value);
             }
         }
     };

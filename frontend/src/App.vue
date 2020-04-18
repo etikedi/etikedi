@@ -29,7 +29,7 @@ export default Vue.extend({
     name: "app",
     data: function () {
             return {
-                objectType: 0
+                objectType: "0"
             }
     },
     components: {
@@ -38,7 +38,7 @@ export default Vue.extend({
         CV
     },
     methods:{
-        updateBody: function(objectType){
+        updateBody: function(objectType: any){
             switch (objectType) {
                 case "1":{
                     //methods for CIFAR
