@@ -42,6 +42,14 @@
                                 Next
                             </b-button>
                         </div>
+                        <b-select v-model="objectType" placeholder="Objekttyp auswählen">
+                            <option value="1">CIFAR</option>
+                            <option value="2">DWTC</option>
+                            <option value="3">Equations</option>
+                            <option value="4">Religious Texts</option>
+                            <option value="5">Resumees</option>
+                        </b-select>
+
                         <div class="navbar-end">
                             <b-switch
                                     class="navbar-item"
@@ -72,6 +80,7 @@
         },
         data: function () {
             return {
+                objectType: "",
                 labels: ['skill', 'noskill']
             }
         },
@@ -87,20 +96,27 @@
                 }
             }
         },
-        methods:
-            mapActions(['nextCv', 'prevCv', 'labelThis']),
-            handleHeaderScroll(event: Event) {
+        methods:{
+            ...mapActions(['nextCv', 'prevCv', 'labelThis'])
+            
+        },
+        handleHeaderScroll(event: Event) {
                 window.console.log("oh oh");
                 // don't know where function 'error(string)' is declared, neither what it's supposed to do so replaced it with 'alert("ui")'
-                // error("ui");
+                // error("ui")
                 alert("ui")
-            },
-            created() {
+        },
+        created() {
                 window.addEventListener('scroll', this.handleHeaderScroll);
-            },
-            destroyed() {
+        },
+        destroyed() {
                 window.removeEventListener('scroll', this.handleHeaderScroll);
+        },
+        watch:{
+            objectType: function(value: any){
+                return this.$emit("updateObjectType", value);
             }
+        }
     };
 </script>
 
