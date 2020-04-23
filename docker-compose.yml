@@ -5,6 +5,8 @@ services:
     image: tu-dresden/aergia-backend
     build:
       context: ./backend
+    environment:
+      FLASK_DEBUG: 1
     ports:
       - 5000:5000
     volumes:
