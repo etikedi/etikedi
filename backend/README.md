@@ -84,8 +84,78 @@ In your editor you can set as code formatter [black](https://github.com/psf/blac
 
 ### Models
 
-For each database table a Model file should be created using [FlasktSQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/).
-The `*API` classes define the logic for the REST API using [Flask-RESTful](https://flask-restful.readthedocs.io/), actually not much code is needed here as the underlying framework is doing all the work for us.
+
+```mermaid
+classDiagram
+  class Dataset {
+    +String name
+  }
+
+  class Label {
+    +String name
+    +Dataset dataset
+  }
+  Dataset <-- Label
+
+  class Sample {
+    +int id
+  }
+  Dataset <-- Sample
+
+  class Association {
+    +int sample_id
+    +int label_id
+    +int user_id
+  }
+  Association <-- User
+  Association <-- Label
+  Association <-- Sample
+
+  class Text {
+    +Dataset Dataset
+    +Bool html?
+    +JSON features
+  }
+  Sample <-- Text
+
+  class Table {
+    +int item_id
+    +Something data
+    +Dataset dataset
+    +JSON features
+  }
+  Sample <-- Table
+
+  class Image {
+    +int item_id
+    +blob data
+    +Dataset dataset
+    +JSON features
+  }
+  Sample <-- Image
+
+  class ToBeAddedDatatype {
+    +int item_id
+    +something data
+    +Dataset dataset
+    +JSON features
+  }
+  Sample <-- ToBeAddedDatatype
+
+  class User {
+    +int id
+    +string name
+    +string email
+  }
+
+  class Permission {
+    +int user_id
+    +int dataset_id
+    +string role
+  }
+  Permission <-- User
+  Permission <-- Dataset
+```
 
 ### REST API
 
