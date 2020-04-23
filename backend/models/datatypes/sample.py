@@ -3,7 +3,13 @@ from ...aergia import db
 
 
 class Sample(db.Model):
-    """ A generic data item. """
+    """
+    Base class for samples.
+
+    Uses joined table inheritance to enable polymorphic fetching of
+    concrete samples of a specific data table. Documentation about how
+    this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
+    """
     __tablename__ = 'sample'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -28,6 +34,6 @@ class Sample(db.Model):
     type = db.Column(db.VARCHAR(10))
 
     __mapper_args__ = {
-        'polymorphic_identity':'employee',
+        'polymorphic_identity': 'employee',
         'polymorphic_on': 'type'
     }
