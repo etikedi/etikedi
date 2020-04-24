@@ -4,6 +4,10 @@ export const setCv = (state: State, data: any) => {
     state.cv = data;
 };
 
+export const setDWTC = (state: State, data: any) => {
+    state.dwtc = data;
+};
+
 export const nextCv = (state: State) => {
     if (state.cvId == 1) state.prevButtonDisabled = false;
     state.cvId++;

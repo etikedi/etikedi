@@ -1,4 +1,5 @@
 import CVService from '@/api/CV-Service';
+import DWTCService from '@/api/DWTC-Service';
 
 export const nextCv = (
     {dispatch, commit}: any
@@ -13,6 +14,17 @@ export const prevCv = (
 ) => {
     commit('prevCv');
     dispatch('loadCv');
+};
+
+export const loadDWTC = (
+    {commit, state}: any
+) => {
+    commit("startLoading");
+    return DWTCService.getDWTV({dwtcId: state.dwtcId}).then((data) => {
+        console.log(data)
+        commit('setDWTC', data);
+        commit("endLoading");
+    })
 };
 
 export const loadCv = (

@@ -1,7 +1,9 @@
 export interface State {
     cvId: number,
+    dwtcId: number,
     loading: boolean,
-    cv: any,
+    cv?: any,
+    dwtc?: any,
     prevButtonDisabled: boolean,
     nextButtonDisabled: boolean,
     displayFeatureTooltips: boolean,

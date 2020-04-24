@@ -12,8 +12,10 @@ const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
     cvId: 3,
+    dwtcId: 1,
     loading: false,
     cv: {},
+    dwtc: {},
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
