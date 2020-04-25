@@ -1,7 +1,7 @@
 import Api from '@/api/api'
 
 export default {
-    getDWTV(params: { dwtcId: number }): Promise<any> {
+    getDWTC(params: { dwtcId: number }): Promise<any> {
         return Promise.resolve("<tbody>\n <tr> \n" +
             "  <th>1-Month</th> \n" +
             "  <td class=\"first up\">+1.38%</td> \n" +

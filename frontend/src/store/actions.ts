@@ -20,7 +20,7 @@ export const loadDWTC = (
     {commit, state}: any
 ) => {
     commit("startLoading");
-    return DWTCService.getDWTV({dwtcId: state.dwtcId}).then((data) => {
+    return DWTCService.getDWTC({dwtcId: state.dwtcId}).then((data) => {
         console.log(data)
         commit('setDWTC', data);
         commit("endLoading");
