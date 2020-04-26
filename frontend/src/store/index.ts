@@ -1,9 +1,9 @@
-import Vue from "vue"
-import Vuex from "vuex"
+import Vue from "vue";
+import Vuex from "vuex";
 // Enable again if there is something in getters.ts
 // import * as getters from "./getters"
-import * as actions from "./actions"
-import * as mutations from "./mutations"
+import * as actions from "./actions";
+import * as mutations from "./mutations";
 import {State} from "@/store/models";
 
 Vue.use(Vuex);
@@ -17,6 +17,7 @@ const state: State = {
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
+    image: ""
 };
 
 const store = new Vuex.Store({
@@ -29,17 +30,13 @@ const store = new Vuex.Store({
 });
 
 if (module.hot) {
-    module.hot.accept([
-        "./getters",
-        "./actions",
-        "./mutations"
-    ], () => {
+    module.hot.accept(["./getters", "./actions", "./mutations"], () => {
         store.hotUpdate({
             getters: require("./getters"),
             actions: require("./actions"),
             mutations: require("./mutations")
-        })
-    })
+        });
+    });
 }
 
-export default store
+export default store;

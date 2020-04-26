@@ -18,6 +18,10 @@ export const prevCv = (state: State) => {
     }
 };
 
+export const setImage = (state: State, data: any) => {
+    state.image = data;
+};
+
 export const startLoading = (state: State) => {
     state.loading = true;
 };

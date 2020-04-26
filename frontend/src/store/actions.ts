@@ -1,4 +1,5 @@
-import CVService from '@/api/CV-Service';
+import CVService from "@/api/CV-Service";
+import CifarService from "@/api/CifarService";
 
 export const nextCv = (
     {dispatch, commit}: any
@@ -20,9 +21,19 @@ export const loadCv = (
 ) => {
     commit("startLoading");
     return CVService.getCv({cvId: state.cvId}).then(({data}) => {
-        commit('setCv', data);
+        commit("setCv", data);
         commit("endLoading");
-    })
+    });
+};
+
+export const loadImage = ({commit}: any) => {
+    commit("startLoading");
+    return CifarService.getImage().then(({data}) => {
+        const urlCreator = window.URL || window.webkitURL;
+        const imageUrl = urlCreator.createObjectURL(data);
+        commit("setImage", imageUrl);
+        commit("endLoading");
+    });
 };
 
 export const labelThis = (
