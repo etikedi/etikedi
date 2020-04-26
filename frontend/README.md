@@ -46,6 +46,3 @@ The actions can be called from the Vue components, and can change via mutations 
 To make everything look fancy the CSS framework [Bulma](https://bulma.io/) is being used.
 There exists a Vue.js integration called [Buefy](https://buefy.org/), sometimes it helps to take a look into both documentations.
 For things like buttons, tooltips, etc. this should be used.
-
-
-Test
