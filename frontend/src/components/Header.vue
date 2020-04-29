@@ -70,7 +70,7 @@
 
 <script lang="ts">
     import {mapState, mapActions, mapGetters} from 'vuex';
-    import store from "@/store";
+    import store from "../store";
 
     export default {
         name: "Header",
