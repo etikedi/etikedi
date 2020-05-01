@@ -3,7 +3,7 @@
         <div class="container">
             <div style="position: relative;">
                 <span>
-					Hallo Welt
+                    {{religiousText}}
                 </span>
                 <b-loading
                         :is-full-page="false"
@@ -23,7 +23,7 @@
         props: {},
         components: {},
         computed: {
-            ...mapState(['cv', 'loading', 'displayFeatureTooltips']),
+            ...mapState(['religiousText', 'loading']),
         },
         methods: {
         }

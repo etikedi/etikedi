@@ -32,13 +32,25 @@
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-left="chevron-left"
+
+                            <b-button v-if="this.objectType != 4" class="navbar-item" tag="a" type="is-link" icon-left="chevron-left" 
                                       @click="prevCv" :disabled=prevButtonDisabled inverted outlined>
                                 Prev
                             </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ cvId }}</h2>
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
+                            <b-button v-if="this.objectType == 4" class="navbar-item" tag="a" type="is-link" icon-left="chevron-left" 
+                                      @click="prevRT" :disabled=prevButtonDisabled inverted outlined>
+                                Prev
+                            </b-button>
+
+                            <h2 v-if="this.objectType != 4" class="title" style="padding: 0 1rem 0 1rem">{{ cvId }}</h2>
+                            <h2 v-if="this.objectType == 4" class="title" style="padding: 0 1rem 0 1rem">{{ rtId }}</h2>
+
+                            <b-button v-if="this.objectType != 4" class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
                                       @click="nextCv" :disabled=nextButtonDisabled inverted outlined>
+                                Next
+                            </b-button>
+                            <b-button v-if="this.objectType == 4" class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
+                                      @click="nextRT" :disabled=nextButtonDisabled inverted outlined>
                                 Next
                             </b-button>
                         </div>
@@ -85,7 +97,7 @@
             }
         },
         computed: {
-            ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled']),
+            ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled', 'rtId']),
             localDisplayFeatureTooltips: {
                 get(): boolean {
 
@@ -97,7 +109,7 @@
             }
         },
         methods:{
-            ...mapActions(['nextCv', 'prevCv', 'labelThis'])
+            ...mapActions(['nextCv', 'prevCv', 'labelThis', 'nextRT', 'prevRT'])
             
         },
         handleHeaderScroll(event: Event) {

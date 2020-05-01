@@ -35,3 +35,21 @@ export const changeLabel = (state: State, payload: LabelPayload) => {
 export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
     state.displayFeatureTooltips = newValue;
 };
+
+export const setRT = (state: State, data: any) => {
+    state.religiousText = data;
+};
+
+export const nextRT = (state: State) => {
+    if (state.rtId == 1) state.prevButtonDisabled = false;
+    state.rtId++;
+};
+
+export const prevRT = (state: State) => {
+    if (state.rtId == 2) {
+        state.prevButtonDisabled = true;
+        state.rtId--;
+    } else {
+        state.rtId--;
+    }
+}

@@ -55,7 +55,7 @@ export default Vue.extend({
                     break;
                 }
                 case "4":{
-                    //methods for Religious Texts
+                    this.$store.dispatch('loadRT');
                     break;
                 }
                 case "5":{

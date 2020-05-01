@@ -17,6 +17,8 @@ const state: State = {
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
+    religiousText: "",
+    rtId: 5,
 };
 
 const store = new Vuex.Store({

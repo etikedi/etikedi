@@ -1,4 +1,6 @@
 import CVService from '@/api/CV-Service';
+import RTService from '@/api/ReligiousText-Service';
+import { startLoading } from './mutations';
 
 export const nextCv = (
     {dispatch, commit}: any
@@ -66,4 +68,31 @@ export const labelThis = (
 
     commit('changeLabel', {startId, endId, label});
     window.getSelection()?.removeAllRanges();
+};
+
+export const loadRT = (
+    {commit, state}: any
+) => {
+    commit('startLoading');
+    console.log("loadRT()");
+    return RTService.getReligiousText({rtId: state.rtId}).then(({data}) => {
+        console.log('loadingReligiousText()' + data);
+        commit('setRT', data);
+        commit('endLoading');
+    })
+};
+
+export const nextRT = (
+    {dispatch, commit}: any
+) => {
+    commit('nextRT');
+    dispatch('loadRT');
+};
+
+
+export const prevRT = (
+    {dispatch, commit}: any
+) => {
+    commit('prevRT');
+    dispatch('loadRT');
 };
