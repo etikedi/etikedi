@@ -4,6 +4,36 @@
 <script lang="ts">
 export default {
     name: "CIFAR",
-    props: {}
+    props: {},
+    data: () => {
+        const images = [
+            {
+                id: 0,
+                src: "https://homepages.cae.wisc.edu/~ece533/images/baboon.png"
+            },
+            {
+                id: 1,
+                src: "https://homepages.cae.wisc.edu/~ece533/images/boat.png"
+            },
+            {
+                id: 2,
+                src: "https://homepages.cae.wisc.edu/~ece533/images/peppers.png"
+            }
+        ];
+        const labelChunk: string[] = [];
+        return {images, labelChunk};
+    },
+    methods: {
+        send: function(id: string, value: string, index: number) {
+            if (value) {
+                // send to api
+                alert(
+                    `Image with ID <${id}> is labeled with "${value}" and was send successfully to server.`
+                );
+                (this.$refs[`input-${index}`] as HTMLInputElement[])[0].value =
+                    "";
+            }
+        }
+    }
 };
 </script>

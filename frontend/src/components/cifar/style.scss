@@ -1,3 +1,21 @@
-div {
-    font-size: 50px;
+.container {
+    margin: 10px auto;
+
+    .title,
+    .subtitle {
+        text-align: center;
+    }
+
+    .image-container {
+        margin: 10px auto;
+        width: 300px;
+
+        .label {
+            margin: 10px 0 0 0;
+
+            .button {
+                width: 100%;
+            }
+        }
+    }
 }
