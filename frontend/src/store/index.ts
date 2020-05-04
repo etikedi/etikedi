@@ -4,7 +4,7 @@ import Vuex from "vuex";
 // import * as getters from "./getters"
 import * as actions from "./actions";
 import * as mutations from "./mutations";
-import {State} from "@/store/models";
+import {CifarSample, State} from "@/store/models";
 
 Vue.use(Vuex);
 
@@ -17,7 +17,11 @@ const state: State = {
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
-    image: ""
+    allDatasets: [],
+    currentDataset: "",
+    cifarSampleID: "",
+    cifarSample: undefined,
+    cifarLabels: []
 };
 
 const store = new Vuex.Store({

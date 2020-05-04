@@ -43,7 +43,8 @@ export default Vue.extend({
         updateBody: function(objectType: any) {
             switch (objectType) {
                 case "1": {
-                    this.$store.dispatch("loadImage");
+                    this.$store.dispatch("setDataset", "CIFAR");
+                    this.$store.dispatch("loadCifarLabels");
                     break;
                 }
                 case "2": {
@@ -68,10 +69,11 @@ export default Vue.extend({
             }
             this.objectType = objectType;
         }
+    },
+    mounted() {
+        // this.$store.dispatch('loadCv');
+        this.$store.dispatch("loadAllDatasets");
     }
-    /*mounted() {
-        this.$store.dispatch('loadCv');
-    }*/
 });
 </script>
 
