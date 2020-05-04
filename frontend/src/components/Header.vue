@@ -52,12 +52,19 @@
 
                         <div class="navbar-end">
                             <b-switch
+                                    v-if="objectType==='5'"
                                     class="navbar-item"
                                     v-model="localDisplayFeatureTooltips"
                                     type="is-warning"> Tooltips
                             </b-switch>
-                            <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
-                                      type="is-link" @click="labelThis(label)" inverted outlined>
+                            <b-button v-for="(label,index) in labels[objectType]"
+                                      :key="index"
+                                      class="navbar-item"
+                                      tag="a"
+                                      type="is-link"
+                                      @click="labelThis(label)"
+                                      inverted
+                                      outlined>
                                 {{ label }}
                             </b-button>
                         </div>
@@ -81,7 +88,7 @@
         data: function () {
             return {
                 objectType: "",
-                labels: ['skill', 'noskill']
+                labels: {'1': [], '2': ['relation', 'matrix', 'entity', 'other'], '3': [], '4': [], '5': ['skill', 'noskill']}
             }
         },
         computed: {
