@@ -14,7 +14,14 @@ import {mapState} from "vuex";
 export default {
     name: "CIFAR",
     computed: {
-        ...mapState(["loading", "image"])
+        ...mapState([
+            "loading",
+            "cifarSample",
+            "cifarLabels"
+        ])
+    },
+    mounted() {
+        this.$store.dispatch("loadCifarSample");
     }
 };
 </script>

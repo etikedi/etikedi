@@ -5,11 +5,22 @@ export interface State {
     prevButtonDisabled: boolean;
     nextButtonDisabled: boolean;
     displayFeatureTooltips: boolean;
-    image: any;
+    allDatasets: string[];
+    currentDataset: string;
+    cifarSampleID: any,
+    cifarSample: CifarSample | undefined;
+    cifarLabels: any;
 }
 
 export interface LabelPayload {
     startId: number;
     endId: number;
     label: string;
+}
+
+export interface CifarSample {
+    sampleID: any;
+    data: any;
+    association: any;
+    datasetID?: string;
 }

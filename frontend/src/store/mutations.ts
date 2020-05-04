@@ -1,4 +1,4 @@
-import {LabelPayload, State} from "@/store/models";
+import {CifarSample, LabelPayload, State} from "@/store/models";
 
 export const setCv = (state: State, data: any) => {
     state.cv = data;
@@ -18,8 +18,30 @@ export const prevCv = (state: State) => {
     }
 };
 
+/*
 export const setImage = (state: State, data: any) => {
     state.image = data;
+};
+ */
+
+export const setAllDatasets = (state: State, allDatasets: string[]) => {
+    state.allDatasets = allDatasets;
+};
+
+export const setCurrentDataset = (state: State, currentDataset: string) => {
+    state.currentDataset = currentDataset;
+};
+
+export const setCifarSampleID = (state: State, sampleID: any) => {
+    state.cifarSampleID = sampleID;
+};
+
+export const setCifarSample = (state: State, sample: CifarSample) => {
+    state.cifarSample = sample;
+};
+
+export const setCifarLabels = (state: State, labels: any) => {
+    state.cifarLabels = labels;
 };
 
 export const startLoading = (state: State) => {
