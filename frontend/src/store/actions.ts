@@ -60,10 +60,10 @@ export const loadCifarLabels = ({commit, state}: any) => {
     );
 };
 
-export const labelCifarSample = ({commit, state}: any, label: any) => {
+export const labelCifarSample = ({commit, state}: any, sampleID: any, label: any) => {
     commit("startLoading");
     return CifarService.updateSample({
-        sampleID: state.cifarSampleID,
+        sampleID: sampleID,
         labelID: label,
         userID: "Hick"
     }).then(({labels}) => {

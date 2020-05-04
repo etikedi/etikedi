@@ -2,7 +2,10 @@
 <template src="./template.html"></template>
 
 <script lang="ts">
-export default {
+
+import Vue from "vue";
+
+export default Vue.extend({
     name: "CIFAR",
     props: {},
     data: () => {
@@ -25,6 +28,12 @@ export default {
     },
     methods: {
         send: function(id: string, value: string, index: number) {
+            /*
+            this.$store.dispatch("labelCifarSample", {
+                sampleID: id,
+                labelID: value
+            });
+            */
             if (value) {
                 // send to api
                 alert(
@@ -35,5 +44,5 @@ export default {
             }
         }
     }
-};
+});
 </script>
