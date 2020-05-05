@@ -74,9 +74,9 @@ export const loadRT = (
     {commit, state}: any
 ) => {
     commit('startLoading');
-    console.log("loadRT()");
-    return RTService.getReligiousText({rtId: state.rtId}).then(({data}) => {
-        console.log('loadingReligiousText()' + data);
+    //console.log("loadRT(" + state.rtId + ")");
+    return RTService.getReligiousText({rtId: state.rtId}).then(function(data) {             //'({data}) =>'  -->   'function(data)'
+        //console.log('loadingReligiousText()' + data);
         commit('setRT', data);
         commit('endLoading');
     })
