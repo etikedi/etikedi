@@ -27,6 +27,7 @@ const store = new Vuex.Store({
     modules: {
 		cv: cvStore,
 		//religious: religiousStore,
+		// add imported dataset type modules here!
 	},
     getters,
     actions,
