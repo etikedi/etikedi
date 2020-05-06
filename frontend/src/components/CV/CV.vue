@@ -47,7 +47,8 @@
         props: {},
         components: {Feature},
         computed: {
-            ...mapState(['cv', 'loading', 'displayFeatureTooltips']),
+            ...mapState('cv', ['cv']),
+            ...mapState(['loading', 'displayFeatureTooltips']),
         },
         methods: {
             labelClass: function (feature: Array<any>) {

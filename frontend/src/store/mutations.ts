@@ -1,21 +1,8 @@
-import {LabelPayload, State} from "@/store/models";
+import {State} from "@/store/models";
 
-export const setCv = (state: State, data: any) => {
-    state.cv = data;
-};
-
-export const nextCv = (state: State) => {
-    if (state.cvId == 1) state.prevButtonDisabled = false;
-    state.cvId++;
-};
-
-export const prevCv = (state: State) => {
-    if (state.cvId == 2) {
-        state.prevButtonDisabled = true;
-        state.cvId--;
-    } else {
-        state.cvId--;
-    }
+export const setDatasetType = (state: State, objectType:string) => {
+	console.log("Setting new dataset type: "+objectType)
+    state.datasetType = objectType;
 };
 
 export const startLoading = (state: State) => {

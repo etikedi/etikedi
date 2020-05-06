@@ -5,7 +5,7 @@
                 <div class="container">
                     <div class="navbar-menu">
                         <div class="navbar-end">
-                            <a class="navbar-item is-active" @click="nextCv">
+                            <a class="navbar-item is-active" @click="nextDataset">
                                 Home
                             </a>
                             <a class="navbar-item">
@@ -33,21 +33,21 @@
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
                             <b-button class="navbar-item" tag="a" type="is-link" icon-left="chevron-left"
-                                      @click="prevCv" :disabled=prevButtonDisabled inverted outlined>
+                                      @click="prevDataset" :disabled=prevButtonDisabled inverted outlined>
                                 Prev
                             </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ cvId }}</h2>
+                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ $store.getters.activeDatasetId }}</h2>
                             <b-button class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
-                                      @click="nextCv" :disabled=nextButtonDisabled inverted outlined>
+                                      @click="nextDataset" :disabled=nextButtonDisabled inverted outlined>
                                 Next
                             </b-button>
                         </div>
-                        <b-select v-model="objectType" placeholder="Objekttyp auswählen">
-                            <option value="1">CIFAR</option>
-                            <option value="2">DWTC</option>
-                            <option value="3">Equations</option>
-                            <option value="4">Religious Texts</option>
-                            <option value="5">Resumees</option>
+                        <b-select v-model="datasetType" placeholder="Objekttyp auswählen">
+                            <option value="cifar">CIFAR</option>
+                            <option value="dwtc">DWTC</option>
+                            <option value="equations">Equations</option>
+                            <option value="religious">Religious Texts</option>
+                            <option value="cv">Resumees</option>
                         </b-select>
 
                         <div class="navbar-end">
@@ -57,7 +57,7 @@
                                     type="is-warning"> Tooltips
                             </b-switch>
                             <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
-                                      type="is-link" @click="labelThis(label)" inverted outlined>
+                                      type="is-link" @click="labelDataset(label)" inverted outlined>
                                 {{ label }}
                             </b-button>
                         </div>
@@ -80,12 +80,12 @@
         },
         data: function () {
             return {
-                objectType: "",
-                labels: ['skill', 'noskill']
+                datasetType: "cv",//must duplicate state here, because mapState doesn't make a setter and we have to emit an event
             }
         },
         computed: {
             ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled']),
+            ...mapGetters(['labels']),
             localDisplayFeatureTooltips: {
                 get(): boolean {
 
@@ -97,7 +97,7 @@
             }
         },
         methods:{
-            ...mapActions(['nextCv', 'prevCv', 'labelThis'])
+            ...mapActions(['nextDataset', 'prevDataset', 'labelDataset'])
             
         },
         handleHeaderScroll(event: Event) {
@@ -113,8 +113,8 @@
                 window.removeEventListener('scroll', this.handleHeaderScroll);
         },
         watch:{
-            objectType: function(value: any){
-                return this.$emit("updateObjectType", value);
+            datasetType: function(value: any){
+                return this.$emit("updateDatasetType", value);
             }
         }
     };

@@ -1,19 +1,22 @@
 import Vue from "vue"
 import Vuex from "vuex"
 // Enable again if there is something in getters.ts
-// import * as getters from "./getters"
+import * as getters from "./getters"
 import * as actions from "./actions"
 import * as mutations from "./mutations"
-import {State} from "@/store/models";
+import {State} from "./models";
+
+import {cvStore} from "@/components/CV/store/module"
+//import {religiousStore} from "@/components/Religious/store/module"
 
 Vue.use(Vuex);
 
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    cvId: 3,
-    loading: false,
-    cv: {},
+	datasetType: 'cv',
+	
+	loading: false,
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
@@ -21,10 +24,13 @@ const state: State = {
 
 const store = new Vuex.Store({
     state,
-    getters: {},
+    modules: {
+		cv: cvStore,
+		//religious: religiousStore,
+	},
+    getters,
     actions,
     mutations,
-    modules: {},
     strict: debug
 });
 
