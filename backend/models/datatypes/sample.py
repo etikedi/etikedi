@@ -34,6 +34,12 @@ class Sample(db.Model):
     type = db.Column(db.VARCHAR(10))
 
     __mapper_args__ = {
-        'polymorphic_identity': 'employee',
+        'polymorphic_identity': 'sample',
         'polymorphic_on': 'type'
     }
+
+    def __str__(self):
+        return 'Sample {} in {}'.format(self.id, self.dataset)
+
+    def __repr__(self):
+        return str(self)
