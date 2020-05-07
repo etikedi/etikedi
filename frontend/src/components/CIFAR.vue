@@ -1,51 +1,85 @@
 <template>
     <section class="section">
         <div class="container">
-            <div style="position: relative;">
-                <h1 class="title">CIFAR</h1>
-                <h2 class="subtitle">Let's go and label your pics!</h2>
+            <div class="columns is-desktop">
+                <div class="box">
+                    <h1 class="title">CIFAR</h1>
+                    <h2 class="subtitle">Let's go and label this picture!</h2>
 
-                <div class="columns is-desktop">
-                    <div class="image-container column">
-                        <figure class="image is-128x128">
-                            <img :src="samples[count].src" />
-                        </figure>
+                    <div class="card-content">
+                        <img
+                            class="image is-128x128 is-horizontal-center"
+                            :src="samples[count].src"
+                        />
+                    </div>
 
-                        <div class="label">
-                            <div class="columns">
-                                <div class="column">
-                                    <div class="select">
-                                        <select v-model="selected">
-                                            <option
-                                                v-for="item in lables"
-                                                :key="item.id"
-                                                :value="item.id"
-                                                >{{ item.name }}</option
-                                            >
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="column">
-                                    <button
-                                        v-on:click="
-                                            count++;
-                                            send(samples[count].id, selected);
-                                        "
-                                        class="button is-info"
+                    <div class="field">
+                        <div class="control">
+                            <div class="select is-info is-fullwidth">
+                                <select v-model="selected">
+                                    <option
+                                        v-for="item in lables"
+                                        :key="item.id"
+                                        :value="item.id"
+                                        >{{ item.name }}</option
                                     >
-                                        Send
-                                    </button>
-                                </div>
+                                </select>
                             </div>
                         </div>
                     </div>
+
+                    <div class="field">
+                        <button
+                            v-on:click="
+                                count++;
+                                send(samples[count].id, selected);
+                            "
+                            class="button is-info is-fullwidth"
+                        >
+                            Send
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            <div class="box">
+                <h1 class="title">Create new Label</h1>
+                <h2 class="subtitle">Add a new label to the database!</h2>
+
+                <div class="field">
+                    <div class="control">
+                        <input
+                            class="input is-info"
+                            type="text"
+                            placeholder="Label Name"
+                        />
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="control">
+                        <div class="select is-info is-fullwidth">
+                            <select v-model="selectedSampleType">
+                                <option
+                                    v-for="SampleType in SampleTypes"
+                                    :key="SampleType.id"
+                                    :value="SampleType.id"
+                                    >{{ SampleType.name }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="button is-info is-fullwidth">
+                    Create new Label
+                </button>
+
                 <!-- <b-loading
-                    :is-full-page="false"
-                    :active.sync="loading"
-                    :can-cancel="false"
-                ></b-loading> -->
+                        :is-full-page="false"
+                        :active.sync="loading"
+                        :can-cancel="false"
+                    ></b-loading> -->
             </div>
         </div>
     </section>
@@ -153,7 +187,30 @@ export default Vue.extend({
             }
         ];
 
-        return {samples, lables, count: 0};
+        const SampleTypes = [
+            {
+                id: 0,
+                name: "CIFAR 10"
+            },
+            {
+                id: 1,
+                name: "DWTC"
+            },
+            {
+                id: 2,
+                name: "Equations"
+            },
+            {
+                id: 3,
+                name: "Religious Texts"
+            },
+            {
+                id: 4,
+                name: "Resumees"
+            }
+        ];
+
+        return {samples, lables, count: 0, SampleTypes};
     },
     computed: {
         ...mapState(["loading", "cifarSample", "cifarLabels"])
@@ -162,23 +219,23 @@ export default Vue.extend({
         this.$store.dispatch("loadCifarSample");
     },
     methods: {
-        send: function(sampleId: string, lableId: number) {
+        send: function(sampelId: string, labelId: number) {
             /*
             this.$store.dispatch("labelCifarSample", {
-                sampleId: id,
-                lableId: value
+                sampelId: id,
+                labelId: value
             });
             */
 
-            console.log(lableId);
+            console.log(labelId);
 
-            if (lableId != null) {
+            if (labelId != null) {
                 // send to api
                 alert(
-                    `Image with Sample ID <${sampleId}> was assigned to Lable ID <${lableId}> and successfully send to server.`
+                    `Image with Sample ID <${sampelId}> was assigned to Lable ID <${labelId}> and successfully send to server.`
                 );
                 (this.$refs[
-                    `input-${lableId}`
+                    `input-${labelId}`
                 ] as HTMLInputElement[])[0].value = "";
             }
         }
@@ -192,6 +249,16 @@ export default Vue.extend({
     top: 0;
     position: fixed;
     transform: translateX(-50%, -50%);
+}
+
+.box {
+    margin: 10px auto;
+    max-width: 300px;
+
+    img {
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
 
 .container {
