@@ -24,7 +24,7 @@ import Vue from "vue";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV.vue";
-import CIFAR from "@/components/cifar/CIFAR.vue";
+import CIFAR from "@/components/CIFAR.vue";
 
 export default Vue.extend({
     name: "app",
