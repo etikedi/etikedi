@@ -5,23 +5,19 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from active_learning.BaseOracle import BaseOracle
-from active_learning.al_cycle_wrapper import train_al
-from active_learning.experiment_setup_lib import init_logger
-from active_learning_process.aergia_oracle import ParallelOracle
-from aergia import create_app
-from models.flowers import Flower
+from backend.active_learning.al_cycle_wrapper import train_al
+from backend.active_learning.experiment_setup_lib import init_logger
+from backend.active_learning_process.aergia_oracle import ParallelOracle
+from backend.active_learning_process.feature_resolving import FeatureResolver
+from backend.models import Dataset, Sample, Label
 
 
 class ALProcess(multiprocessing.Process):
 
-    def __init__(self, samples):
-        self.samples = samples
-
-    def run(self):
-        app = create_app()
-        app.app_context().push()
-        config = {
+    def __init__(self, dataset_name):
+        super().__init__()
+        self.dataset_name = dataset_name
+        self.config = {
             "SAMPLING": "uncertainty_max_margin",
             "CLUSTER": "MostUncertain_max_margin",
             "NR_QUERIES_PER_ITERATION": 10,
@@ -43,31 +39,35 @@ class ALProcess(multiprocessing.Process):
             "NR_LEARNING_ITERATIONS": 200000,
         }
 
-        init_logger("log.txt")
-        # Load Data from database
-        sepal_lengths = []
-        sepal_widths = []
-        petal_lengts = []
-        petal_widths = []
-        labels = []
-        flowers = Flower.query.all()
-        for flower in flowers:
-            sepal_lengths.append(flower.sepal_length)
-            sepal_widths.append(flower.sepal_width)
-            petal_lengts.append(flower.petal_length)
-            petal_widths.append(flower.petal_width)
-            labels.append(flower.label)
+    def run(self):
 
-        #  dataset_id = Dataset.query.filter_by(name=self.dataset_name).first().id
-        # data = Sample.query.filter_by(dataset_id=dataset_id).all()
-        # unlabeled_data = Sample.query.filter_by(dataset_id=dataset_id, label != None).all()
-        #
-        # Depending on data set, convert data in suitable format
+        init_logger("log.txt")
+
+        # Load Data from database
+        dataset_id = Dataset.query.filter_by(name=self.dataset_name).first().id
+        label_names = [label.name for label in Label.query.filter_by(dataset_id=dataset_id).all()]
+        data = Sample.query.filter_by(dataset_id=dataset_id).all()
+
+        sample_ids = []
+        features = []
+        labels = []
+        indices_labeled_data = []
+
+        for i in range(len(data)):
+            data_point = data[i]
+            sample_ids.append(data_point.id)
+            features.append(data_point.features)
+            labels.append(data_point.label)
+            if data_point.label is not None:
+                indices_labeled_data.append(i)
+
+        # TODO Features-Resolving
+        (feature_array, feature_names) = FeatureResolver(dataset_id, features).resolve()
 
         # X and Y need to be both of the same dataframe in order to have consistent indexing!
         df = pd.DataFrame(
-            data=np.c_[sepal_lengths, sepal_widths, petal_lengts, petal_widths, labels],
-            columns=["sepal_length", "sepal_width", "petal_length", "petal_width", "label"],
+            data=np.c_[feature_array, labels],
+            columns=feature_names + ["target"],
             dtype=float,
         )
         X = df
@@ -78,13 +78,13 @@ class ALProcess(multiprocessing.Process):
         indices_of_start_set = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 50]
 
         # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
-        X_labeled = X.loc[indices_of_start_set]
-        Y_labeled = Y.loc[indices_of_start_set]
-        X_unlabeled = X.drop(indices_of_start_set)
+        X_labeled = X.loc[indices_labeled_data]
+        Y_labeled = Y.loc[indices_labeled_data]
+        X_unlabeled = X.drop(indices_labeled_data)
 
         # Get label meanings from data base
         # label_encoder_classes = [label.name for label in Label.query.filter_by(dataset=dataset_id).all()]
-        label_encoder_classes = ["setosa", "versicolor", "virginica"]
+        label_encoder_classes = label_names
 
         label_encoder = LabelEncoder()
         label_encoder.fit(label_encoder_classes)
@@ -99,6 +99,6 @@ class ALProcess(multiprocessing.Process):
             X_unlabeled,
             label_encoder,
             START_SET_SIZE=3,
-            hyper_parameters=config,
-            oracle=ParallelOracle(),  # this class needs to be extended!
+            hyper_parameters=self.config,
+            oracle=ParallelOracle(sample_ids),  # this class needs to be extended!
         )
