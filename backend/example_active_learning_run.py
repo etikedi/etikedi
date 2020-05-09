@@ -6,13 +6,13 @@ import pandas as pd
 from sklearn import datasets
 from sklearn.preprocessing import LabelEncoder
 
-from active_learning.al_cycle_wrapper import train_al
-from active_learning.experiment_setup_lib import (
+from backend.active_learning.al_cycle_wrapper import train_al
+from backend.active_learning.experiment_setup_lib import (
     get_dataset,
     init_logger,
     standard_config,
 )
-from aergia_oracle import AergiaOracle
+from backend.aergia_oracle import AergiaOracle
 
 if __name__ == "__main__":
     config = {

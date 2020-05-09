@@ -7,9 +7,8 @@ from sqlite3 import Error
 from flask import Flask
 from sklearn import datasets
 
-from models import db
-from models.flowers import Flower
-from models.resumees import Resumees
+from backend.models import db
+from backend.models.label_queue import Flower
 
 app = Flask(__name__)
 

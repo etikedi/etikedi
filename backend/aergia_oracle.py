@@ -2,7 +2,7 @@ import random
 
 import pandas as pd
 
-from active_learning.BaseOracle import BaseOracle
+from backend.active_learning.BaseOracle import BaseOracle
 
 
 class AergiaOracle(BaseOracle):
