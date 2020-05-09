@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey
-from ..aergia import db
+from ..aergia import db, ma
 
 
 class Label(db.Model):
@@ -15,4 +15,9 @@ class Label(db.Model):
         'Dataset',
         backref=db.backref('labels', lazy=True)
     )
+
+class LabelSchema(ma.ModelSchema):
+    class Meta:
+        model = Label
+        sqla_session = db.session
 

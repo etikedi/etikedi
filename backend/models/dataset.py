@@ -1,9 +1,9 @@
-from ..aergia import db
+from ..aergia import db, ma
 
 
 class Dataset(db.Model):
     """
-    Represents a complete dataset.
+    Represents a complete data set.
 
     - Name
     - All items
@@ -18,3 +18,9 @@ class Dataset(db.Model):
 
     def __str__(self):
         return self.name
+
+
+class DataSetSchema(ma.ModelSchema):
+    class Meta:
+        model = Dataset
+        sqla_session = db.session
