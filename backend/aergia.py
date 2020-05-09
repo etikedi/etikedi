@@ -24,7 +24,7 @@ with app.app_context():
 def get():
     # p = ActiveLearningProcess()
     # p.start()
-    os.system("active_learning_process.py")
+    os.system("al_process.py")
 
 def create_app():
     app = Flask(__name__)
