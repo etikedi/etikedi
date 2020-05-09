@@ -1,35 +1,27 @@
-import os
-
 from flask import Flask
-from flask_cors import CORS
 from flask_restful import Api
+from flask_cors import CORS
+from flask_sqlalchemy import SQLAlchemy
 
-from models import db
-from models.flowers import FlowersApi, FlowerApi
+from .config import Config
+
 
 app = Flask(__name__)
-app.config.from_object("config.Config")
+app.config.from_object(Config())
+
+# Make the creation of REST endpoints a lot easier
 api = Api(app)
 
+# Configure Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible
 cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
+# Create the database handler
+db = SQLAlchemy(app)
+
 
 with app.app_context():
     db.init_app(app)
     db.create_all()
-
-    api.add_resource(FlowersApi, "/api/flowers")
-    api.add_resource(FlowerApi, "/api/flowers/")
-
-@app.route("/api/index")
-def get():
-    # p = ActiveLearningProcess()
-    # p.start()
-    os.system("al_process.py")
-
-def create_app():
-    app = Flask(__name__)
-    db.init_app(app)
-    return app
 
 if __name__ == "__main__":
     app.run()
