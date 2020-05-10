@@ -4,10 +4,8 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
-from models.dataset import DataSetSchema, Dataset
-from models.label import LabelSchema
+
 from .config import Config
-from models import dataset, Label
 
 app = Flask(__name__)
 app.config.from_object(Config())
@@ -21,12 +19,17 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
 # Create the database handler
 db = SQLAlchemy(app)
 
+# Initialize Marshmallow
+ma = Marshmallow(app)
+
+from .models.dataset import DataSetSchema, Dataset
+from .models.label import LabelSchema
+from .models import dataset, Label
+
 with app.app_context():
     db.init_app(app)
     db.create_all()
 
-# Initialize Marshmallow
-ma = Marshmallow(app)
 
 
 @app.route('/api/<data_sets>', methods=['GET'])
