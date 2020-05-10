@@ -1,4 +1,3 @@
-from marshmallow_sqlalchemy import ModelSchema
 from ..aergia import db, ma
 
 
@@ -21,7 +20,6 @@ class Dataset(db.Model):
         return self.name
 
 
-class DataSetSchema(ma.SQLAlchemySchema):
+class DataSetSchema(ma.Schema):
     class Meta:
-        model = Dataset
-        sqla_session = db.session
+        fields = ("id", "name")

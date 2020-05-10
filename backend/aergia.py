@@ -32,9 +32,8 @@ with app.app_context():
     db.create_all()
 
 
-
-@app.route('/api/<data_sets>', methods=['GET'])
-def read_all_data_sets(data_sets):
+@app.route('/api/datasets', methods=['GET'])
+def read_all_data_sets():
     """
     This function responds to a request for /api/data_sets
     with the complete lists of data sets
@@ -42,16 +41,15 @@ def read_all_data_sets(data_sets):
     :return:        json string of list of data sets (e.g. dwtc, religios texts...)
     """
     # Create the list of data sets from our data
-    data_sets = Dataset.query \
-        .order_by(Dataset.lname) \
-        .all()
+    data_sets = Dataset.query.all()
 
     # Serialize the data for the response
     data_sets_schema = DataSetSchema(many=True)
-    return data_sets_schema.dump(data_sets).data
+    data_set_list = data_sets_schema.dump(data_sets)
+    return dict(datasets=data_set_list)
 
 
-@app.route('/api/<data_set_id>', methods=['GET'])
+@app.route('/api/<int:data_set_id>', methods=['GET'])
 def read_one(data_set_id):
     """
     This function responds to a request for /api/{dataset_id}
@@ -66,19 +64,19 @@ def read_one(data_set_id):
         .one_or_none()
 
     # Did we find a dataset?
-    if dataset is not None:
+    if data_set is not None:
 
         # Serialize the data for the response
         person_schema = DataSetSchema()
-        return person_schema.dump(dataset).data
+        return person_schema.dump(data_set).data
 
     # Otherwise, nope, didn't find that person
     else:
         abort(404, 'Person not found for Id: {dataset_id}'.format(dataset_id=data_set_id))
 
 
-@app.route('/api/{data_set_id}/labels', methods=['GET'])
-def read_all_labels():
+@app.route('/api/<int:data_set_id>/labels', methods=['GET'])
+def read_all_labels(data_set_id):
     """
     This function responds to a request for /api/{dataset_id}/labels
     with the complete lists of data sets

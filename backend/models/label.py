@@ -1,5 +1,4 @@
 from sqlalchemy import ForeignKey
-from marshmallow_sqlalchemy import ModelSchema
 from ..aergia import db, ma
 
 
@@ -18,7 +17,7 @@ class Label(db.Model):
     )
 
 
-class LabelSchema(ma.SQLAlchemySchema):
+class LabelSchema(ma.Schema):
     class Meta:
         model = Label
         sqla_session = db.session
