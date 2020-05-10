@@ -1,4 +1,4 @@
-from ..aergia import db
+from ..aergia import db, ma
 
 
 class User(db.Model):
@@ -12,3 +12,7 @@ class User(db.Model):
     first_name = db.Column(db.VARCHAR(255))
     last_name = db.Column(db.VARCHAR(255))
     email = db.Column(db.VARCHAR(255))
+
+class UserSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "first_name", "last_name")

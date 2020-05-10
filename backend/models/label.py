@@ -19,6 +19,5 @@ class Label(db.Model):
 
 class LabelSchema(ma.Schema):
     class Meta:
-        model = Label
-        sqla_session = db.session
+        fields = ("id", "name")
 

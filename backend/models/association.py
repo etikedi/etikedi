@@ -1,4 +1,4 @@
-from ..aergia import db
+from ..aergia import db, ma
 
 
 class Association(db.Model):
@@ -32,3 +32,8 @@ class Association(db.Model):
         'User',
         backref='associations'
     )
+
+
+class AssociationSchema(ma.Schema):
+    class Meta:
+        fields = ("sample_id", "label_id", "user_id")
