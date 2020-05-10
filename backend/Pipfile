@@ -24,6 +24,7 @@ peewee = "*"
 psycopg2 = "*"
 tabulate = "*"
 flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
 
 [requires]
 python_version = "3"
