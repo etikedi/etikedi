@@ -26,6 +26,7 @@ from .models.dataset import DataSetSchema, Dataset
 from .models.label import LabelSchema
 from .models import dataset, Label
 
+
 with app.app_context():
     db.init_app(app)
     db.create_all()
@@ -76,7 +77,7 @@ def read_one(data_set_id):
         abort(404, 'Person not found for Id: {dataset_id}'.format(dataset_id=dataset_id))
 
 
-@app.route('/api/{data_set_id}/labels', methodes=['GET'])
+@app.route('/api/{data_set_id}/labels', methods=['GET'])
 def read_all_labels():
     """
     This function responds to a request for /api/{dataset_id}/labels

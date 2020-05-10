@@ -1,6 +1,7 @@
 from sqlalchemy import ForeignKey
-from ..aergia import db
 from marshmallow_sqlalchemy import ModelSchema
+from ..aergia import db, ma
+
 
 class Label(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -16,7 +17,8 @@ class Label(db.Model):
         backref=db.backref('labels', lazy=True)
     )
 
-class LabelSchema(ModelSchema):
+
+class LabelSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Label
         sqla_session = db.session
