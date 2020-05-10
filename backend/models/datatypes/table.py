@@ -36,7 +36,7 @@ class Table(Sample):
         | 1  | {"length": 124, "beautiful": true} | 1          | table |
         +----+------------------------------------+------------+-------+
 
-        Databaes table `Table`
+        Database table `Table`
         +----+----------------------+
         | id | content              |
         +====+======================+
