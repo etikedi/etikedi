@@ -74,7 +74,7 @@ def read_one(data_set_id):
 
     # Otherwise, nope, didn't find that person
     else:
-        abort(404, 'Person not found for Id: {dataset_id}'.format(dataset_id=dataset_id))
+        abort(404, 'Person not found for Id: {dataset_id}'.format(dataset_id=data_set_id))
 
 
 @app.route('/api/{data_set_id}/labels', methods=['GET'])
