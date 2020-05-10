@@ -25,8 +25,7 @@ from .models.dataset import DataSetSchema
 from .models.label import LabelSchema
 from .models.datatypes.sample import SampleSchema
 from .models.association import AssociationSchema
-from .models import Label, Sample, Dataset
-
+from .models import Label, Sample, Dataset, Association
 
 with app.app_context():
     db.init_app(app)
@@ -127,40 +126,44 @@ def get_sample_by_id(datasample_id):
         abort(404, 'Data sample not found for Id: {datasample_id}'.format(datasample_id=datasample_id))
 
 
-@app.route('/api/sample/<datasample_id>', methods=['POST'])
-def label_sample(datasample_id, label_id, user_id):
+# to do return next label
+@app.route('/api/sample', methods=['POST'])
+def label_sample():
     """
         This function adds an association for /api/{dataset_id}
 
-        :param datasample_id, label_id, user_id:   ID of data set to find
+        :param sample_id, label_id, user_id:   ID of data set to find
         :return:            201 on success, 404 if data sample doesn't exist
         """
-
+    sample_id = request.args['sample_id']
     label_id = request.form['label_id']
     user_id = request.form['user_id']
 
     # Check if the data sample requested exists
     existing_sample = Sample.query \
-        .filter(Sample.id == datasample_id) \
+        .filter(Sample.id == sample_id) \
         .one_or_none()
 
     if existing_sample is not None:
 
         # Create a association using the schema and the passed-in datasample_id, label_id, user_id
-        association = dict(association=[datasample_id, label_id, user_id])
-        schema = AssociationSchema()
-        new_association = schema.load(association, session=db.session)
+        new_association = {
+            "sample_id": sample_id,
+            "label_id": label_id,
+            "user_id": user_id,
+        }
 
+        # **na = (sample_id=sample
         # Add the association to the database
-        db.session.add(new_association)
+        db.session.add(Association(**new_association))
         db.session.commit()
 
         # Serialize and return the newly created association in the response
-        return schema.dump(new_association).data, 201
+        return new_association, 201
 
         # Otherwise, nope, data sample doesn't exist
     else:
-        abort(404, f'Data sample {datasample_id} doesn`t exist')
+        abort(404, f'Data sample {sample_id} doesn`t exist')
 
 
 @app.errorhandler(404)
