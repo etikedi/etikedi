@@ -4,13 +4,13 @@
         <Header
             title="AERGIA"
             subtitle="Creating labeled datasets like a true lazy greek god."
-            @updateObjectType="updateBody"
+            @updateDatasetType="updateDatasetType"
         />
-        <CIFAR v-if="this.objectType == 1" />
-        <p v-if="this.objectType == 2">Platzhalter für DWTC</p>
-        <p v-if="this.objectType == 3">Platzhalter für Equations</p>
-        <p v-if="this.objectType == 4">Platzhalter für Religious Texts</p>
-        <CV v-if="this.objectType == 5" />
+        <p v-if="this.datasetType=='cifar'">Platzhalter für CIFAR</p>
+        <p v-if="this.datasetType=='dwtc'">Platzhalter für DWTC</p>
+        <p v-if="this.datasetType=='equations'">Platzhalter für Equations</p>
+        <p v-if="this.datasetType=='religious'">Platzhalter für Religious Texts</p>
+        <CV v-if="this.datasetType=='cv'"/>
         <Footer
             title="AERGIA"
             homepage="https://jgonsior.de"
@@ -21,58 +21,30 @@
 
 <script lang="ts">
 import Vue from "vue";
+import {mapState} from 'vuex';
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
-import CV from "./components/CV.vue";
-import CIFAR from "@/components/CIFAR.vue";
+import CV from "./components/CV/CV.vue";
 
 export default Vue.extend({
     name: "app",
-    data: function() {
-        return {
-            objectType: "0"
-        };
+    computed: {
+            ...mapState(['datasetType']),
     },
     components: {
-        CIFAR,
         Header,
         Footer,
         CV
     },
-    methods: {
-        updateBody: function(objectType: any) {
-            switch (objectType) {
-                case "1": {
-                    this.$store.dispatch("setDataset", "CIFAR");
-                    this.$store.dispatch("loadCifarLabels");
-                    break;
-                }
-                case "2": {
-                    //methods for DWTC
-                    break;
-                }
-                case "3": {
-                    //methods for Equations
-                    break;
-                }
-                case "4": {
-                    //methods for Religious Texts
-                    break;
-                }
-                case "5": {
-                    this.$store.dispatch("loadCv");
-                    break;
-                }
-                default: {
-                    break;
-                }
-            }
-            this.objectType = objectType;
+    methods:{
+        updateDatasetType: function(objectType: any){
+			
+			this.$store.commit('setDatasetType', objectType)
+			this.$store.dispatch('loadDataset')
         }
     },
     mounted() {
-        // this.$store.dispatch('loadCv');
-        this.$store.dispatch("loadAllDatasets");
+        this.$store.dispatch('loadDataset');
     }
 });
 </script>
@@ -94,47 +66,16 @@ $primary-invert: findColorInvert($primary);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-    "white": (
-        $white,
-        $black
-    ),
-    "black": (
-        $black,
-        $white
-    ),
-    "light": (
-        $light,
-        $light-invert
-    ),
-    "dark": (
-        $dark,
-        $dark-invert
-    ),
-    "primary": (
-        $info,
-        $info-invert
-    ),
-    "info": (
-        $info,
-        $info-invert
-    ),
-    "success": (
-        $success,
-        $success-invert
-    ),
-    "warning": (
-        $warning,
-        $warning-invert
-    ),
-    "danger": (
-        $danger,
-        $danger-invert
-    ),
-    // //"twitter":
-    //     (
-    //         $twitter,
-    //         $twitter-invert
-    //     )
+    "white": ($white, $black),
+    "black": ($black, $white),
+    "light": ($light, $light-invert),
+    "dark": ($dark, $dark-invert),
+    "primary": ($info, $info-invert),
+    "info": ($info, $info-invert),
+    "success": ($success, $success-invert),
+    "warning": ($warning, $warning-invert),
+    "danger": ($danger, $danger-invert),
+    //"twitter": ($twitter, $twitter-invert)
 );
 
 // Links
