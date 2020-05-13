@@ -1,7 +1,7 @@
 import {State} from "@/store/models";
 
-export const setDatasetType = (state: State, objectType:string) => {
-	console.log("Setting new dataset type: "+objectType)
+export const setDatasetType = (state: State, objectType: string) => {
+    console.log("Setting new dataset type: " + objectType);
     state.datasetType = objectType;
 };
 

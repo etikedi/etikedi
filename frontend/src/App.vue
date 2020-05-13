@@ -6,11 +6,13 @@
             subtitle="Creating labeled datasets like a true lazy greek god."
             @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.datasetType=='cifar'">Platzhalter für CIFAR</p>
-        <p v-if="this.datasetType=='dwtc'">Platzhalter für DWTC</p>
-        <p v-if="this.datasetType=='equations'">Platzhalter für Equations</p>
-        <p v-if="this.datasetType=='religious'">Platzhalter für Religious Texts</p>
-        <CV v-if="this.datasetType=='cv'"/>
+        <p v-if="this.datasetType == 'cifar'">Platzhalter für CIFAR</p>
+        <p v-if="this.datasetType == 'dwtc'">Platzhalter für DWTC</p>
+        <p v-if="this.datasetType == 'equations'">Platzhalter für Equations</p>
+        <p v-if="this.datasetType == 'religious'">
+            Platzhalter für Religious Texts
+        </p>
+        <CV v-if="this.datasetType == 'cv'" />
         <Footer
             title="AERGIA"
             homepage="https://jgonsior.de"
@@ -21,7 +23,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import {mapState} from 'vuex';
+import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
@@ -29,22 +31,21 @@ import CV from "./components/CV/CV.vue";
 export default Vue.extend({
     name: "app",
     computed: {
-            ...mapState(['datasetType']),
+        ...mapState(["datasetType"])
     },
     components: {
         Header,
         Footer,
         CV
     },
-    methods:{
-        updateDatasetType: function(objectType: any){
-			
-			this.$store.commit('setDatasetType', objectType)
-			this.$store.dispatch('loadDataset')
+    methods: {
+        updateDatasetType: function(objectType: any) {
+            this.$store.commit("setDatasetType", objectType);
+            this.$store.dispatch("loadDataset");
         }
     },
     mounted() {
-        this.$store.dispatch('loadDataset');
+        this.$store.dispatch("loadDataset");
     }
 });
 </script>
@@ -66,16 +67,49 @@ $primary-invert: findColorInvert($primary);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-    "white": ($white, $black),
-    "black": ($black, $white),
-    "light": ($light, $light-invert),
-    "dark": ($dark, $dark-invert),
-    "primary": ($info, $info-invert),
-    "info": ($info, $info-invert),
-    "success": ($success, $success-invert),
-    "warning": ($warning, $warning-invert),
-    "danger": ($danger, $danger-invert),
-    //"twitter": ($twitter, $twitter-invert)
+    "white": (
+        $white,
+        $black
+    ),
+    "black": (
+        $black,
+        $white
+    ),
+    "light": (
+        $light,
+        $light-invert
+    ),
+    "dark": (
+        $dark,
+        $dark-invert
+    ),
+    "primary": (
+        $info,
+        $info-invert
+    ),
+    "info": (
+        $info,
+        $info-invert
+    ),
+    "success": (
+        $success,
+        $success-invert
+    ),
+    "warning": (
+        $warning,
+        $warning-invert
+    ),
+    "danger": (
+        $danger,
+        $danger-invert
+    ),
+    /*
+    //"twitter":
+        (
+            $twitter,
+            $twitter-invert
+        )
+         */
 );
 
 // Links
