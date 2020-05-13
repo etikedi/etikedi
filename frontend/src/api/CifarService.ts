@@ -38,8 +38,8 @@ export default {
     }): Promise<any> {
         return Api().post("/sample/" + params.sampleID, {
             association: {
-                label_id: params.labelID,
-                user_id: params.userID
+                "label_id": params.labelID,
+                "user_id": params.userID
             }
         });
     }

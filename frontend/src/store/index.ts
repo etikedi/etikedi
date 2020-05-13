@@ -7,6 +7,7 @@ import * as mutations from "./mutations";
 import {State} from "./models";
 
 import {cvStore} from "@/components/CV/store/module";
+import {cifarStore} from "@/components/CIFAR/store/module";
 //import {religiousStore} from "@/components/Religious/store/module"
 
 Vue.use(Vuex);
@@ -14,8 +15,7 @@ Vue.use(Vuex);
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    datasetType: "cv",
-
+    datasetType: "cifar",
     loading: false,
     prevButtonDisabled: false,
     nextButtonDisabled: false,
@@ -25,8 +25,9 @@ const state: State = {
 const store = new Vuex.Store({
     state,
     modules: {
-        cv: cvStore
-        //religious: religiousStore,
+        cv: cvStore,
+        cifar: cifarStore
+        // religious: religiousStore,
         // add imported dataset type modules here!
     },
     getters,

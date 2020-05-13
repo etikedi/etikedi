@@ -18,7 +18,7 @@
                             <div class="select is-info is-fullwidth">
                                 <select v-model="selected">
                                     <option
-                                        v-for="item in lables"
+                                        v-for="item in labels"
                                         :key="item.id"
                                         :value="item.id"
                                         >{{ item.name }}</option
@@ -30,10 +30,7 @@
 
                     <div class="field">
                         <button
-                            v-on:click="
-                                count++;
-                                send(samples[count].id, selected);
-                            "
+                            v-on:click="click()"
                             class="button is-info is-fullwidth"
                         >
                             Send
@@ -144,7 +141,7 @@ export default Vue.extend({
             }
         ];
 
-        const lables = [
+        const labels = [
             {
                 id: 0,
                 name: "airplane"
@@ -209,16 +206,28 @@ export default Vue.extend({
                 name: "Resumees"
             }
         ];
-
-        return {samples, lables, count: 0, SampleTypes};
+        const selected = 0;
+        const selectedSampleType = "";
+        return {
+            samples,
+            labels: labels,
+            count: 0,
+            SampleTypes,
+            selected,
+            selectedSampleType
+        };
     },
     computed: {
         ...mapState(["loading", "cifarSample", "cifarLabels"])
     },
     mounted() {
-        this.$store.dispatch("loadCifarSample");
+        // this.$store.dispatch("loadCifarSample");
     },
     methods: {
+        click: function() {
+            this.count++;
+            this.send(this.samples[this.count].id.toString(), this.selected);
+        },
         send: function(sampelId: string, labelId: number) {
             /*
             this.$store.dispatch("labelCifarSample", {
@@ -231,12 +240,9 @@ export default Vue.extend({
 
             if (labelId != null) {
                 // send to api
-                alert(
-                    `Image with Sample ID <${sampelId}> was assigned to Lable ID <${labelId}> and successfully send to server.`
+                console.log(
+                    `Image with Sample ID <${sampelId}> was assigned to Label ID <${labelId}> and successfully send to server.`
                 );
-                (this.$refs[
-                    `input-${labelId}`
-                ] as HTMLInputElement[])[0].value = "";
             }
         }
     }

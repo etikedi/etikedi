@@ -1,26 +1,5 @@
 import CifarService from "@/api/CifarService";
 
-export const loadAllDatasets = ({commit}: any) => {
-    commit("startLoading");
-    return CifarService.getAllDatasets().then(({datasets}) => {
-        commit("setAllDatasets", datasets);
-        commit("endLoading");
-    });
-};
-
-export const setDataset = ({commit, state}: any, dataset: string) => {
-    commit("setCurrentDataset", dataset);
-    if (dataset === "CIFAR") {
-        commit("startLoading");
-        return CifarService.getSampleID({datasetID: state.currentDataset}).then(
-            ({sampleID}) => {
-                commit("setCifarSampleID", sampleID);
-                commit("endLoading");
-            }
-        );
-    }
-};
-
 export const loadCifarSample = ({commit, state}: any) => {
     commit("startLoading");
     return CifarService.getSample({sampleID: state.cifarSampleID}).then(
@@ -41,11 +20,7 @@ export const loadCifarLabels = ({commit, state}: any) => {
     );
 };
 
-export const labelCifarSample = (
-    {commit, state}: any,
-    sampleID: any,
-    label: any
-) => {
+export const labelCifarSample = ({commit, state, sampleID, label}: any) => {
     commit("startLoading");
     return CifarService.labelSample({
         sampleID: sampleID,

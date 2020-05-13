@@ -6,12 +6,6 @@ import {State} from "./models";
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    loading: false,
-    prevButtonDisabled: false,
-    nextButtonDisabled: false,
-    displayFeatureTooltips: true,
-    allDatasets: [],
-    currentDataset: "",
     cifarSampleID: "",
     cifarSample: undefined,
     cifarLabels: []
