@@ -5,9 +5,3 @@ export interface State {
     nextButtonDisabled: boolean;
     displayFeatureTooltips: boolean;
 }
-
-export interface LabelPayload {
-    startId: number;
-    endId: number;
-    label: string;
-}
