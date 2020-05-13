@@ -19,7 +19,7 @@ export default {
         });
     },
 
-    getSampleID(params: {datasetID: string}): Promise<any> {
+    loadDataset(params: {datasetID: string}): Promise<any> {
         return Api().get("/" + params.datasetID);
     },
 
