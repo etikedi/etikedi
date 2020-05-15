@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey
-from ..aergia import db
+
+from app_init import db
 
 
 class Label(db.Model):

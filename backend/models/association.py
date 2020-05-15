@@ -1,4 +1,4 @@
-from ..aergia import db
+from app_init import db
 
 
 class Association(db.Model):

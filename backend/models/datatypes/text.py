@@ -1,5 +1,5 @@
 from .sample import Sample
-from ...aergia import db
+from app_init import db
 
 
 class Text(Sample):
