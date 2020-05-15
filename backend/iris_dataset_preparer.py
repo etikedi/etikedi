@@ -3,7 +3,7 @@ from pprint import pprint
 from flask import Flask
 from sklearn import datasets
 import numpy as np
-from backend.db_init import db
+from backend.app_init import db
 from backend.config import Config
 from backend.models.label_queue import Flower
 
