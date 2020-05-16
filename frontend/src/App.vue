@@ -6,11 +6,11 @@
             subtitle="Creating labeled datasets like a true lazy greek god."
             @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.datasetType=='cifar'">Platzhalter für CIFAR</p>
-        <p v-if="this.datasetType=='dwtc'">Platzhalter für DWTC</p>
-        <p v-if="this.datasetType=='equations'">Platzhalter für Equations</p>
-        <p v-if="this.datasetType=='religious'">Platzhalter für Religious Texts</p>
-        <CV v-if="this.datasetType=='cv'"/>
+        <p v-if="this.objectType==1">Platzhalter für CIFAR</p>
+        <p v-if="this.objectType==2">Platzhalter für DWTC</p>
+        <p v-if="this.objectType==3">Platzhalter für Equations</p>
+        <p v-if="this.objectType==4">Platzhalter für Religious Texts</p>
+        <CV v-if="this.objectType==5"/>
         <Footer
             title="AERGIA"
             homepage="https://jgonsior.de"
@@ -25,6 +25,7 @@ import {mapState} from 'vuex';
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
+import DWTC from "./components/DWTC.vue";
 
 export default Vue.extend({
     name: "app",
@@ -33,12 +34,11 @@ export default Vue.extend({
     },
     components: {
         Header,
-        Footer,
-        CV
+        Footer
     },
     methods:{
         updateDatasetType: function(objectType: any){
-			
+
 			this.$store.commit('setDatasetType', objectType)
 			this.$store.dispatch('loadDataset')
         }
