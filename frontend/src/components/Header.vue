@@ -42,19 +42,13 @@
                                 Next
                             </b-button>
                         </div>
-                        <b-select v-model="datasetType" placeholder="Objekttyp auswählen">
-                            <option value="cifar">CIFAR</option>
-                            <option value="dwtc">DWTC</option>
-                            <option value="equations">Equations</option>
-                            <option value="religious">Religious Texts</option>
-                            <option value="cv">Resumees</option>
-                        </b-select>
-
                         <div class="navbar-end">
                             <b-switch
                                     class="navbar-item"
                                     v-model="localDisplayFeatureTooltips"
-                                    type="is-warning"> Tooltips
+                                    type="is-warning"
+                                    v-if="localDisplayFeatureTooltipsSwitch">
+                                Tooltips
                             </b-switch>
                             <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
                                       type="is-link" @click="labelDataset(label)" inverted outlined>
@@ -84,12 +78,21 @@
             }
         },
         computed: {
-            ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled']),
+            ...mapState(['prevButtonDisabled', 'nextButtonDisabled']),
             ...mapGetters(['labels']),
             localDisplayFeatureTooltips: {
                 get(): boolean {
 
                     return store.state.displayFeatureTooltips;
+                },
+                set(newValue: boolean) {
+                    store.commit("toggleShowFeatureTooltips", newValue);
+                }
+            },
+            localDisplayFeatureTooltipsSwitch: {
+                get(): boolean {
+
+                    return store.state.displayFeatureTooltipsSwitch;
                 },
                 set(newValue: boolean) {
                     store.commit("toggleShowFeatureTooltips", newValue);

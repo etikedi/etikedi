@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 <template>
     <div id="app">
         <Header
@@ -6,11 +5,7 @@
             subtitle="Creating labeled datasets like a true lazy greek god."
             @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.objectType==1">Platzhalter für CIFAR</p>
-        <p v-if="this.objectType==2">Platzhalter für DWTC</p>
-        <p v-if="this.objectType==3">Platzhalter für Equations</p>
-        <p v-if="this.objectType==4">Platzhalter für Religious Texts</p>
-        <CV v-if="this.objectType==5"/>
+        <router-view></router-view>
         <Footer
             title="AERGIA"
             homepage="https://jgonsior.de"
@@ -21,13 +16,64 @@
 
 <script lang="ts">
 import Vue from "vue";
+import VueRouter from "vue-router";
 import {mapState} from 'vuex';
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
-import DWTC from "./components/DWTC.vue";
+import DWTC from "./components/dwtc/DWTC.vue";
+import LandingPage from "./components/landing-page/LandingPage.vue";
+
+Vue.use(VueRouter);
+
+const Cifar = { template: "<p>Platzhalter für CIFAR</p>" }
+const Equations = { template: "<p>Platzhalter für Equations</p>" }
+const ReligiousTexts = { template: "<p>Platzhalter für Religious Texts</p>" }
+
+const routes = [
+    {
+        path: "/",
+        redirect: "/home"
+    },
+    {
+        path: "/home",
+        name: "home",
+        component: LandingPage
+    },
+    {
+        path: "/cifar",
+        name: "cifar",
+        component: Cifar
+    },
+    {
+        path: "/dwtc",
+        name: "dwtc",
+        component: DWTC
+    },
+    {
+        path: "/equations",
+        name: "equations",
+        component: Equations
+    },
+    {
+        path: "/religious-texts",
+        name: "religious-texts",
+        component: ReligiousTexts
+    },
+    {
+        path: "/cv",
+        name: "cv",
+        component: CV
+    }
+];
+
+const router = new VueRouter({
+    mode: "history",
+    routes
+});
 
 export default Vue.extend({
+    router,
     name: "app",
     computed: {
             ...mapState(['datasetType']),

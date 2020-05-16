@@ -22,9 +22,14 @@
         props: {},
         components: {},
         computed: {
-            ...mapState(['dwtc', 'loading']),
+            ...mapState('dwtc', ['dwtc']),
+            ...mapState(['loading', 'displayFeatureTooltips']),
         },
-        methods: {}
+        methods: {},
+        mounted(): void {
+            this.$store.commit('setDatasetType', "dwtc")
+            this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
+        }
     };
 </script>
 

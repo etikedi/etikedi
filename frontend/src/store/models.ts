@@ -1,12 +1,10 @@
 export interface State {
-    cvId: number,
-    dwtcId: number,
+    datasetType: string,
     loading: boolean,
-    cv?: any,
-    dwtc?: any,
     prevButtonDisabled: boolean,
     nextButtonDisabled: boolean,
     displayFeatureTooltips: boolean,
+    displayFeatureTooltipsSwitch: boolean,
 }
 
 export interface LabelPayload {
