@@ -76,6 +76,23 @@ While running the app using the command line would be perfectly fine, it is advi
 as it allows to easily use the integrated debugger. 
 
 
+## 💽 Data 
+
+The application contains some sample data. Upon startup, it contains the following users for testing
+
+Admin
+- Username: ernst_haft
+- Password: adminadmin
+
+Worker1
+- Username: anna_lühse
+- Password: very_secret
+
+Worker2
+- Username: mario_nette
+- Password: very_secret
+
+
 ## 🖥 Code overview
 
 `aergia.py` is the entrypoint to the application, starts the backend and ties everything together.
