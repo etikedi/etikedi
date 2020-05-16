@@ -1,23 +1,11 @@
-from flask import Flask
-from flask_restful import Api
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
+from .config import app, db, guard
+from .models import User
 
-from .config import Config
+# Make all routes visible to the app
+from .routes import *
 
-
-app = Flask(__name__)
-app.config.from_object(Config())
-
-# Make the creation of REST endpoints a lot easier
-api = Api(app)
-
-# Configure Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-# Create the database handler
-db = SQLAlchemy(app)
-
+# Guard is initialised here to prevent a circular import between `config.py` and the models
+guard.init_app(app, User)
 
 with app.app_context():
     db.init_app(app)
@@ -25,3 +13,4 @@ with app.app_context():
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True)
+
