@@ -1,14 +1,10 @@
 from pprint import pprint
 
-from flask import Flask
 from sklearn import datasets
 import numpy as np
-from backend.app_init import db
-from backend.config import Config
+from backend.app_init import db, app
 from backend.models.label_queue import Flower
 
-app = Flask(__name__)
-app.config.from_object(Config())
 
 with app.app_context():
     db.init_app(app)
