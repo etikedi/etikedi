@@ -24,7 +24,6 @@ pandas = "*"
 peewee = "*"
 psycopg2 = "*"
 tabulate = "*"
-requests = "*"
 
 [requires]
 python_version = "3"
