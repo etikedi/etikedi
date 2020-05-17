@@ -1,6 +1,6 @@
 from typing import List, Dict
 
-from app_init import db
+from config import db
 from models import Sample, Label, Dataset, Association
 from models.label_queue import LabelQueue, Flower
 

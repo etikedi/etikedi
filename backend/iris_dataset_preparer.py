@@ -2,9 +2,8 @@ from pprint import pprint
 
 from sklearn import datasets
 import numpy as np
-from backend.app_init import db, app
 from backend.models.label_queue import Flower
-
+from config import app, db
 
 with app.app_context():
     db.init_app(app)

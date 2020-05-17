@@ -1,4 +1,4 @@
-from app_init import db
+from config import db
 
 
 class LabelQueue(db.Model):
