@@ -5,6 +5,8 @@ export interface State {
     prevButtonDisabled: boolean,
     nextButtonDisabled: boolean,
     displayFeatureTooltips: boolean,
+    religiousText: any,
+    rtId: number,
 }
 
 export interface LabelPayload {

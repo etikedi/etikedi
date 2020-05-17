@@ -7,7 +7,7 @@ import * as mutations from "./mutations"
 import {State} from "./models";
 
 import {cvStore} from "@/components/CV/store/module"
-//import {religiousStore} from "@/components/Religious/store/module"
+import {religiousStore} from "@/components/Religious/store/module"
 
 Vue.use(Vuex);
 
@@ -19,14 +19,14 @@ const state: State = {
 	loading: false,
     prevButtonDisabled: false,
     nextButtonDisabled: false,
-    displayFeatureTooltips: true,
+    displayFeatureTooltips: true
 };
 
 const store = new Vuex.Store({
     state,
     modules: {
 		cv: cvStore,
-		//religious: religiousStore,
+		religious: religiousStore,
 		// add imported dataset type modules here!
 	},
     getters,
