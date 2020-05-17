@@ -13,6 +13,7 @@ jedi = "*"
 [packages]
 flask-restful = "*"
 flask-cors = "*"
+flask-praetorian = "*"
 flask-sqlalchemy = "*"
 pyspellchecker = "*"
 nltk = "*"
