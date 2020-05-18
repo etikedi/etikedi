@@ -8,7 +8,7 @@
         <Footer
             title="AERGIA"
             homepage="https://wwwdb.inf.tu-dresden.de/"
-            author="by Dresden Database Systems Group"
+            author="Dresden Database Systems Group"
             class="foot"
         />
     </div>
