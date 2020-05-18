@@ -6,10 +6,10 @@
             subtitle="Creating labeled datasets like a true lazy greek god."
             @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.datasetType === 'dwtc'">Platzhalter für DWTC</p>
-        <p v-if="this.datasetType === 'equations'">Platzhalter für Equations</p>
-        <Religious v-if="this.datasetType === 'religious'"/>
-        <CV v-if="this.datasetType === 'cv'" />
+        <p v-if="this.datasetType == 'dwtc'">Platzhalter für DWTC</p>
+        <p v-if="this.datasetType == 'equations'">Platzhalter für Equations</p>
+        <Religious v-if="this.datasetType == 'religious'" />
+        <CV v-if="this.datasetType == 'cv'" />
         <CIFAR v-if="this.datasetType === 'cifar'"></CIFAR>
         <Footer
             title="AERGIA"
@@ -25,8 +25,8 @@ import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
-import CIFAR from "./components/CIFAR/CIFAR.vue";
 import Religious from "./components/religious/Religious.vue";
+import CIFAR from "@/components/CIFAR/CIFAR.vue";
 
 export default Vue.extend({
     name: "app",
@@ -34,11 +34,11 @@ export default Vue.extend({
         ...mapState(["datasetType"])
     },
     components: {
-        CIFAR,
         Header,
         Footer,
         CV,
-        Religious
+        Religious,
+        CIFAR
     },
     methods: {
         updateDatasetType: function(objectType: any) {
@@ -69,49 +69,16 @@ $primary-invert: findColorInvert($primary);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-    "white": (
-        $white,
-        $black
-    ),
-    "black": (
-        $black,
-        $white
-    ),
-    "light": (
-        $light,
-        $light-invert
-    ),
-    "dark": (
-        $dark,
-        $dark-invert
-    ),
-    "primary": (
-        $info,
-        $info-invert
-    ),
-    "info": (
-        $info,
-        $info-invert
-    ),
-    "success": (
-        $success,
-        $success-invert
-    ),
-    "warning": (
-        $warning,
-        $warning-invert
-    ),
-    "danger": (
-        $danger,
-        $danger-invert
-    ),
-    /*
-    //"twitter":
-        (
-            $twitter,
-            $twitter-invert
-        )
-         */
+        "white": ($white, $black),
+        "black": ($black, $white),
+        "light": ($light, $light-invert),
+        "dark": ($dark, $dark-invert),
+        "primary": ($info, $info-invert),
+        "info": ($info, $info-invert),
+        "success": ($success, $success-invert),
+        "warning": ($warning, $warning-invert),
+        "danger": ($danger, $danger-invert),
+    //"twitter": ($twitter, $twitter-invert)
 );
 
 // Links

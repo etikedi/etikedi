@@ -8,3 +8,9 @@ export interface State {
     religiousText: any;
     rtId: number;
 }
+
+export interface LabelPayload {
+    startId: number;
+    endId: number;
+    label: string;
+}

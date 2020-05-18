@@ -1,5 +1,5 @@
-function delegateGetter(actionName: any) {
-    return ({state, getters}: any) => {
+function delegateGetter(actionName) {
+    return (state, getters) => {
         console.log(
             "Root Store Delegating Getter '" +
                 actionName +

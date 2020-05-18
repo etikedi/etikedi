@@ -1,5 +1,5 @@
-function delegateAction(actionName: any) {
-    return ({dispatch, state}: any) => {
+function delegateAction(actionName) {
+    return ({dispatch, commit, state}) => {
         console.log(
             "Root Store Delegating Action '" +
                 actionName +
