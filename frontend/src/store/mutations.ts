@@ -6,7 +6,7 @@ export const setDatasetType = (state: State, objectType:string) => {
 };
 
 export const startLoading = (state: State) => {
-    state.loading = true;
+    //state.loading = true;
 };
 
 export const endLoading = (state: State) => {

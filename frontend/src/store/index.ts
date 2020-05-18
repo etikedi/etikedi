@@ -7,7 +7,7 @@ import {State} from "./models";
 
 import {cvStore} from "@/components/CV/store/module"
 import {dwtcStore} from "@/components/dwtc/store/module";
-//import {religiousStore} from "@/components/Religious/store/module"
+import {religiousStore} from "@/components/Religious/store/module"
 
 Vue.use(Vuex);
 
@@ -28,8 +28,8 @@ const store = new Vuex.Store({
     state,
     modules: {
 		cv: cvStore,
-        dwtc: dwtcStore
-		//religious: religiousStore,
+        dwtc: dwtcStore,
+		religious: religiousStore,
 		// add imported dataset type modules here!
 	},
     getters,
