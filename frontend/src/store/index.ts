@@ -7,7 +7,7 @@ import {State} from "./models";
 
 import {cvStore} from "@/components/CV/store/module"
 import {dwtcStore} from "@/components/dwtc/store/module";
-import {religiousStore} from "@/components/Religious/store/module"
+import {religiousStore} from "@/components/religious/store/module"
 
 Vue.use(Vuex);
 

@@ -23,12 +23,12 @@ import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
 import DWTC from "./components/dwtc/DWTC.vue";
 import HomePage from "./components/home-page/HomePage.vue";
+import Religious from "@/components/religious/Religious.vue";
 
 Vue.use(VueRouter);
 
 const Cifar = { template: "<p>Platzhalter für CIFAR</p>" }
 const Equations = { template: "<p>Platzhalter für Equations</p>" }
-const ReligiousTexts = { template: "<p>Platzhalter für Religious Texts</p>" }
 
 const routes = [
     {
@@ -58,7 +58,7 @@ const routes = [
     {
         path: "/religious-texts",
         name: "religious-texts",
-        component: ReligiousTexts
+        component: Religious
     },
     {
         path: "/cv",

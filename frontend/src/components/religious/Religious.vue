@@ -27,8 +27,13 @@
             ...mapState('religious', ['religiousText']),
         },
         methods: {
+        },
+        mounted(): void {
+            this.$store.commit('setDatasetType', "religious")
+            this.$store.dispatch('loadDataset')
+            this.$store.commit('toggleIsHomePage', false)
+            this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         }
-
     };
 </script>
 
