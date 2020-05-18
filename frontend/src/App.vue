@@ -6,10 +6,10 @@
             subtitle="Creating labeled datasets like a true lazy greek god."
             @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.datasetType == 'dwtc'">Platzhalter für DWTC</p>
-        <p v-if="this.datasetType == 'equations'">Platzhalter für Equations</p>
-        <Religious v-if="this.datasetType == 'religious'" />
-        <CV v-if="this.datasetType == 'cv'" />
+        <p v-if="this.datasetType === 'dwtc'">Platzhalter für DWTC</p>
+        <p v-if="this.datasetType === 'equations'">Platzhalter für Equations</p>
+        <Religious v-if="this.datasetType === 'religious'" />
+        <CV v-if="this.datasetType === 'cv'" />
         <CIFAR v-if="this.datasetType === 'cifar'"></CIFAR>
         <Footer
             title="AERGIA"
