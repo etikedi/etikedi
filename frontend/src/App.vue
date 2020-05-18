@@ -3,13 +3,13 @@
         <Header
             title="AERGIA"
             subtitle="Creating labeled datasets like a true lazy greek god."
-            @updateDatasetType="updateDatasetType"
         />
         <router-view></router-view>
         <Footer
             title="AERGIA"
-            homepage="https://jgonsior.de"
-            author="Julius Gonsior"
+            homepage="https://wwwdb.inf.tu-dresden.de/"
+            author="by Dresden Database Systems Group"
+            class="foot"
         />
     </div>
 </template>
@@ -22,7 +22,7 @@ import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
 import DWTC from "./components/dwtc/DWTC.vue";
-import LandingPage from "./components/landing-page/LandingPage.vue";
+import HomePage from "./components/home-page/HomePage.vue";
 
 Vue.use(VueRouter);
 
@@ -38,7 +38,7 @@ const routes = [
     {
         path: "/home",
         name: "home",
-        component: LandingPage
+        component: HomePage
     },
     {
         path: "/cifar",
@@ -81,16 +81,6 @@ export default Vue.extend({
     components: {
         Header,
         Footer
-    },
-    methods:{
-        updateDatasetType: function(objectType: any){
-
-			this.$store.commit('setDatasetType', objectType)
-			this.$store.dispatch('loadDataset')
-        }
-    },
-    mounted() {
-        this.$store.dispatch('loadDataset');
     }
 });
 </script>
@@ -98,6 +88,12 @@ export default Vue.extend({
 <style lang="scss">
 #app {
     padding-top: 18.25rem;
+}
+
+.foot {
+    margin-top: 20px;
+    margin-left: 20%;
+    margin-right: 20%;
 }
 
 // Import Bulma's core

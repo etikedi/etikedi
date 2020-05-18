@@ -16,6 +16,7 @@
 
 <script lang="ts">
     import {mapState} from 'vuex';
+    import store from "@/store";
 
     export default {
         name: "DWTC",
@@ -24,10 +25,17 @@
         computed: {
             ...mapState('dwtc', ['dwtc']),
             ...mapState(['loading', 'displayFeatureTooltips']),
+            isHomePage: {
+                get(): boolean {
+                    return store.state.isHomePage;
+                },
+            }
         },
         methods: {},
         mounted(): void {
             this.$store.commit('setDatasetType', "dwtc")
+            this.$store.dispatch('loadDataset')
+            this.$store.commit('toggleIsHomePage', false)
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         }
     };

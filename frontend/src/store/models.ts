@@ -5,6 +5,7 @@ export interface State {
     nextButtonDisabled: boolean,
     displayFeatureTooltips: boolean,
     displayFeatureTooltipsSwitch: boolean,
+    isHomePage: boolean
 }
 
 export interface LabelPayload {

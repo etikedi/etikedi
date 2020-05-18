@@ -3,20 +3,59 @@
         <nav class="navbar is-fixed-top hero is-info is-bold" role="navigation" aria-label="main navigation">
             <div class="hero-head">
                 <div class="container">
-                    <div class="navbar-menu">
-                        <div class="navbar-end">
-                            <a class="navbar-item is-active" @click="nextDataset">
-                                Home
-                            </a>
-                            <a class="navbar-item">
-                                Examples
-                            </a>
-                            <a class="navbar-item">
-                                Documentation
-                            </a>
+                    <b-navbar>
+                        <template slot="start">
+                            <b-navbar-item href="#">
+                                <router-link to="/home">Home</router-link>
+                            </b-navbar-item>
+                            <b-navbar-item href="#">
+                                Label
+                            </b-navbar-item>
+                            <b-navbar-item href="#">
+                                Upload
+                            </b-navbar-item>
+                            <b-navbar-item href="#">
+                                Browse
+                            </b-navbar-item>
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/cifar">Cifar</router-link>
+                            </b-navbar-item>
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/dwtc">DWTC</router-link>
+                            </b-navbar-item>
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/equations">Equations</router-link>
+                            </b-navbar-item>
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/religious-texts">Religious-Texts</router-link>
+                            </b-navbar-item>
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/cv">CV</router-link>
+                            </b-navbar-item>
 
-                        </div>
-                    </div>
+                            <b-navbar-dropdown label="Info">
+                                <b-navbar-item href="#" style="color: #000000;">
+                                    About
+                                </b-navbar-item>
+                                <b-navbar-item href="#" style="color: #000000;">
+                                    Contact
+                                </b-navbar-item>
+                            </b-navbar-dropdown>
+                        </template>
+
+                        <template slot="end" class="ml-auto">
+                            <b-navbar-item tag="div">
+                                <div class="buttons">
+                                    <a class="button is-info">
+                                        <strong>Sign up</strong>
+                                    </a>
+                                    <a class="button is-light">
+                                        Log in
+                                    </a>
+                                </div>
+                            </b-navbar-item>
+                        </template>
+                    </b-navbar>
                 </div>
             </div>
             <div class="hero-body">
@@ -28,7 +67,7 @@
                 </div>
             </div>
 
-            <div class="hero-foot">
+            <div class="hero-foot" v-if="!isHomePage">
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
@@ -63,7 +102,7 @@
 </template>
 
 <script lang="ts">
-    import {mapState, mapActions, mapGetters} from 'vuex';
+    import {mapState, mapActions, mapGetters} from "vuex";
     import store from "@/store";
 
     export default {
@@ -72,14 +111,9 @@
             title: String,
             subtitle: String
         },
-        data: function () {
-            return {
-                datasetType: "cv",//must duplicate state here, because mapState doesn't make a setter and we have to emit an event
-            }
-        },
         computed: {
-            ...mapState(['prevButtonDisabled', 'nextButtonDisabled']),
-            ...mapGetters(['labels']),
+            ...mapState(["prevButtonDisabled", "nextButtonDisabled"]),
+            ...mapGetters(["labels"]),
             localDisplayFeatureTooltips: {
                 get(): boolean {
 
@@ -91,35 +125,18 @@
             },
             localDisplayFeatureTooltipsSwitch: {
                 get(): boolean {
-
                     return store.state.displayFeatureTooltipsSwitch;
-                },
-                set(newValue: boolean) {
-                    store.commit("toggleShowFeatureTooltips", newValue);
                 }
+            },
+            isHomePage: {
+                get(): boolean {
+                    return store.state.isHomePage;
+                },
             }
         },
-        methods:{
-            ...mapActions(['nextDataset', 'prevDataset', 'labelDataset'])
-            
+        methods: {
+            ...mapActions(["nextDataset", "prevDataset", "labelDataset"])
         },
-        handleHeaderScroll(event: Event) {
-                window.console.log("oh oh");
-                // don't know where function 'error(string)' is declared, neither what it's supposed to do so replaced it with 'alert("ui")'
-                // error("ui")
-                alert("ui")
-        },
-        created() {
-                window.addEventListener('scroll', this.handleHeaderScroll);
-        },
-        destroyed() {
-                window.removeEventListener('scroll', this.handleHeaderScroll);
-        },
-        watch:{
-            datasetType: function(value: any){
-                return this.$emit("updateDatasetType", value);
-            }
-        }
     };
 </script>
 

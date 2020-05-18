@@ -55,6 +55,12 @@
                 window.console.log(feature[1]['label']);
                 return feature[1]['label'];
             }
+        },
+        mounted(): void {
+            this.$store.commit('setDatasetType', "cv")
+            this.$store.dispatch('loadDataset')
+            this.$store.commit('toggleIsHomePage', false)
+            this.$store.commit('toggleShowFeatureTooltipsSwitch', true)
         }
 
     };

@@ -26,3 +26,7 @@ export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
 export const toggleShowFeatureTooltipsSwitch = (state: State, newValue: boolean) => {
     state.displayFeatureTooltipsSwitch = newValue;
 };
+
+export const toggleIsHomePage = (state: State, newValue: boolean) => {
+    state.isHomePage = newValue;
+};

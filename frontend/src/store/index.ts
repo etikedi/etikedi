@@ -21,6 +21,7 @@ const state: State = {
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
     displayFeatureTooltipsSwitch: true,
+    isHomePage: true
 };
 
 const store = new Vuex.Store({
