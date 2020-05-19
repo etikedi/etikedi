@@ -1,0 +1,142 @@
+<template>
+    <section class="section">
+        <div class="container">
+            <div style="position: relative;">
+                <table class="table" >
+					<tr v-for="(control,name) in paramsTypes" :key="name">
+						<td> {{ name }} </td>
+						<td v-if='control.type == "enum"'>
+							<b-select v-model="params[name]">
+								<option v-for='(value) in control.values' :key="value" v-value="value"> {{value}} </option>
+							</b-select>
+						</td>
+						<td v-if='control.type == "int"'>
+							<input type="number" v-model="params[name]" v-id="name" v-name="name" v-min="control.min" step="1">
+						</td>
+						<td v-if='control.type == "prob"'>
+							<input type="number" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01">
+						</td>
+						<td v-if='control.type == "half-to-one"'>
+							<input type="number" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01">
+						</td>
+						<td v-if='control.type == "bool"'>
+							<label><input type="checkbox" v-model="params[name]">{{name}}</label>
+						</td>
+					</tr>
+                </table>
+                <b-loading
+                        :is-full-page="false"
+                        :active.sync="loading"
+                        :can-cancel="false">
+                </b-loading>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script lang="ts">
+
+	const paramsTypes = {
+		CLASSIFIER: 			{type:"enum", values:["RF", "DT", "SVM", "ANN"]},
+		RANDOM_SEED: 			{type:"int", min:-1},
+		TEST_FRACTION: 			{type:"prob"},
+		SAMPLING: 				{type:"enum", values:[
+										"random",
+										"uncertainty_lc",
+										"uncertainty_max_margin",
+										"uncertainty_entropy",
+								]},
+		CLUSTER:				{type:"enum", values:[
+										"dummy",
+										"random",
+										"MostUncertain_lc",
+										"MostUncertain_max_margin",
+										"MostUncertain_entropy"
+								]},
+		
+		NR_LEARNING_ITERATIONS:		{type:"int", min:1},
+		NR_QUERIES_PER_ITERATION:	{type:"int", min:1},
+		USER_QUERY_BUDGET_LIMIT:	{type:"int", min:1},
+		
+		STOPPING_CRITERIA_UNCERTAINTY:	{type:"prob"},
+		STOPPING_CRITERIA_STD: 			{type:"prob"},
+		STOPPING_CRITERIA_ACC:			{type:"prob"},
+		
+		MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS:		{type:"prob"},
+		
+		WITH_UNCERTAINTY_RECOMMENDATION:					{type:"bool"},
+		UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD:		{type:"half-to-one"},
+		UNCERTAINTY_RECOMMENDATION_RATIO:					{type:"prob"},
+		
+		WITH_CLUSTER_RECOMMENDATION: 						{type:"bool"},
+		CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE:	{type:"prob"},
+		CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED:		{type:"prob"},
+		
+		ALLOW_RECOMMENDATIONS_AFTER_STOP:					{type:"bool"},
+		
+		WITH_SNUBA_LITE:									{type:"bool"},
+		SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				{type:"prob"},
+	}
+
+	const alParams = {
+		CLASSIFIER: 			"RF",	// ["RF", "DT", "SVM", "ANN"],
+		RANDOM_SEED: 			-1,		// [-1, 0,1, … nach oben offen],
+		TEST_FRACTION: 			0.5,	//[zwischen 0.0 und 1.0],
+		SAMPLING: 				"uncertainty_max_margin",
+										//	"random",
+										//	"uncertainty_lc",
+										//	"uncertainty_max_margin",
+										//	"uncertainty_entropy",
+		CLUSTER:				"MostUncertain_max_margin",
+										//	"dummy",
+										//	"random",
+										//	"MostUncertain_lc",
+										//	"MostUncertain_max_margin",
+										//	"MostUncertain_entropy"
+		
+		NR_LEARNING_ITERATIONS:								200000,	// [1,2, nach oben offen],
+		NR_QUERIES_PER_ITERATION:							100,	// [1,2, nach oben offen],
+		USER_QUERY_BUDGET_LIMIT:							2000, 	//[1,2, nach oben offen]
+		
+		STOPPING_CRITERIA_UNCERTAINTY:						0.0,	// [zwischen 0.0 und 1.0],
+		STOPPING_CRITERIA_STD: 								0.0,	// [zwischen 0.0 und 1.0],
+		STOPPING_CRITERIA_ACC:								0.0,	// [zwischen 0.0 und 1.0],
+		
+		MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS:		0.0, 	//[zwischen 0.0 und 1.0],
+		
+		WITH_UNCERTAINTY_RECOMMENDATION:					true,
+		UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD:		0.99,	// [zwischen 0.5 und 1.0]?
+		UNCERTAINTY_RECOMMENDATION_RATIO:					0.01, 	// [zwischen 0.0 und 1.0],
+		
+		WITH_CLUSTER_RECOMMENDATION: 						true,
+		CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE:	0.3,	// [zwischen 0.0 und 1.0],
+		CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED:		0.8,	// [zwischen 0.0 und 1.0],
+		
+		ALLOW_RECOMMENDATIONS_AFTER_STOP:					true,	// [True, False],
+		
+		WITH_SNUBA_LITE:									false,
+		SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				0.5,	// [zwischen 0.0 und 1.0],
+	}
+    
+    export default {
+        name: "ALParams",
+		data: function() { return {
+			paramsTypes: paramsTypes,
+			params: alParams,
+		}},
+        components: {},
+        computed: {},
+        methods: {},
+        mounted(): void {
+            this.$store.commit('setDatasetType', "none")
+            this.$store.commit('toggleIsHomePage', true)
+            this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
+        }
+    };
+</script>
+
+<style scoped lang="scss">
+table {
+    width: 100%;
+}
+</style>

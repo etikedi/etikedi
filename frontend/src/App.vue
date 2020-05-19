@@ -28,6 +28,7 @@ import AboutPage from "./components/about-page/AboutPage.vue";
 import ContactPage from "./components/contact-page/ContactPage.vue";
 import SignupPage from "./components/signup-page/SignupPage.vue";
 import LabelView from "@/components/LabelView.vue";
+import ALParams from "./components/al-params/ALParams.vue";
 
 Vue.use(VueRouter);
 
@@ -64,10 +65,27 @@ const routes = [
         component: SignupPage
     },
     {
+<<<<<<< HEAD
         path: "/label/:datasetId",
         name: "label",
         component: LabelView
     }
+=======
+        path: "/religious-texts",
+        name: "religious-texts",
+        component: Religious
+    },
+    {
+        path: "/cv",
+        name: "cv",
+        component: CV
+    },
+    {
+        path: "/params",
+        name: "params",
+        component: ALParams
+    },
+>>>>>>> Implement view for AL params form
 ];
 
 const router = new VueRouter({
