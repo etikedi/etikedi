@@ -2,9 +2,8 @@
     <section class="section">
         <div class="container">
             <div style="position: relative;">
-                <span>
-                    {{religiousText}}
-                </span>
+                <table class="table" v-html="dwtc">
+                </table>
                 <b-loading
                         :is-full-page="false"
                         :active.sync="loading"
@@ -17,19 +16,24 @@
 
 <script lang="ts">
     import {mapState} from 'vuex';
+    import store from "@/store";
 
     export default {
-        name: "Religious",
+        name: "DWTC",
         props: {},
         components: {},
         computed: {
-            ...mapState(['religiousText', 'loading']),
-            ...mapState('religious', ['religiousText']),
+            ...mapState('dwtc', ['dwtc']),
+            ...mapState(['loading', 'displayFeatureTooltips']),
+            isHomePage: {
+                get(): boolean {
+                    return store.state.isHomePage;
+                },
+            }
         },
-        methods: {
-        },
+        methods: {},
         mounted(): void {
-            this.$store.commit('setDatasetType', "religious")
+            this.$store.commit('setDatasetType', "dwtc")
             this.$store.dispatch('loadDataset')
             this.$store.commit('toggleIsHomePage', false)
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
@@ -38,10 +42,7 @@
 </script>
 
 <style scoped lang="scss">
-    .loading-overlay {
-        left: 0;
-        top: 0;
-        position: fixed;
-        transform: translateX(-50%, -50%);
-    }
+table {
+    width: 100%;
+}
 </style>

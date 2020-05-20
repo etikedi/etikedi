@@ -22,3 +22,11 @@ export const changeLabel = (state: State, payload: LabelPayload) => {
 export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
     state.displayFeatureTooltips = newValue;
 };
+
+export const toggleShowFeatureTooltipsSwitch = (state: State, newValue: boolean) => {
+    state.displayFeatureTooltipsSwitch = newValue;
+};
+
+export const toggleIsHomePage = (state: State, newValue: boolean) => {
+    state.isHomePage = newValue;
+};

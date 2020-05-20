@@ -1,12 +1,11 @@
 export interface State {
-    cvId: number,
+    datasetType: string,
     loading: boolean,
-    cv: any,
     prevButtonDisabled: boolean,
     nextButtonDisabled: boolean,
     displayFeatureTooltips: boolean,
-    religiousText: any,
-    rtId: number,
+    displayFeatureTooltipsSwitch: boolean,
+    isHomePage: boolean
 }
 
 export interface LabelPayload {
