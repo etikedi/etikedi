@@ -6,7 +6,7 @@ export const setDatasetType = (state: State, objectType:string) => {
 };
 
 export const startLoading = (state: State) => {
-    state.loading = true;
+    //state.loading = true;
 };
 
 export const endLoading = (state: State) => {
@@ -21,4 +21,12 @@ export const changeLabel = (state: State, payload: LabelPayload) => {
 
 export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
     state.displayFeatureTooltips = newValue;
+};
+
+export const toggleShowFeatureTooltipsSwitch = (state: State, newValue: boolean) => {
+    state.displayFeatureTooltipsSwitch = newValue;
+};
+
+export const toggleIsHomePage = (state: State, newValue: boolean) => {
+    state.isHomePage = newValue;
 };
