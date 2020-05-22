@@ -1,25 +1,25 @@
 import multiprocessing
-import time
 
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from active_learning.BaseOracle import BaseOracle
 from active_learning.al_cycle_wrapper import train_al
 from active_learning.experiment_setup_lib import init_logger
 from active_learning_process import al_config
-from active_learning_process.db_functions import samples_of_dataset, samples_to_feature_dict, \
-    add_to_label_queue, query_new_labels, delete_from_label_queue, query_flowers
+from active_learning_process.al_oracle import ParallelOracle
+from active_learning_process.db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
 from active_learning_process.feature_resolving import FeatureResolver
 
 
 class ALProcess(multiprocessing.Process):
 
-    def __init__(self, dataset_name):
+    def __init__(self, dataset_name, to_label_queue, label_queue):
         super().__init__()
         self.dataset_name = dataset_name
         self.config = al_config.config()
+        self.to_label_queue = to_label_queue
+        self.label_queue = label_queue
 
     def run(self):
         init_logger("log.txt")
@@ -56,7 +56,7 @@ class ALProcess(multiprocessing.Process):
 
             # TODO Features-Resolving
             (feature_array, feature_names) = FeatureResolver(self.dataset_name, features, sample_ids).resolve()
-
+            feature_array = pd.DataFrame.from_dict(features, orient="index")
         # X and Y need to be both of the same dataframe in order to have consistent indexing!
         df = pd.DataFrame(
             data=np.c_[feature_array, labels],
@@ -88,31 +88,5 @@ class ALProcess(multiprocessing.Process):
             label_encoder,
             START_SET_SIZE=3,
             hyper_parameters=self.config,
-            oracle=ParallelOracle(sample_ids),  # this class needs to be extended!
+            oracle=ParallelOracle(sample_ids, self.to_label_queue, self.label_queue),  # this class needs to be extended!
         )
-
-
-class ParallelOracle(BaseOracle):
-
-    def __init__(self, sample_ids):
-        self.sample_ids = sample_ids
-
-    def get_labels(self, query_indices, data_storage):
-        query_sample_ids = tuple([self.sample_ids[index] for index in tuple(query_indices)])
-        print("Requesting labels for samples with ids " + str(query_sample_ids))
-        add_to_label_queue(query_sample_ids)
-        labels = []
-        while len(query_indices) is not len(labels):
-            print("Checking for requested labels")
-            for sample_id in query_sample_ids:
-                association = query_new_labels(sample_id)
-                if association is not None:
-                    label = association.label_id
-                    labels.append(label)
-                else:
-                    print("\tRequested labels incomplete")
-                    time.sleep(5)
-                    break
-        print("Requested labels complete. Current iteration successfully terminated")
-        delete_from_label_queue(query_sample_ids)
-        return labels
