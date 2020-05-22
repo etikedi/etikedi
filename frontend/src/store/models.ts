@@ -1,16 +1,15 @@
 export interface State {
-    cvId: number;
-    loading: boolean;
-    cv: any;
-    prevButtonDisabled: boolean;
-    nextButtonDisabled: boolean;
-    displayFeatureTooltips: boolean;
-    religiousText: any;
-    rtId: number;
+    datasetType: string,
+    loading: boolean,
+    prevButtonDisabled: boolean,
+    nextButtonDisabled: boolean,
+    displayFeatureTooltips: boolean,
+    displayFeatureTooltipsSwitch: boolean,
+    isHomePage: boolean
 }
 
 export interface LabelPayload {
-    startId: number;
-    endId: number;
-    label: string;
+    startId: number,
+    endId: number,
+    label: string
 }

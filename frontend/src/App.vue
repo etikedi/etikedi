@@ -1,53 +1,86 @@
-/* eslint-disable prettier/prettier */
 <template>
     <div id="app">
         <Header
             title="AERGIA"
             subtitle="Creating labeled datasets like a true lazy greek god."
-            @updateDatasetType="updateDatasetType"
         />
-        <p v-if="this.datasetType === 'dwtc'">Platzhalter für DWTC</p>
-        <p v-if="this.datasetType === 'equations'">Platzhalter für Equations</p>
-        <Religious v-if="this.datasetType === 'religious'" />
-        <CV v-if="this.datasetType === 'cv'" />
-        <CIFAR v-if="this.datasetType === 'cifar'"></CIFAR>
+        <router-view></router-view>
         <Footer
             title="AERGIA"
-            homepage="https://jgonsior.de"
-            author="Julius Gonsior"
+            homepage="https://wwwdb.inf.tu-dresden.de/"
+            author="Dresden Database Systems Group"
+            class="foot"
         />
     </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
-import {mapState} from "vuex";
+import VueRouter from "vue-router";
+import {mapState} from 'vuex';
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
-import Religious from "./components/religious/Religious.vue";
+import DWTC from "./components/dwtc/DWTC.vue";
+import HomePage from "./components/home-page/HomePage.vue";
+import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 
+Vue.use(VueRouter);
+
+const Equations = { template: "<p>Platzhalter für Equations</p>" }
+
+const routes = [
+    {
+        path: "/",
+        redirect: "/home"
+    },
+    {
+        path: "/home",
+        name: "home",
+        component: HomePage
+    },
+    {
+        path: "/cifar",
+        name: "cifar",
+        component: CIFAR
+    },
+    {
+        path: "/dwtc",
+        name: "dwtc",
+        component: DWTC
+    },
+    {
+        path: "/equations",
+        name: "equations",
+        component: Equations
+    },
+    {
+        path: "/religious-texts",
+        name: "religious-texts",
+        component: Religious
+    },
+    {
+        path: "/cv",
+        name: "cv",
+        component: CV
+    }
+];
+
+const router = new VueRouter({
+    mode: "history",
+    routes
+});
+
 export default Vue.extend({
+    router,
     name: "app",
     computed: {
-        ...mapState(["datasetType"])
+            ...mapState(['datasetType']),
     },
     components: {
         Header,
-        Footer,
-        CV,
-        Religious,
-        CIFAR
-    },
-    methods: {
-        updateDatasetType: function(objectType: any) {
-            this.$store.commit("setDatasetType", objectType);
-            this.$store.dispatch("loadDataset");
-        }
-    },
-    mounted() {
-        this.$store.dispatch("loadDataset");
+        Footer
     }
 });
 </script>
@@ -55,6 +88,12 @@ export default Vue.extend({
 <style lang="scss">
 #app {
     padding-top: 18.25rem;
+}
+
+.foot {
+    margin-top: 20px;
+    margin-left: 20%;
+    margin-right: 20%;
 }
 
 // Import Bulma's core
@@ -69,15 +108,15 @@ $primary-invert: findColorInvert($primary);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-        "white": ($white, $black),
-        "black": ($black, $white),
-        "light": ($light, $light-invert),
-        "dark": ($dark, $dark-invert),
-        "primary": ($info, $info-invert),
-        "info": ($info, $info-invert),
-        "success": ($success, $success-invert),
-        "warning": ($warning, $warning-invert),
-        "danger": ($danger, $danger-invert),
+    "white": ($white, $black),
+    "black": ($black, $white),
+    "light": ($light, $light-invert),
+    "dark": ($dark, $dark-invert),
+    "primary": ($info, $info-invert),
+    "info": ($info, $info-invert),
+    "success": ($success, $success-invert),
+    "warning": ($warning, $warning-invert),
+    "danger": ($danger, $danger-invert),
     //"twitter": ($twitter, $twitter-invert)
 );
 

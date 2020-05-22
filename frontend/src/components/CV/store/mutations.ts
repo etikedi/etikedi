@@ -1,4 +1,4 @@
-import {LabelPayload, State} from "@/store/models";
+import {LabelPayload, State} from "./models";
 
 export const setCv = (state: State, data: any) => {
     state.cv = data;
