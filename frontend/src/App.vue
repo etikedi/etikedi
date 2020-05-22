@@ -1,82 +1,99 @@
-/* eslint-disable prettier/prettier */
 <template>
     <div id="app">
         <Header
             title="AERGIA"
             subtitle="Creating labeled datasets like a true lazy greek god."
-            @updateObjectType="updateBody"
         />
-        <p v-if="this.objectType==1">Platzhalter für CIFAR</p>
-        <p v-if="this.objectType==2">Platzhalter für DWTC</p>
-        <p v-if="this.objectType==3">Platzhalter für Equations</p>
-        <p v-if="this.objectType==4">Platzhalter für Religious Texts</p>
-        <CV v-if="this.objectType==5"/>
+        <router-view></router-view>
         <Footer
             title="AERGIA"
-            homepage="https://jgonsior.de"
-            author="Julius Gonsior"
+            homepage="https://wwwdb.inf.tu-dresden.de/"
+            author="Dresden Database Systems Group"
+            class="foot"
         />
     </div>
 </template>
 
 <script lang="ts">
 import Vue from "vue";
+import VueRouter from "vue-router";
+import {mapState} from 'vuex';
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
-import CV from "./components/CV.vue";
+import CV from "./components/CV/CV.vue";
+import DWTC from "./components/dwtc/DWTC.vue";
+import HomePage from "./components/home-page/HomePage.vue";
+import Religious from "@/components/religious/Religious.vue";
+
+Vue.use(VueRouter);
+
+const Cifar = { template: "<p>Platzhalter für CIFAR</p>" }
+const Equations = { template: "<p>Platzhalter für Equations</p>" }
+
+const routes = [
+    {
+        path: "/",
+        redirect: "/home"
+    },
+    {
+        path: "/home",
+        name: "home",
+        component: HomePage
+    },
+    {
+        path: "/cifar",
+        name: "cifar",
+        component: Cifar
+    },
+    {
+        path: "/dwtc",
+        name: "dwtc",
+        component: DWTC
+    },
+    {
+        path: "/equations",
+        name: "equations",
+        component: Equations
+    },
+    {
+        path: "/religious-texts",
+        name: "religious-texts",
+        component: Religious
+    },
+    {
+        path: "/cv",
+        name: "cv",
+        component: CV
+    }
+];
+
+const router = new VueRouter({
+    mode: "history",
+    routes
+});
 
 export default Vue.extend({
+    router,
     name: "app",
-    data: function () {
-            return {
-                objectType: "0"
-            }
+    computed: {
+            ...mapState(['datasetType']),
     },
     components: {
         Header,
-        Footer,
-        CV
-    },
-    methods:{
-        updateBody: function(objectType: any){
-            switch (objectType) {
-                case "1":{
-                    //methods for CIFAR
-                    break;
-                }
-                case "2":{
-                    //methods for DWTC
-                    break;
-                }
-                case "3":{
-                    //methods for Equations
-                    break;
-                }
-                case "4":{
-                    //methods for Religious Texts
-                    break;
-                }
-                case "5":{
-                    this.$store.dispatch('loadCv');
-                    break;
-                }
-                default: {
-                    break;
-                }
-            }
-            this.objectType = objectType;
-
-        }
-    }    
-    /*mounted() {
-        this.$store.dispatch('loadCv');
-    }*/
+        Footer
+    }
 });
 </script>
 
 <style lang="scss">
 #app {
     padding-top: 18.25rem;
+}
+
+.foot {
+    margin-top: 20px;
+    margin-left: 20%;
+    margin-right: 20%;
 }
 
 // Import Bulma's core
