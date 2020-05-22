@@ -1,10 +1,6 @@
 from config import db
 
 
-class LabelQueue(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-
-
 class Flower(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sepal_length = db.Column(db.Float)
