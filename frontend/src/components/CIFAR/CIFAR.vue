@@ -39,45 +39,11 @@
                 </div>
             </div>
 
-            <div class="box">
-                <h1 class="title">Create new Label</h1>
-                <h2 class="subtitle">Add a new label to the database!</h2>
-
-                <div class="field">
-                    <div class="control">
-                        <input
-                            class="input is-info"
-                            type="text"
-                            placeholder="Label Name"
-                        />
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="control">
-                        <div class="select is-info is-fullwidth">
-                            <select v-model="selectedSampleType">
-                                <option
-                                    v-for="SampleType in SampleTypes"
-                                    :key="SampleType.id"
-                                    :value="SampleType.id"
-                                    >{{ SampleType.name }}
-                                </option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="button is-info is-fullwidth">
-                    Create new Label
-                </button>
-
-                <!-- <b-loading
+            <!-- <b-loading
                         :is-full-page="false"
                         :active.sync="loading"
                         :can-cancel="false"
                     ></b-loading> -->
-            </div>
         </div>
     </section>
 </template>
