@@ -1,8 +1,9 @@
 from pprint import pprint
 
-from sklearn import datasets
 import numpy as np
-from backend.models.label_queue import Flower
+from sklearn import datasets
+
+from backend.models.iris_model import Flower
 from config import app, db
 
 with app.app_context():
