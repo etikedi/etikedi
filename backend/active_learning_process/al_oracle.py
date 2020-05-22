@@ -21,7 +21,7 @@ class ParallelOracle(BaseOracle):
                 position = query_sample_ids.index(data["id"])
                 labels_by_query_index[position] = data["label"]
                 remaining_sample_ids.remove(data["id"])
-                if not len(remaining_sample_ids) is 0:
+                if len(remaining_sample_ids) != 0:
                     print("Waiting for remaining labels of samples " + str(remaining_sample_ids))
         print("Requested labels complete. Current iteration successfully terminated")
         labels = [labels_by_query_index[i] for i in range(len(query_indices))]
