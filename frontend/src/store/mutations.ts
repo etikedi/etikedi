@@ -13,17 +13,14 @@ export const endLoading = (state: State) => {
     state.loading = false;
 };
 
-export const changeLabel = (state: State, payload: LabelPayload) => {
-    for (let i = payload.startId; i <= payload.endId; i++) {
-        state.cv.features[i][1]["label"] = payload.label;
-    }
-};
-
 export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
     state.displayFeatureTooltips = newValue;
 };
 
-export const toggleShowFeatureTooltipsSwitch = (state: State, newValue: boolean) => {
+export const toggleShowFeatureTooltipsSwitch = (
+    state: State,
+    newValue: boolean
+) => {
     state.displayFeatureTooltipsSwitch = newValue;
 };
 

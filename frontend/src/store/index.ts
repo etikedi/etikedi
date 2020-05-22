@@ -1,13 +1,13 @@
-import Vue from "vue"
-import Vuex from "vuex"
-import * as getters from "./getters"
-import * as actions from "./actions"
-import * as mutations from "./mutations"
+import Vue from "vue";
+import Vuex from "vuex";
+import * as getters from "./getters";
+import * as actions from "./actions";
+import * as mutations from "./mutations";
 import {State} from "./models";
 
-import {cvStore} from "@/components/CV/store/module"
+import {cvStore} from "@/components/CV/store/module";
 import {dwtcStore} from "@/components/dwtc/store/module";
-import {religiousStore} from "@/components/religious/store/module"
+import {religiousStore} from "@/components/religious/store/module";
 import {cifarStore} from "@/components/CIFAR/store/module";
 
 Vue.use(Vuex);
@@ -15,9 +15,9 @@ Vue.use(Vuex);
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-	datasetType: 'cv',
-	
-	loading: false,
+    datasetType: "cv",
+
+    loading: false,
     prevButtonDisabled: false,
     nextButtonDisabled: false,
     displayFeatureTooltips: true,
@@ -28,12 +28,12 @@ const state: State = {
 const store = new Vuex.Store({
     state,
     modules: {
-		cv: cvStore,
+        cv: cvStore,
         dwtc: dwtcStore,
-		religious: religiousStore,
+        religious: religiousStore,
         cifar: cifarStore
-		// add imported dataset type modules here!
-	},
+        // add imported dataset type modules here!
+    },
     getters,
     actions,
     mutations,
@@ -41,17 +41,13 @@ const store = new Vuex.Store({
 });
 
 if (module.hot) {
-    module.hot.accept([
-        "./getters",
-        "./actions",
-        "./mutations"
-    ], () => {
+    module.hot.accept(["./getters", "./actions", "./mutations"], () => {
         store.hotUpdate({
             getters: require("./getters"),
             actions: require("./actions"),
             mutations: require("./mutations")
-        })
-    })
+        });
+    });
 }
 
-export default store
+export default store;

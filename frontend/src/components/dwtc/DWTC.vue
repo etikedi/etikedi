@@ -2,12 +2,12 @@
     <section class="section">
         <div class="container">
             <div style="position: relative;">
-                <table class="table" v-html="dwtc">
-                </table>
+                <table class="table" v-html="dwtc"></table>
                 <b-loading
-                        :is-full-page="false"
-                        :active.sync="loading"
-                        :can-cancel="false">
+                    :is-full-page="false"
+                    :active.sync="loading"
+                    :can-cancel="false"
+                >
                 </b-loading>
             </div>
         </div>
@@ -15,30 +15,30 @@
 </template>
 
 <script lang="ts">
-    import {mapState} from 'vuex';
-    import store from "@/store";
+import {mapState} from "vuex";
+import store from "@/store";
 
-    export default {
-        name: "DWTC",
-        props: {},
-        components: {},
-        computed: {
-            ...mapState('dwtc', ['dwtc']),
-            ...mapState(['loading', 'displayFeatureTooltips']),
-            isHomePage: {
-                get(): boolean {
-                    return store.state.isHomePage;
-                },
+export default {
+    name: "DWTC",
+    props: {},
+    components: {},
+    computed: {
+        ...mapState("dwtc", ["dwtc"]),
+        ...mapState(["loading", "displayFeatureTooltips"]),
+        isHomePage: {
+            get(): boolean {
+                return store.state.isHomePage;
             }
-        },
-        methods: {},
-        mounted(): void {
-            this.$store.commit('setDatasetType', "dwtc")
-            this.$store.dispatch('loadDataset')
-            this.$store.commit('toggleIsHomePage', false)
-            this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         }
-    };
+    },
+    methods: {},
+    mounted(): void {
+        this.$store.commit("setDatasetType", "dwtc");
+        this.$store.dispatch("loadDataset");
+        this.$store.commit("toggleIsHomePage", false);
+        this.$store.commit("toggleShowFeatureTooltipsSwitch", false);
+    }
+};
 </script>
 
 <style scoped lang="scss">
