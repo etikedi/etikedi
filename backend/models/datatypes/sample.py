@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey
 
-from app_init import db
+from config import db
 
 
 class Sample(db.Model):

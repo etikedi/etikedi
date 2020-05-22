@@ -1,5 +1,5 @@
 from .sample import Sample
-from app_init import db
+from config import db
 
 
 class Text(Sample):

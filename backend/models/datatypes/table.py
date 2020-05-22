@@ -1,5 +1,5 @@
+from config import db
 from .sample import Sample
-from app_init import db
 
 
 class Table(Sample):
