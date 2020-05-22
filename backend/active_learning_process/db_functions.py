@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from config import db
 from models import Sample, Label, Dataset, Association
-from models.label_queue import LabelQueue, Flower
+from models.iris_model import Flower
 
 
 def samples_of_dataset(name: str) -> List[Sample]:
@@ -52,30 +52,10 @@ def samples_to_feature_dict(samples: List[Sample]) -> Dict[int, dict]:
     }
 
 
-def add_to_label_queue(sample_ids):
-    for sample_id in sample_ids:
-        db.session.add(LabelQueue(id=sample_id))
-    db.session.commit()
-    db.session.close()
-
-
-def delete_from_label_queue(query_sample_ids):
-    for sample_id in query_sample_ids:
-        LabelQueue.query.filter_by(id=sample_id).delete()
-    db.session.commit()
-    db.session.close()
-
-
 def query_new_labels(sample_id):
     association = db.session.query(Association).filter_by(sample_id=sample_id).first()
     db.session.commit()
     return association
-
-
-def to_be_labeled():
-    sample_ids = db.session.query(LabelQueue).all()
-    db.session.commit()
-    return sample_ids
 
 
 def query_flowers():
@@ -83,11 +63,13 @@ def query_flowers():
     db.session.commit()
     return flowers
 
-# all_labels = labels_of_dataset('Lorem')
-# print(all_labels)
-#
-# all_samples = samples_of_dataset('Lorem')
-# print(all_samples)
-#
-# feature_dict = samples_to_feature_dict(all_samples)
-# print(feature_dict)
+
+if __name__ == "__main__":
+    all_labels = labels_of_dataset('Lorem')
+    print(all_labels)
+
+    all_samples = samples_of_dataset('Lorem')
+    print(all_samples)
+
+    feature_dict = samples_to_feature_dict(all_samples)
+    print(feature_dict)
