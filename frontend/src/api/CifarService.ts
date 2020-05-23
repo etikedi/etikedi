@@ -20,11 +20,11 @@ export default {
     },
 
     loadDataset(params: {datasetID: string}): Promise<any> {
-        return Api().get("/" + params.datasetID);
+        return Api().get("/dataset/" + params.datasetID);
     },
 
     getLabels(params: {datasetID: string}): Promise<any> {
-        return Api().get("/" + params.datasetID + "/labels");
+        return Api().get("/dataset/" + params.datasetID + "/labels");
     },
 
     getSample(params: {sampleID: any}): Promise<any> {

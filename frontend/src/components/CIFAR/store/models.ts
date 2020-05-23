@@ -8,5 +8,10 @@ export interface CifarSample {
     sampleID: any;
     data: any;
     association: any;
-    datasetID?: string;
+}
+
+export interface Association {
+    sampleID: string;
+    labelID: string;
+    userID: string;
 }

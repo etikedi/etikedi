@@ -195,17 +195,20 @@ export default Vue.extend({
             this.send(this.samples[this.count].id.toString(), this.selected);
         },
         send: function(sampelId: string, labelId: number) {
-            /*
-            this.$store.dispatch("labelCifarSample", {
-                sampelId: id,
-                labelId: value
-            });
-            */
-
-            console.log(labelId);
-
             if (labelId != null) {
-                // send to api
+                const payload = {
+                    sampleId: sampelId,
+                    label: this.labels[labelId].name
+                };
+                /*
+                // send to api if backend is working
+
+                this.$store.dispatch("cifar/labelCifarSample", {
+                    sampleId: sampelId,
+                    label: this.label[labelId]
+                });
+                 */
+                console.log(payload);
                 console.log(
                     `Image with Sample ID <${sampelId}> was assigned to Label ID <${labelId}> and successfully send to server.`
                 );
