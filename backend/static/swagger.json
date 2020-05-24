@@ -1,0 +1,182 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "description": "Aergia Server API Specification",
+    "version": "0.1.0",
+    "title": "Aergia API",
+    "license": {
+      "name": "GNU Affero General Public License v3.0.",
+      "url": "https://choosealicense.com/licenses/agpl-3.0/"
+    }
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/api/datasets": {
+      "get": {
+        "description": "retrieve all available datasets currently defined, with corresponding ids.",
+        "responses": {
+          "200": {
+            "description": "a list of datasets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/datasets"
+                },
+                "example": {
+                  "datasets": [
+                    {
+                      "id": 27138,
+                      "name": "DWTC"
+                    },
+                    {
+                      "id": 45632,
+                      "name": "CIFAR"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/{dataset_id}/labels": {
+      "get": {
+        "description": "retrieve all labels corresponding to a data set.",
+        "responses": {
+          "200": {
+            "description": "a list of labels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "items": {
+                    "$ref": "#/components/schemas/labels"
+                  },
+                  "example": {
+                        "labels": [
+                       {
+                         "name" : "CAT",
+                         "id": 21829
+                       },
+                       {
+                         "name" : "DOG",
+                         "id": 21827
+                       },
+                       {
+                         "name" : "PROGRAMMER",
+                         "id": 21828
+                       }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "dataset_id",
+          "in": "path",
+          "description": "ID of the dataset to request labels for",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/api/{dataset_id}": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "parameters": [
+        {
+          "name": "dataset_id",
+          "in": "path",
+          "description": "Id of the dataset to request a sample for",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+      ]
+    },
+    "/api/sample/{datasample_id}": {
+      "post": {
+        "description": "send the user labeled data as (datasample_id, label_id, user_id), and receive the next to be labeled data sample (from the same dataset as the one defined by the query).",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request, malformed reqbody syntax"
+          },
+          "404": {
+            "description": "Resource described in {datasample_id} not found"
+          }
+        },
+        "requestBody": {
+          "$ref": "#/components/requestBodies/Association"
+        }
+      },
+      "parameters": [
+        {
+          "name": "datasample_id",
+          "in": "path",
+          "description": "Id of the dataset to request a sample for",
+          "required": true,
+          "schema": {
+            "type": "integer"
+          }
+        }
+
+      ]
+    }
+  },
+  "components": {
+    "schemas": {
+      "labels": {
+        "type": "object",
+        "properties": {
+          "labels": {
+            "type": "array",
+            "items": {
+
+            }
+          }
+        }
+      },
+      "datasets": {
+        "type": "object"
+      }
+    },
+    "requestBodies": {
+      "Association": {
+        "content": {
+          "application/json": {
+            "schema": {
+
+            },
+            "example": {
+              "association" :
+                {
+                   "label_id": 17248,
+                    "user_id": 29488
+                }
+            }
+          }
+        }
+      }
+    }
+  }
+}
