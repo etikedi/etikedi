@@ -26,6 +26,7 @@ psycopg2 = "*"
 tabulate = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
+flask-swagger-ui = "*"
 
 [requires]
 python_version = "3"
