@@ -81,7 +81,7 @@
         {
           "name": "dataset_id",
           "in": "path",
-          "description": "Id of the dataset to request a sample for",
+          "description": "Id of the dataset to request a sample for || STILL UNDER DEVELOPMENT (RETURNS DATASET), MUST INTEGRATE AL CODE!",
           "required": true,
           "schema": {
             "type": "integer"
@@ -91,7 +91,7 @@
     },
     "/api/sample/{datasample_id}": {
       "post": {
-        "description": "send the user labeled data as (datasample_id, label_id, user_id), and receive the next to be labeled data sample (from the same dataset as the one defined by the query).",
+        "description": "send the user labeled data as (datasample_id, label_id, user_id), and receive the next to be labeled data sample (from the same dataset as the one defined by the query). || STILL UNDER DEVELOPMENT, AL CODE INTEGRATION IS STILL A TODO",
         "tags": [
             "Active Learning"
           ],

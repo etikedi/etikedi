@@ -60,6 +60,6 @@ def get_sample(data_sample_id):
         db.session.add(new_association)
         db.session.commit()
 
-        return ("place next sample here")
+        return ("you just posted into /api/sample/<id>, aL code integration is still a TODO!")
 
 

@@ -33,15 +33,16 @@ def get_next_data_sample(data_set_id):
     """
     # Get the data set requested
     data_set = Dataset.query \
-        .filter(Dataset.id == data_set_id)
+        .filter_by(id=data_set_id).first()
 
     # Did we find a dataset?
     if data_set is not None:
 
         # Serialize the data for the response
         dataset_schema = DataSetSchema()
-        return dataset_schema.dump(data_set)
-
+        data_dmp = dataset_schema.dump(data_set)
+        print("a")
+        return data_dmp
     # Otherwise, nope, didn't find next data sample
     else:
         abort(404)
