@@ -275,7 +275,7 @@
           "example": {
             "datasample": {
                  "id" : 29392,
-                 "data" : "<tbody><tr><span> ... </tbody>"
+                 "content" : "<tbody><tr><span> ... </tbody>"
               }
           }
       },

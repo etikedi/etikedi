@@ -21,8 +21,8 @@ def read_all_data_sets():
     return dict(datasets=data_set_list)
 
 
-# To do later ->
-@app.route('/api/int:data_set_id', methods=['GET'])
+# TODO: this function does not still return the next sample, it must be integrated with aL code!
+@app.route('/api/<int:data_set_id>', methods=['GET'])
 def get_next_data_sample(data_set_id):
     """
     This function responds to a request for /api/int:data_set_id
@@ -33,18 +33,18 @@ def get_next_data_sample(data_set_id):
     """
     # Get the data set requested
     data_set = Dataset.query \
-        .filter(Dataset.dataset_id == data_set_id)
+        .filter(Dataset.id == data_set_id)
 
     # Did we find a dataset?
     if data_set is not None:
 
         # Serialize the data for the response
-        person_schema = DataSetSchema()
-        return person_schema.dump(data_set)
+        dataset_schema = DataSetSchema()
+        return dataset_schema.dump(data_set)
 
     # Otherwise, nope, didn't find next data sample
     else:
-        abort(404, 'Person not found for Id: {dataset_id}'.format(dataset_id=data_set_id))
+        abort(404)
 
 
 @app.errorhandler(404)

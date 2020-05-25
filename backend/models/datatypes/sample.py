@@ -47,4 +47,4 @@ class Sample(db.Model):
 
 class SampleSchema(ma.Schema):
     class Meta:
-        fields = ("id", "dataset_id", "labels")
+        fields = ("id", "dataset_id", "labels", "type")
