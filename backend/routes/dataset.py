@@ -1,12 +1,7 @@
-from models.dataset import DataSetSchema, Dataset
-import flask
-from flask import request
-from flask_praetorian import auth_required
 from flask_restful import abort
 
-from models import Association, Dataset
-from models.datatypes.sample import SampleSchema, Sample
-from ..config import app, db
+from ..config import app
+from ..models import DataSetSchema, Dataset
 
 
 @app.route('/api/datasets', methods=['GET'])

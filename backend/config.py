@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_marshmallow import Marshmallow
 
+
 class Config(object):
     SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False

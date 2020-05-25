@@ -1,4 +1,4 @@
-from ..aergia import db, ma
+from ..config import db, ma
 
 
 class Association(db.Model):

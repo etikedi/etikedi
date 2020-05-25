@@ -1,9 +1,7 @@
 from flask_restful import abort
 
 from ..config import app
-import flask
-from models import Label
-from models.label import LabelSchema
+from ..models import Label, LabelSchema
 
 
 @app.route('/api/int:data_set_id/labels', methods=['GET'])

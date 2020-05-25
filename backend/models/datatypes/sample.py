@@ -1,5 +1,5 @@
 from sqlalchemy import ForeignKey
-from ...aergia import db, ma
+from ...config import db, ma
 
 
 class Sample(db.Model):
