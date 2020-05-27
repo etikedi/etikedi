@@ -2,7 +2,7 @@ def config():
     return {
         "SAMPLING": "uncertainty_max_margin",
         "CLUSTER": "MostUncertain_max_margin",
-        "NR_QUERIES_PER_ITERATION": 1,
+        "NR_QUERIES_PER_ITERATION": 10,
         "WITH_UNCERTAINTY_RECOMMENDATION": True,
         "WITH_CLUSTER_RECOMMENDATION": True,
         "WITH_SNUBA_LITE": False,

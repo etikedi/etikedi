@@ -13,22 +13,33 @@ from active_learning_process.feature_resolving import FeatureResolver
 
 
 class ALProcess(multiprocessing.Process):
+    """
+    Extension of multiprocessing.Process as a wrapper class for asynchronous execution of active-learning
+    code lifecycle.
 
-    def __init__(self, dataset_name, to_label_queue, label_queue):
+
+    """
+    def __init__(self, dataset_name, pipe_endpoint):
         super().__init__()
         self.dataset_name = dataset_name
         self.config = al_config.config()
-        self.to_label_queue = to_label_queue
-        self.label_queue = label_queue
+        self.pipe_endpoint = pipe_endpoint
 
     def run(self):
+        """
+        This methods represents the entry point to the active-learning code.
+        Before it can be started, data has to get retrieved from database.
+        This is done via a member of this class which allows an unambiguously identification of the queried dataset.
+        After the data preparation is done, a BaseOracle object is created and - including with the configuration and
+        data -  fed to the active learning code.
+        """
         init_logger("log.txt")
         sample_ids = {}
         features = []
         labels = []
         indices_labeled_data = []
         label_meanings = []
-        print("Active learning process started for dataset: " + self.dataset_name)
+        print("ALProcess:\t Starting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
         if self.dataset_name == "iris":
@@ -57,6 +68,7 @@ class ALProcess(multiprocessing.Process):
             # TODO Features-Resolving
             (feature_array, feature_names) = FeatureResolver(self.dataset_name, features, sample_ids).resolve()
             feature_array = pd.DataFrame.from_dict(features, orient="index")
+
         # X and Y need to be both of the same dataframe in order to have consistent indexing!
         df = pd.DataFrame(
             data=np.c_[feature_array, labels],
@@ -88,5 +100,5 @@ class ALProcess(multiprocessing.Process):
             label_encoder,
             START_SET_SIZE=3,
             hyper_parameters=self.config,
-            oracle=ParallelOracle(sample_ids, self.to_label_queue, self.label_queue),  # this class needs to be extended!
+            oracle=ParallelOracle(sample_ids, self.pipe_endpoint)
         )

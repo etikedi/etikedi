@@ -1,5 +1,6 @@
 import flask
 from flask_praetorian import auth_required
+
 from ..config import app
 
 
