@@ -1,6 +1,6 @@
 import json
-from .config import app, db, guard
-from .models import User, Dataset, Label, Table
+from .config import guard
+from .models import User, Table
 
 # Make all routes visible to the app
 from .routes import *
