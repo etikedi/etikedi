@@ -1,48 +1,71 @@
-import flask
+from flask import request
 from flask_restful import abort, Resource
-from flask_praetorian import auth_required
+from flask_praetorian import auth_required, current_user
+from sqlalchemy.exc import IntegrityError
+
 from ..config import db, api
-from ..models import Sample, Association
+from ..models import Sample, Association, SampleSchema, Label, Dataset
 
 
 class SampleAPI(Resource):
     method_decorators = [auth_required]
 
     def get(self, data_sample_id):
-        sample_obj = Sample.query.filter_by(id=data_sample_id).first()
-        if sample_obj is None:
+        sample = Sample.query.filter_by(id=data_sample_id).first()
+        if sample is None:
             abort(404)
-        return dict(sample=dict(id=sample_obj.id, content=sample_obj.content))
 
-    def post(self, data_sample_id):
+        return SampleSchema().dump(sample)
+
+    def post(self, sample_id):
         """
-        This function responds to a request for /api/sample/int:data_set_id
+        This function responds to a request for /api/sample/int:data_sample_id
         with the next data sample of data set that should get labeled
 
-        :param data_sample_id:   ID of data sample to find
+        TODO: Integrate AL code
+
+        :param sample_id:   ID of data sample to find
         :return:            data set matching ID
         """
-        if not flask.request.is_json or flask.request.json.get('association') is None:
-            abort(400)
-        association_dict = flask.request.json['association']
-
-        # check if label_id and user_id are inside dict
-        if not association_dict.keys() >= {'label_id', 'user_id'}:
+        user = current_user()
+        try:
+            label_id = request.json['label_id']
+        except KeyError:
             abort(400)
 
-        # Query object type referred by ID
-        # TODO: check the existence of label_id, user_id
-        obj_type = Sample.query.filter_by(id=data_sample_id).first().type
+        if not self.can_assign(sample_id, label_id):
+            abort(400)
 
-        new_association = Association(
-            sample_id=data_sample_id,
-            label_id=association_dict['label_id'],
-            user_id=association_dict['user_id']
-        )
-        db.session.add(new_association)
-        db.session.commit()
+        try:
+            new_association = Association(
+                sample_id=sample_id,
+                label_id=label_id,
+                user_id=user.id
+            )
+            db.session.add(new_association)
+            db.session.commit()
+            next_sample = self.get_next_sample(sample_id)
+            return SampleSchema().dump(next_sample), 201
+        except IntegrityError:
+            return None, 409
 
-        return ("you just posted into /api/sample/<id>, aL code integration is still a TODO!")
+    def can_assign(self, sample_id, label_id):
+        return bool(db.session.query(Dataset, Sample, Label)
+             .filter(Dataset.id == Sample.dataset_id)
+             .filter(Dataset.id == Label.dataset_id)
+             .filter(Sample.id == sample_id)
+             .filter(Label.id == label_id)
+             .count())
+
+    def get_next_sample(self, sample_id: int) -> Sample:
+        """ Get next unlabeled sample from the given dataset """
+        dataset_id = Sample.query.get(sample_id).dataset_id
+        return Sample.query\
+            .join(Dataset)\
+            .outerjoin(Association)\
+            .filter(Dataset.id == dataset_id)\
+            .filter(Association.user_id == None)\
+            .first()
 
 
-api.add_resource(SampleAPI, '/api/sample/<int:data_sample_id>')
+api.add_resource(SampleAPI, '/api/sample/<int:sample_id>')
