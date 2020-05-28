@@ -1,3 +1,4 @@
+from flask_praetorian import auth_required
 from flask_restful import abort
 
 from ..config import app
@@ -5,6 +6,7 @@ from ..models import Label, LabelSchema
 
 
 @app.route('/api/<int:data_set_id>/labels', methods=['GET'])
+@auth_required
 def read_all_labels(data_set_id):
     """
     This function responds to a request for /api/int:data_set_id/labels

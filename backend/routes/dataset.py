@@ -1,3 +1,4 @@
+from flask_praetorian import auth_required
 from flask_restful import abort
 
 from ..config import app
@@ -5,6 +6,7 @@ from ..models import DataSetSchema, Dataset
 
 
 @app.route('/api/datasets', methods=['GET'])
+@auth_required
 def read_all_data_sets():
     """
     This function responds to a request for /api/datasets
@@ -23,6 +25,7 @@ def read_all_data_sets():
 
 # TODO: this function does not still return the next sample, it must be integrated with aL code!
 @app.route('/api/<int:data_set_id>', methods=['GET'])
+@auth_required
 def get_next_data_sample(data_set_id):
     """
     This function responds to a request for /api/int:data_set_id
