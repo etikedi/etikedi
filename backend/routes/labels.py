@@ -7,8 +7,8 @@ from ..models import Label, LabelSchema
 
 class LabelAPI(Resource):
     method_decorators = {
-        'get': auth_required,
-        'post': roles_required('admin')
+        'get': [auth_required],
+        'post': [roles_required('admin')]
     }
 
     def get(self, dataset_id):
@@ -23,10 +23,7 @@ class LabelAPI(Resource):
         if labels is None:
             abort(404, 'Labels not found for data set: {dataset_id}'.format(dataset_id=dataset_id))
 
-        # Serialize the data for the response
-        label_schema = LabelSchema(many=True)
-        label_list = label_schema.dump(labels)
-        return dict(labels=label_list)
+        return LabelSchema(many=True).dump(labels)
 
     def post(self):
         """ TODO: Allow adding labels for admins """

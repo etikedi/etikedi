@@ -10,8 +10,8 @@ from ..models import Sample, Association, SampleSchema, Label, Dataset
 class SampleAPI(Resource):
     method_decorators = [auth_required]
 
-    def get(self, data_sample_id):
-        sample = Sample.query.filter_by(id=data_sample_id).first()
+    def get(self, sample_id):
+        sample = Sample.query.filter_by(id=sample_id).first()
         if sample is None:
             abort(404)
 
@@ -32,6 +32,7 @@ class SampleAPI(Resource):
             label_id = request.json['label_id']
         except KeyError:
             abort(400)
+            return
 
         if not self.can_assign(sample_id, label_id):
             abort(400)
