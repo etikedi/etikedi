@@ -1,28 +1,27 @@
 import flask
-from flask_restful import abort
+from flask_restful import abort, Resource
 from flask_praetorian import auth_required
-from ..config import app, db
-from ..models import Sample, SampleSchema
-from ..models import Association
+from ..config import db, api
+from ..models import Sample, Association
 
 
-@app.route('/api/sample/<int:data_sample_id>', methods=['GET', 'POST'])
-@auth_required
-def get_sample(data_sample_id):
-    """
-    This function responds to a request for /api/sample/int:data_set_id
-    with the next data sample of data set that should get labeled
+class SampleAPI(Resource):
+    method_decorators = [auth_required]
 
-    :param data_sample_id:   ID of data sample to find
-    :return:            data set matching ID
-    """
-    if flask.request.method == 'GET':
+    def get(self, data_sample_id):
         sample_obj = Sample.query.filter_by(id=data_sample_id).first()
         if sample_obj is None:
             abort(404)
         return dict(sample=dict(id=sample_obj.id, content=sample_obj.content))
 
-    if flask.request.method == 'POST':
+    def post(self, data_sample_id):
+        """
+        This function responds to a request for /api/sample/int:data_set_id
+        with the next data sample of data set that should get labeled
+
+        :param data_sample_id:   ID of data sample to find
+        :return:            data set matching ID
+        """
         if not flask.request.is_json or flask.request.json.get('association') is None:
             abort(400)
         association_dict = flask.request.json['association']
@@ -46,3 +45,4 @@ def get_sample(data_sample_id):
         return ("you just posted into /api/sample/<id>, aL code integration is still a TODO!")
 
 
+api.add_resource(SampleAPI, '/api/sample/<int:data_sample_id>')
