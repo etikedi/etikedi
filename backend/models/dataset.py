@@ -20,6 +20,6 @@ class Dataset(db.Model):
         return self.name
 
 
-class DataSetSchema(ma.Schema):
+class DatasetSchema(ma.Schema):
     class Meta:
         fields = ("id", "name")

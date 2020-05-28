@@ -1,5 +1,5 @@
 from .association import Association, AssociationSchema
-from .dataset import Dataset, DataSetSchema
+from .dataset import Dataset, DatasetSchema
 from .label import Label, LabelSchema
 from .user import User
 

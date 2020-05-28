@@ -2,7 +2,7 @@ from flask_praetorian import auth_required
 from flask_restful import abort, Resource
 
 from ..config import app, api
-from ..models import DataSetSchema, Dataset
+from ..models import DatasetSchema, Dataset
 
 
 class DatasetList(Resource):
@@ -16,10 +16,7 @@ class DatasetList(Resource):
         :return:        list of datasets (e.g. dwtc, religious_texts...)
         """
         datasets = Dataset.query.all()
-
-        # Serialize the data for the response
-        schema = DataSetSchema(many=True)
-        return schema.dump(datasets)
+        return DatasetSchema(many=True).dump(datasets)
 
     def post(self):
         """ TODO: Create a new dataset """
@@ -44,7 +41,7 @@ class DatasetDetail(Resource):
         if dataset is None:
             abort(404)
 
-        return DataSetSchema().dump(dataset)
+        return DatasetSchema().dump(dataset)
 
     def post(self):
         """ TODO: Update name of dataset. """
