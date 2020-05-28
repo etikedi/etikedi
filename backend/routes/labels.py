@@ -1,33 +1,39 @@
-from flask_praetorian import auth_required
-from flask_restful import abort
+from flask_praetorian import auth_required, roles_required
+from flask_restful import abort, Resource
 
-from ..config import app
+from ..config import app, api
 from ..models import Label, LabelSchema
 
 
-@app.route('/api/<int:data_set_id>/labels', methods=['GET'])
-@auth_required
-def read_all_labels(data_set_id):
-    """
-    This function responds to a request for /api/int:data_set_id/labels
-    with the complete lists of data sets
+class LabelAPI(Resource):
+    method_decorators = {
+        'get': auth_required,
+        'post': roles_required('admin')
+    }
 
-    :return:        json string of list of labels for a data set
-    """
-    # Create the list of labels of this data set
-    labels = Label.query.filter(Label.dataset_id == data_set_id)
+    def get(self, dataset_id):
+        """
+        This function responds to a request for /api/int:dataset_id/labels
+        with the complete lists of data sets
 
-    # Did we find a label?
-    if labels is not None:
+        :return:        json string of list of labels for a data set
+        """
+        labels = Label.query.filter(Label.dataset_id == dataset_id)
+
+        if labels is None:
+            abort(404, 'Labels not found for data set: {dataset_id}'.format(dataset_id=dataset_id))
 
         # Serialize the data for the response
         label_schema = LabelSchema(many=True)
         label_list = label_schema.dump(labels)
         return dict(labels=label_list)
 
-        # Otherwise, nope, didn't find labels
-    else:
-        abort(404, 'Labels not found for data set: {dataset_id}'.format(dataset_id=data_set_id))
+    def post(self):
+        """ TODO: Allow adding labels for admins """
+        pass
+
+
+api.add_resource(LabelAPI, '/api/<int:dataset_id>/labels')
 
 
 @app.errorhandler(404)
