@@ -1,6 +1,5 @@
 from sqlalchemy import ForeignKey
-
-from config import db
+from ...config import db, ma
 
 
 class Sample(db.Model):
@@ -44,3 +43,8 @@ class Sample(db.Model):
 
     def __repr__(self):
         return str(self)
+
+
+class SampleSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "dataset_id", "type", "content")

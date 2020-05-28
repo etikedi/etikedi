@@ -1,5 +1,4 @@
-from .association import Association
-from .dataset import Dataset
-from .datatypes import *
-from .label import Label
+from .association import Association, AssociationSchema
+from .dataset import Dataset, DatasetSchema
+from .label import Label, LabelSchema
 from .user import User

@@ -22,8 +22,11 @@ sklearn = "*"
 matplotlib = "*"
 pandas = "*"
 peewee = "*"
-psycopg2 = "*"
+psycopg2-binary = "*"
 tabulate = "*"
+flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
+flask-swagger-ui = "*"
 
 [requires]
 python_version = "3"

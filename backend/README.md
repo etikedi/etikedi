@@ -5,6 +5,7 @@ The backend features a REST API, built using the following technologies
 - [Flask](https://flask.palletsprojects.com/), a lightweight web framework 
 - [Flask-RESTful](https://flask-restful.readthedocs.io/) for building the REST interface
 - [FlaskSQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/) Tiny wrapper around the [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/13/orm/tutorial.html)
+- [Marshmallow](https://realpython.com/flask-connexion-rest-api-part-2/)
 - Sqlite for storing the data in `test.db`
 
 

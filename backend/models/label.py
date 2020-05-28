@@ -1,6 +1,6 @@
 from sqlalchemy import ForeignKey
 
-from config import db
+from ..config import db, ma
 
 
 class Label(db.Model):
@@ -16,4 +16,9 @@ class Label(db.Model):
         'Dataset',
         backref=db.backref('labels', lazy=True)
     )
+
+
+class LabelSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "name")
 
