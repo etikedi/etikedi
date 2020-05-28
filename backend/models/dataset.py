@@ -3,7 +3,7 @@ from ..config import db, ma
 
 class Dataset(db.Model):
     """
-    Represents a complete data set.
+    Represents a complete dataset.
 
     - Name
     - All items

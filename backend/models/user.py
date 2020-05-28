@@ -15,6 +15,10 @@ class User(db.Model):
 
     is_active = db.Column(db.Boolean, default=True, server_default='true')
 
+    def __str__(self):
+        return 'User "{}" with roles {}'.format(self.username, self.roles)
+
+    # The following methods are required by flask_praetorian
     def is_valid(self):
         return self.is_active
 
@@ -36,4 +40,3 @@ class User(db.Model):
     @property
     def identity(self):
         return self.id
-
