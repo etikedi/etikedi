@@ -1,4 +1,4 @@
-from active_learning.BaseOracle import BaseOracle
+from ..active_learning.BaseOracle import BaseOracle
 
 
 class ParallelOracle(BaseOracle):
@@ -29,7 +29,9 @@ class ParallelOracle(BaseOracle):
             -   Messages received by this class represent updated label data.
         """
         query_sample_ids = [self.sample_ids[index] for index in tuple(query_indices)]
-        self.pipe_endpoint.send(query_sample_ids)
+        for sample_id in query_sample_ids:
+            self.pipe_endpoint.send(sample_id)
+        # self.pipe_endpoint.send(query_sample_ids)
         print("Oracle:\tRequesting labels for sample ids: " + str(query_sample_ids))
         remaining_sample_ids = query_sample_ids.copy()
         labels_by_query_index = {}

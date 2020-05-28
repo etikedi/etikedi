@@ -1,8 +1,8 @@
 from typing import List, Dict
 
-from config import db
-from models import Sample, Label, Dataset, Association
-from models.iris_model import Flower
+from ..config import db
+from ..models import Sample, Label, Dataset, Association
+from ..models.iris_model import Flower
 
 
 def samples_of_dataset(name: str) -> List[Sample]:

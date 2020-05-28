@@ -1,6 +1,3 @@
-import traceback
-import warnings
-
 import numpy as np
 import pandas as pd
 from sklearn import datasets
@@ -8,9 +5,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from backend.active_learning.al_cycle_wrapper import train_al
 from backend.active_learning.experiment_setup_lib import (
-    get_dataset,
     init_logger,
-    standard_config,
 )
 from backend.aergia_oracle import AergiaOracle
 

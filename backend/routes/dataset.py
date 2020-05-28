@@ -1,9 +1,10 @@
+from flask import jsonify
 from flask_praetorian import auth_required
 from flask_restful import abort, Resource
 
 from ..config import app, api
 from ..models import DatasetSchema, Dataset
-
+from ..active_learning_process.process_management import manager
 
 class DatasetList(Resource):
     method_decorators = [auth_required]
@@ -41,7 +42,16 @@ class DatasetDetail(Resource):
         if dataset is None:
             abort(404)
 
-        return DatasetSchema().dump(dataset)
+        # Retrieve pipe endpoint from process manager
+        pipe_endpoint = manager.get_or_else_load(dataset_id)
+        # Poll for new data points
+        sample_ids = []
+        if pipe_endpoint.poll(5):
+            print("Backend:\tFound new datapoints")
+            sample_ids = pipe_endpoint.recv()
+        else:
+            print("Backend:\tNo samples available atm")
+        return jsonify(sample_ids)
 
     def post(self):
         """ TODO: Update name of dataset. """

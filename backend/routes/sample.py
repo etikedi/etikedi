@@ -1,11 +1,11 @@
-from flask import request
+from flask import request, jsonify
 from flask_restful import abort, Resource
 from flask_praetorian import auth_required, current_user
 from sqlalchemy.exc import IntegrityError
 
 from ..config import db, api
 from ..models import Sample, Association, SampleSchema, Label, Dataset
-
+from ..active_learning_process.process_management import manager
 
 class SampleAPI(Resource):
     method_decorators = [auth_required]
@@ -45,6 +45,14 @@ class SampleAPI(Resource):
             )
             db.session.add(new_association)
             db.session.commit()
+
+            # Retrieve pipe endpoint for process with corresponding dataset_id and send new label
+            dataset_id = Sample.query.get(sample_id).dataset_id
+            pipe_endpoint = manager.get_or_else_load(dataset_id)
+            pipe_endpoint.send({"id": new_association.sample_id,
+                                "label": new_association.label_id,
+                                "user": new_association.user_id})
+
             next_sample = self.get_next_sample(sample_id)
             return SampleSchema().dump(next_sample), 201
         except IntegrityError:
@@ -61,12 +69,20 @@ class SampleAPI(Resource):
     def get_next_sample(self, sample_id: int) -> Sample:
         """ Get next unlabeled sample from the given dataset """
         dataset_id = Sample.query.get(sample_id).dataset_id
-        return Sample.query\
-            .join(Dataset)\
-            .outerjoin(Association)\
-            .filter(Dataset.id == dataset_id)\
-            .filter(Association.user_id == None)\
-            .first()
+        pipe_endpoint = manager.get_or_else_load(dataset_id)
+        sample_ids = []
+        if pipe_endpoint.poll(5):
+            print("Backend:\tFound new datapoints")
+            sample_ids = pipe_endpoint.recv()
+        else:
+            print("Backend:\tNo samples available atm")
+        return jsonify(sample_ids)
+        # return Sample.query\
+        #     .join(Dataset)\
+        #     .outerjoin(Association)\
+        #     .filter(Dataset.id == dataset_id)\
+        #     .filter(Association.user_id == None)\
+        #     .first()
 
 
 api.add_resource(SampleAPI, '/api/sample/<int:sample_id>')

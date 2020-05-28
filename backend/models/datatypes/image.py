@@ -1,4 +1,3 @@
-from config import db
 from .sample import Sample
 from ...config import db
 

@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
-from active_learning.al_cycle_wrapper import train_al
-from active_learning.experiment_setup_lib import init_logger
-from active_learning_process import al_config
-from active_learning_process.al_oracle import ParallelOracle
-from active_learning_process.db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
-from active_learning_process.feature_resolving import FeatureResolver
+from ..active_learning.al_cycle_wrapper import train_al
+from ..active_learning.experiment_setup_lib import init_logger
+from . import al_config
+from .al_oracle import ParallelOracle
+from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
+from .feature_resolving import FeatureResolver
 
 
 class ALProcess(multiprocessing.Process):
@@ -35,10 +35,7 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
         sample_ids = {}
-        features = []
-        labels = []
-        indices_labeled_data = []
-        label_meanings = []
+        features, labels, indices_labeled_data, label_meanings = [], [], [], []
         print("ALProcess:\t Starting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)

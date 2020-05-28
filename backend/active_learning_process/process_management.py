@@ -1,6 +1,6 @@
 from multiprocessing import Pipe
 
-from active_learning_process.al_process import ALProcess
+from .al_process import ALProcess
 
 
 class ProcessManager:
@@ -20,3 +20,5 @@ class ProcessManager:
             self.queues_of_process_by_dataset_id[dataset_id] = backend_endpoint
             return self.queues_of_process_by_dataset_id[dataset_id]
 
+
+manager = ProcessManager()
