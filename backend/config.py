@@ -25,7 +25,7 @@ app.config.from_object(Config())
 
 ### swagger specific ###
 SWAGGER_URL = '/api-spec'
-API_URL = '/static/swagger.json'
+API_URL = '/static/swagger.yml'
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
