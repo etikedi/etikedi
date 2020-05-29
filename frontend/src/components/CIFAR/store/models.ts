@@ -1,6 +1,7 @@
 export interface State {
+    cifarId: number;
     cifarSampleID: any;
-    cifarSample: CifarSample | undefined;
+    cifarSample: any;
     cifarLabels: any;
 }
 

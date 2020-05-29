@@ -6,6 +6,7 @@ import {State} from "./models";
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
+    cifarId: 2,
     cifarSampleID: "",
     cifarSample: undefined,
     cifarLabels: []

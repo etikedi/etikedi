@@ -30,7 +30,7 @@
 
                     <div class="field">
                         <button
-                            v-on:click="click()"
+                            @click="click()"
                             class="button is-info is-fullwidth"
                         >
                             Send
@@ -50,7 +50,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import {mapState} from "vuex";
+import {mapGetters, mapState} from "vuex";
 
 export default Vue.extend({
     name: "CIFAR",
@@ -149,42 +149,17 @@ export default Vue.extend({
                 name: "truck"
             }
         ];
-
-        const SampleTypes = [
-            {
-                id: 0,
-                name: "CIFAR 10"
-            },
-            {
-                id: 1,
-                name: "DWTC"
-            },
-            {
-                id: 2,
-                name: "Equations"
-            },
-            {
-                id: 3,
-                name: "Religious Texts"
-            },
-            {
-                id: 4,
-                name: "Resumees"
-            }
-        ];
         const selected = 0;
-        const selectedSampleType = "";
         return {
             samples,
             labels: labels,
             count: 0,
-            SampleTypes,
-            selected,
-            selectedSampleType
+            selected
         };
     },
     computed: {
-        ...mapState(["loading", "cifarSample", "cifarLabels"])
+        ...mapState(["loading", "cifarSample", "cifarLabels"]),
+        ...mapGetters(["localLabels", "localImgs"])
     },
     mounted() {
         // this.$store.dispatch("loadCifarSample");
