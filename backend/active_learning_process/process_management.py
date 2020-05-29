@@ -1,3 +1,4 @@
+import time
 from multiprocessing import Pipe
 
 from . import al_config
@@ -32,6 +33,8 @@ class ProcessManager:
             new_process = ALProcess(al_config.config(), dataset_id, process_endpoint)
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
+            # Wait for active-learning code to finish initializing?
+            time.sleep(5)
             return self.process_resources_by_dataset_id[dataset_id]
 
     def restart_with_config(self, dataset_id, config):
