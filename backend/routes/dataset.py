@@ -6,6 +6,7 @@ from ..config import app, api
 from ..models import DatasetSchema, Dataset
 from ..active_learning_process.process_management import manager
 
+
 class DatasetList(Resource):
     method_decorators = [auth_required]
 
@@ -43,15 +44,17 @@ class DatasetDetail(Resource):
             abort(404)
 
         # Retrieve pipe endpoint from process manager
-        pipe_endpoint = manager.get_or_else_load(dataset_id)
+        process_resources = manager.get_or_else_load(dataset_id)
+        pipe_endpoint = process_resources["pipe"]
         # Poll for new data points
-        sample_ids = []
         if pipe_endpoint.poll(5):
             print("Backend:\tFound new datapoints")
-            sample_ids = pipe_endpoint.recv()
+            next_sample_id = pipe_endpoint.recv()
+            return next_sample_id
         else:
+            # What should happen here? Wait and try again?
             print("Backend:\tNo samples available atm")
-        return jsonify(sample_ids)
+            return None
 
     def post(self):
         """ TODO: Update name of dataset. """
