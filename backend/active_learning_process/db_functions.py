@@ -52,12 +52,6 @@ def samples_to_feature_dict(samples: List[Sample]) -> Dict[int, dict]:
     }
 
 
-def query_new_labels(sample_id):
-    association = db.session.query(Association).filter_by(sample_id=sample_id).first()
-    db.session.commit()
-    return association
-
-
 def query_flowers():
     flowers = db.session.query(Flower).all()
     db.session.commit()
