@@ -1,6 +1,10 @@
 <template>
     <header>
-        <nav class="navbar is-fixed-top hero is-info is-bold" role="navigation" aria-label="main navigation">
+        <nav
+            class="navbar is-fixed-top hero is-info is-bold"
+            role="navigation"
+            aria-label="main navigation"
+        >
             <div class="hero-head">
                 <div class="container">
                     <b-navbar>
@@ -24,10 +28,14 @@
                                 <router-link to="/dwtc">DWTC</router-link>
                             </b-navbar-item>
                             <b-navbar-item class="remove-later">
-                                <router-link to="/equations">Equations</router-link>
+                                <router-link to="/equations"
+                                    >Equations</router-link
+                                >
                             </b-navbar-item>
                             <b-navbar-item class="remove-later">
-                                <router-link to="/religious-texts">Religious-Texts</router-link>
+                                <router-link to="/religious-texts"
+                                    >Religious-Texts</router-link
+                                >
                             </b-navbar-item>
                             <b-navbar-item class="remove-later">
                                 <router-link to="/cv">CV</router-link>
@@ -71,26 +79,53 @@
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-left="chevron-left"
-                                      @click="prevDataset" :disabled=prevButtonDisabled inverted outlined>
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-left="chevron-left"
+                                @click="prevDataset"
+                                :disabled="prevButtonDisabled"
+                                inverted
+                                outlined
+                            >
                                 Prev
                             </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ $store.getters.activeDatasetId }}</h2>
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
-                                      @click="nextDataset" :disabled=nextButtonDisabled inverted outlined>
+                            <h2 class="title" style="padding: 0 1rem 0 1rem">
+                                {{ $store.getters.activeDatasetId }}
+                            </h2>
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-right="chevron-right"
+                                @click="nextDataset"
+                                :disabled="nextButtonDisabled"
+                                inverted
+                                outlined
+                            >
                                 Next
                             </b-button>
                         </div>
                         <div class="navbar-end">
                             <b-switch
-                                    class="navbar-item"
-                                    v-model="localDisplayFeatureTooltips"
-                                    type="is-warning"
-                                    v-if="localDisplayFeatureTooltipsSwitch">
+                                class="navbar-item"
+                                v-model="localDisplayFeatureTooltips"
+                                type="is-warning"
+                                v-if="localDisplayFeatureTooltipsSwitch"
+                            >
                                 Tooltips
                             </b-switch>
-                            <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
-                                      type="is-link" @click="labelDataset(label)" inverted outlined>
+                            <b-button
+                                v-for="(label, index) in labels"
+                                :key="index"
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                @click="labelDataset(label)"
+                                inverted
+                                outlined
+                            >
                                 {{ label }}
                             </b-button>
                         </div>
@@ -102,58 +137,55 @@
 </template>
 
 <script lang="ts">
-    import {mapState, mapActions, mapGetters} from "vuex";
-    import store from "@/store";
+import {mapState, mapActions, mapGetters} from "vuex";
+import store from "@/store";
 
-    export default {
-        name: "Header",
-        props: {
-            title: String,
-            subtitle: String
-        },
-        computed: {
-            ...mapState(["prevButtonDisabled", "nextButtonDisabled"]),
-            ...mapGetters(["labels"]),
-            localDisplayFeatureTooltips: {
-                get(): boolean {
-
-                    return store.state.displayFeatureTooltips;
-                },
-                set(newValue: boolean) {
-                    store.commit("toggleShowFeatureTooltips", newValue);
-                }
+export default {
+    name: "Header",
+    props: {
+        title: String,
+        subtitle: String
+    },
+    computed: {
+        ...mapState(["prevButtonDisabled", "nextButtonDisabled"]),
+        ...mapGetters(["labels"]),
+        localDisplayFeatureTooltips: {
+            get(): boolean {
+                return store.state.displayFeatureTooltips;
             },
-            localDisplayFeatureTooltipsSwitch: {
-                get(): boolean {
-                    return store.state.displayFeatureTooltipsSwitch;
-                }
-            },
-            isHomePage: {
-                get(): boolean {
-                    return store.state.isHomePage;
-                },
+            set(newValue: boolean) {
+                store.commit("toggleShowFeatureTooltips", newValue);
             }
         },
-        methods: {
-            ...mapActions(["nextDataset", "prevDataset", "labelDataset"])
+        localDisplayFeatureTooltipsSwitch: {
+            get(): boolean {
+                return store.state.displayFeatureTooltipsSwitch;
+            }
         },
-    };
+        isHomePage: {
+            get(): boolean {
+                return store.state.isHomePage;
+            }
+        }
+    },
+    methods: {
+        ...mapActions(["nextDataset", "prevDataset", "labelDataset"])
+    }
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+#navbarMenuHeroA {
+}
 
-    #navbarMenuHeroA {
-    }
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
 
-    .sticky {
-        position: fixed;
-        top: 0;
-        width: 100%;
-    }
-
-    .sticky + .section {
-        padding-top: 3rem;
-    }
-
+.sticky + .section {
+    padding-top: 3rem;
+}
 </style>

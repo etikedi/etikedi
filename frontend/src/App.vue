@@ -17,18 +17,18 @@
 <script lang="ts">
 import Vue from "vue";
 import VueRouter from "vue-router";
-import {mapState} from 'vuex';
+import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import CV from "./components/CV/CV.vue";
 import DWTC from "./components/dwtc/DWTC.vue";
 import HomePage from "./components/home-page/HomePage.vue";
 import Religious from "@/components/religious/Religious.vue";
+import CIFAR from "@/components/CIFAR/CIFAR.vue";
 
 Vue.use(VueRouter);
 
-const Cifar = { template: "<p>Platzhalter für CIFAR</p>" }
-const Equations = { template: "<p>Platzhalter für Equations</p>" }
+const Equations = {template: "<p>Platzhalter für Equations</p>"};
 
 const routes = [
     {
@@ -43,7 +43,7 @@ const routes = [
     {
         path: "/cifar",
         name: "cifar",
-        component: Cifar
+        component: CIFAR
     },
     {
         path: "/dwtc",
@@ -76,7 +76,7 @@ export default Vue.extend({
     router,
     name: "app",
     computed: {
-            ...mapState(['datasetType']),
+        ...mapState(["datasetType"])
     },
     components: {
         Header,
@@ -108,16 +108,48 @@ $primary-invert: findColorInvert($primary);
 
 // Setup $colors to use as bulma classes (e.g. 'is-twitter')
 $colors: (
-    "white": ($white, $black),
-    "black": ($black, $white),
-    "light": ($light, $light-invert),
-    "dark": ($dark, $dark-invert),
-    "primary": ($info, $info-invert),
-    "info": ($info, $info-invert),
-    "success": ($success, $success-invert),
-    "warning": ($warning, $warning-invert),
-    "danger": ($danger, $danger-invert),
-    //"twitter": ($twitter, $twitter-invert)
+    "white": (
+        $white,
+        $black
+    ),
+    "black": (
+        $black,
+        $white
+    ),
+    "light": (
+        $light,
+        $light-invert
+    ),
+    "dark": (
+        $dark,
+        $dark-invert
+    ),
+    "primary": (
+        $info,
+        $info-invert
+    ),
+    "info": (
+        $info,
+        $info-invert
+    ),
+    "success": (
+        $success,
+        $success-invert
+    ),
+    "warning": (
+        $warning,
+        $warning-invert
+    ),
+    "danger": (
+        $danger,
+        $danger-invert
+    ),
+    /*"twitter":
+        (
+            $twitter,
+            $twitter-invert
+        )
+     */
 );
 
 // Links
