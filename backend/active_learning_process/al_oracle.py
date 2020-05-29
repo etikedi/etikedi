@@ -27,24 +27,27 @@ class ParallelOracle(BaseOracle):
 
             -   Messages sent by this class represent the datapoints queried by the active-learning code.
             -   Messages received by this class represent updated label data.
+
+        :param query_indices    indices of data points which have to get labeled by frontend
+        :param data_storage     data points the active-learning code was started with
+        :return:                List of labels, retrieved from frontend
         """
         query_sample_ids = [self.sample_ids[index] for index in tuple(query_indices)]
         for sample_id in query_sample_ids:
             self.pipe_endpoint.send(sample_id)
-        # self.pipe_endpoint.send(query_sample_ids)
-        print("Oracle:\tRequesting labels for sample ids: " + str(query_sample_ids))
+        print("ALProcess.Oracle:\tRequesting labels for sample ids: " + str(query_sample_ids))
         remaining_sample_ids = query_sample_ids.copy()
         labels_by_query_index = {}
         while len(query_indices) is not len(labels_by_query_index):
             if self.pipe_endpoint.poll():
                 data = self.pipe_endpoint.recv()
-                print("Oracle:\tFound label " + str(data["label"]) + " for sample with id " + str(data["id"]))
+                print("ALProcess.Oracle:\tFound label " + str(data["label"]) + " for sample with id " + str(data["id"]))
                 position = query_sample_ids.index(data["id"])
                 labels_by_query_index[position] = data["label"]
                 remaining_sample_ids.remove(data["id"])
                 if len(remaining_sample_ids) != 0:
-                    print("Oracle:\tWaiting for remaining labels of samples " + str(remaining_sample_ids))
-        print("Oracle:\tRequested labels complete. Current iteration successfully terminated")
+                    print("ALProcess.Oracle:\tWaiting for remaining labels of samples " + str(remaining_sample_ids))
+        print("ALProcess.Oracle:\tRequested labels complete. Current iteration successfully terminated")
         labels = [labels_by_query_index[i] for i in range(len(query_indices))]
         return labels
 
