@@ -6,10 +6,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
-from . import al_config
 from .al_oracle import ParallelOracle
 from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
-from .feature_resolving import FeatureResolver
 
 
 class ALProcess(multiprocessing.Process):
@@ -19,10 +17,10 @@ class ALProcess(multiprocessing.Process):
 
 
     """
-    def __init__(self, dataset_name, pipe_endpoint):
+    def __init__(self, config, dataset_name, pipe_endpoint):
         super().__init__()
         self.dataset_name = dataset_name
-        self.config = al_config.config()
+        self.config = config
         self.pipe_endpoint = pipe_endpoint
 
     def run(self):
@@ -36,7 +34,7 @@ class ALProcess(multiprocessing.Process):
         init_logger("log.txt")
         sample_ids = {}
         features, labels, indices_labeled_data, label_meanings = [], [], [], []
-        print("ALProcess:\t Starting for dataset: " + self.dataset_name)
+        print("ALProcess:\tStarting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
         if self.dataset_name == "iris":
@@ -62,11 +60,11 @@ class ALProcess(multiprocessing.Process):
                 if sample.label is not None:
                     indices_labeled_data.append(i)
 
-            # TODO Features-Resolving
-            (feature_array, feature_names) = FeatureResolver(self.dataset_name, features, sample_ids).resolve()
             feature_array = pd.DataFrame.from_dict(features, orient="index")
+            #TODO Resolve Feature names
+            feature_names = [str(i) for i in range(len(feature_array.columns) + 1)]
 
-        # X and Y need to be both of the same dataframe in order to have consistent indexing!
+        # X and Y need to be both of the same data frame in order to have consistent indexing!
         df = pd.DataFrame(
             data=np.c_[feature_array, labels],
             columns=feature_names + ["target"],
@@ -76,9 +74,12 @@ class ALProcess(multiprocessing.Process):
         Y = df.pop("target")
         Y = pd.DataFrame(
             Y.to_numpy(), dtype=int
-        )  # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy() first to remove it
+        )
+        # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy()
+        # first to remove it
 
-        # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
+        # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled
+        # set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
         X_labeled = X.loc[indices_labeled_data]
         Y_labeled = Y.loc[indices_labeled_data]
         X_unlabeled = X.drop(indices_labeled_data)
