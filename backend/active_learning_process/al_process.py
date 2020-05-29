@@ -14,8 +14,6 @@ class ALProcess(multiprocessing.Process):
     """
     Extension of multiprocessing.Process as a wrapper class for asynchronous execution of active-learning
     code lifecycle.
-
-
     """
     def __init__(self, config, dataset_name, pipe_endpoint):
         super().__init__()
