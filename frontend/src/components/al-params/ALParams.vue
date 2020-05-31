@@ -11,16 +11,16 @@
 							</b-select>
 						</td>
 						<td v-if='control.type == "int"'>
-							<input type="number" v-model="params[name]" v-id="name" v-name="name" v-min="control.min" step="1">
+                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="control.min" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
 						</td>
 						<td v-if='control.type == "prob"'>
-							<input type="number" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01">
+                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
 						</td>
 						<td v-if='control.type == "half-to-one"'>
-							<input type="number" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01">
+                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
 						</td>
 						<td v-if='control.type == "bool"'>
-							<label><input type="checkbox" v-model="params[name]">{{name}}</label>
+							<b-checkbox type="is-info" v-model="params[name]">{{name}}</b-checkbox>
 						</td>
 					</tr>
                 </table>
