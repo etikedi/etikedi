@@ -36,6 +36,10 @@
                                     >Contact</b-navbar-item
                                 >
                             </b-navbar-dropdown>
+                            
+                            <b-navbar-item class="remove-later">
+                                <router-link to="/params">AL Params</router-link>
+                            </b-navbar-item>
                         </template>
 
                         <template slot="end" class="ml-auto">
