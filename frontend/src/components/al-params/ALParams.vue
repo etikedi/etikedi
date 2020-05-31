@@ -10,8 +10,11 @@
 								<option v-for='(value) in control.values' :key="value" v-value="value"> {{value}} </option>
 							</b-select>
 						</td>
-						<td v-if='control.type == "int"'>
-                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="control.min" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
+						<td v-if='control.type == "intGZ"'>
+                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="1" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
+						</td>
+                        <td v-if='control.type == "intGreaterMinusOne"'>
+                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="-1" step="1" controls-position="compact"/>   
 						</td>
 						<td v-if='control.type == "prob"'>
                             <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
@@ -38,7 +41,7 @@
 
 	const paramsTypes = {
 		CLASSIFIER: 			{type:"enum", values:["RF", "DT", "SVM", "ANN"]},
-		RANDOM_SEED: 			{type:"int", min:-1},
+		RANDOM_SEED: 			{type:"intGreaterMinusOne"},
 		TEST_FRACTION: 			{type:"prob"},
 		SAMPLING: 				{type:"enum", values:[
 										"random",
@@ -54,9 +57,9 @@
 										"MostUncertain_entropy"
 								]},
 		
-		NR_LEARNING_ITERATIONS:		{type:"int", min:1},
-		NR_QUERIES_PER_ITERATION:	{type:"int", min:1},
-		USER_QUERY_BUDGET_LIMIT:	{type:"int", min:1},
+		NR_LEARNING_ITERATIONS:		{type:"intGZ"},
+		NR_QUERIES_PER_ITERATION:	{type:"intGZ"},
+		USER_QUERY_BUDGET_LIMIT:	{type:"intGZ"},
 		
 		STOPPING_CRITERIA_UNCERTAINTY:	{type:"prob"},
 		STOPPING_CRITERIA_STD: 			{type:"prob"},
