@@ -1,4 +1,4 @@
-from ..aergia import db
+from ..config import db, ma
 
 
 class Dataset(db.Model):
@@ -18,3 +18,8 @@ class Dataset(db.Model):
 
     def __str__(self):
         return self.name
+
+
+class DatasetSchema(ma.Schema):
+    class Meta:
+        fields = ("id", "name")
