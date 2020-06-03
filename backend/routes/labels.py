@@ -30,7 +30,7 @@ class LabelAPI(Resource):
         pass
 
 
-api.add_resource(LabelAPI, '/api/<int:dataset_id>/labels')
+api.add_resource(LabelAPI, '/api/datasets/<int:dataset_id>/labels')
 
 
 @app.errorhandler(404)

@@ -48,8 +48,8 @@ class DatasetDetail(Resource):
         pass
 
 
-api.add_resource(DatasetList, '/api/datasets')
-api.add_resource(DatasetDetail, '/api/<int:dataset_id>')
+api.add_resource(DatasetList, '/api/datasets/')
+api.add_resource(DatasetDetail, '/api/datasets/<int:dataset_id>/')
 
 
 @app.errorhandler(404)

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import timedelta
 from flask.app import Flask
 from flask_restful import Api
@@ -6,6 +7,29 @@ from flask_praetorian import Praetorian
 from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_marshmallow import Marshmallow
+
+
+@dataclass
+class ALConfig:
+    SAMPLING: str
+    CLUSTER: str
+    NR_QUERIES_PER_ITERATION: int
+    WITH_UNCERTAINTY_RECOMMENDATION: bool
+    WITH_CLUSTER_RECOMMENDATION: bool
+    WITH_SNUBA_LITE: bool
+    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS: float
+    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD: float
+    UNCERTAINTY_RECOMMENDATION_RATIO: float
+    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED: float
+    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE: float
+    ALLOW_RECOMMENDATIONS_AFTER_STOP: bool
+    STOPPING_CRITERIA_UNCERTAINTY: float
+    STOPPING_CRITERIA_ACC: float
+    STOPPING_CRITERIA_STD: float
+    USER_QUERY_BUDGET_LIMIT: float
+    RANDOM_SEED: float
+    N_JOBS: int
+    NR_LEARNING_ITERATIONS: int
 
 
 class Config(object):
