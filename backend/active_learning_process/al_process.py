@@ -17,7 +17,7 @@ class ALProcess(multiprocessing.Process):
     """
     def __init__(self, config, dataset_name, pipe_endpoint):
         super().__init__()
-        self.dataset_name = dataset_name
+        self.dataset_name = str(dataset_name)
         self.config = config
         self.pipe_endpoint = pipe_endpoint
 
@@ -35,7 +35,7 @@ class ALProcess(multiprocessing.Process):
         print("ALProcess:\tStarting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
-        if self.dataset_name == "iris":
+        if self.dataset_name == "0":
             samples = query_flowers()
             for i in range(len(samples)):
                 sample = samples[i]

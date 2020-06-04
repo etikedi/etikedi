@@ -28,7 +28,6 @@ class DatasetList(Resource):
 class DatasetDetail(Resource):
     method_decorators = [auth_required]
 
-    # TODO: this function does not still return the next sample, it must be integrated with aL code!
     def get(self, dataset_id):
         """
         This function responds to a request for /api/int:dataset_id
@@ -38,10 +37,11 @@ class DatasetDetail(Resource):
         :return:            data set matching ID
         """
         # Get the dataset requested
-        dataset = Dataset.query.filter_by(id=dataset_id).first()
+        if dataset_id != 0:
+            dataset = Dataset.query.filter_by(id=dataset_id).first()
 
-        if dataset is None:
-            abort(404)
+            if dataset is None:
+                abort(404)
 
         # Retrieve pipe endpoint from process manager
         process_resources = manager.get_or_else_load(dataset_id)
