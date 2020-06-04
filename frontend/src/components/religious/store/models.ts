@@ -1,8 +1,8 @@
 export interface State {
-    rtId: number,
-    religiousText: any,
+    rtId: number;
+    religiousText: any;
 }
 
 export interface LabelPayload {
-    label: string
+    label: string;
 }

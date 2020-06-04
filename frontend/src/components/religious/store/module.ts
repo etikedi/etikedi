@@ -1,14 +1,13 @@
-
-import * as getters from "./getters"
-import * as actions from "./actions"
-import * as mutations from "./mutations"
+import * as getters from "./getters";
+import * as actions from "./actions";
+import * as mutations from "./mutations";
 import {State} from "./models";
 
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
     rtId: 3,
-    religiousText: "",
+    religiousText: ""
 };
 
 export const religiousStore = {
@@ -18,5 +17,5 @@ export const religiousStore = {
     mutations,
     modules: {},
     strict: debug,
-    namespaced: true, // Important! else these will conflict with the root store! see https://vuex.vuejs.org/guide/modules.html
+    namespaced: true // Important! else these will conflict with the root store! see https://vuex.vuejs.org/guide/modules.html
 };

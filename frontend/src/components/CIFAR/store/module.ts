@@ -6,11 +6,13 @@ import {State} from "./models";
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    dwtcId: 1,
-    dwtc: {}
+    cifarId: 2,
+    cifarSampleID: "",
+    cifarSample: undefined,
+    cifarLabels: []
 };
 
-export const dwtcStore = {
+export const cifarStore = {
     state,
     getters,
     actions,

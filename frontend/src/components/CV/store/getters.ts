@@ -1,8 +1,7 @@
+export const activeDatasetId = function(state) {
+    return state.cvId;
+};
 
-export const activeDatasetId = function(state){
-	return state.cvId
-}
-
-export const labels = function(state){
-	return ["skill", "noskill"]
-}
+export const labels = function(state) {
+    return ["skill", "noskill"];
+};
