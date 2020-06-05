@@ -35,7 +35,7 @@ class ALProcess(multiprocessing.Process):
         print("ALProcess:\tStarting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
-        if self.dataset_name == "0":
+        if self.dataset_name == "-1":
             samples = query_flowers()
             for i in range(len(samples)):
                 sample = samples[i]

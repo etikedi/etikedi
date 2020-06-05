@@ -37,7 +37,8 @@ class DatasetDetail(Resource):
         :return:            data set matching ID
         """
         # Get the dataset requested
-        if dataset_id != 0:
+        # dataset_id = -1 corresponds to iris database for test runs
+        if dataset_id != -1:
             dataset = Dataset.query.filter_by(id=dataset_id).first()
 
             if dataset is None:
