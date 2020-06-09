@@ -1,5 +1,6 @@
 import json
 from typing import List, Type, Union
+
 from ..config import db
 from ..models import Dataset, Sample
 
@@ -56,5 +57,3 @@ def import_dataset(dataset: Dataset, data: Union[List[dict], str], sample_class:
                 db.session.add_all(samples)
                 db.session.commit()
                 samples = []
-
-    pass
