@@ -7,7 +7,7 @@ info:
     name: GNU Affero General Public License v3.0.
     url: 'https://choosealicense.com/licenses/agpl-3.0/'
 servers:
-  - url: /
+  - url: http://localhost:5000
 
 paths:
   /api/datasets:
@@ -25,7 +25,7 @@ paths:
         401:
           description: Missing authorisation
 
-  '/api/{dataset_id}/labels':
+  '/api/datasets/{dataset_id}/labels':
     get:
       description: Retrieve all labels available for a dataset.
       tags:
@@ -48,7 +48,7 @@ paths:
         schema:
           type: integer
 
-  '/api/{dataset_id}':
+  '/api/datasets/{dataset_id}':
     get:
       description: Get information about a single dataset
       tags:
@@ -58,6 +58,46 @@ paths:
           description: OK
         401:
           description: Missing authorisation
+    parameters:
+      - name: dataset_id
+        in: path
+        description: 'Id of the dataset to request a sample for'
+        required: true
+        schema:
+          type: integer
+
+  '/api/datasets/{dataset_id}/config':
+    get:
+      description: Get the current parameters for the active learning process of this dataset
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/al_config'
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+    post:
+      description: Update the parameters for the active learning process of this dataset. Implies a restart of the active learning process which might take some time.
+      tags:
+        - Active Learning
+      requestBody:
+        $ref: '#/components/requestBodies/ALConfig'
+      responses:
+        204:
+          description: Change successful
+        400:
+          description: Missing or invalid argument. See body for description.
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+
     parameters:
       - name: dataset_id
         in: path
@@ -176,6 +216,48 @@ components:
         name:
           type: string
 
+    al_config:
+      type: object
+      properties:
+        sampling:
+          type: string
+        cluster:
+          type: string
+        nr_queries_per_iteration:
+          type: integer
+        with_uncertainty_recommendation:
+          type: boolean
+        with_cluster_recommendation:
+          type: boolean
+        with_snuba_lite:
+          type: boolean
+        minimum_test_accuracy_before_recommendations:
+          type: number
+        uncertainty_recommendation_certainty_threshold:
+          type: number
+        uncertainty_recommendation_ratio:
+          type: number
+        cluster_recommendation_ratio_labeled_unlabeled:
+          type: number
+        cluster_recommendation_minimum_cluster_unity_size:
+          type: number
+        allow_recommendations_after_stop:
+          type: boolean
+        stopping_criteria_uncertainty:
+          type: number
+        stopping_criteria_acc:
+          type: number
+        stopping_criteria_std:
+          type: number
+        user_query_budget_limit:
+          type: number
+        random_seed:
+          type: number
+        n_jobs:
+          type: integer
+        nr_learning_iterations:
+          type: integer
+
     sample:
       type: object
       required:
@@ -210,6 +292,14 @@ components:
           schema: {}
           example:
             label_id: 17248
+
+    ALConfig:
+      description: Optional description in *Markdown*
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/al_config'
 
     UserCredentials:
       content:

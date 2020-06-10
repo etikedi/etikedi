@@ -9,28 +9,29 @@ from backend.active_learning.experiment_setup_lib import (
 )
 from backend.aergia_oracle import AergiaOracle
 
-if __name__ == "__main__":
-    config = {
-        "SAMPLING": "uncertainty_max_margin",
-        "CLUSTER": "MostUncertain_max_margin",
-        "NR_QUERIES_PER_ITERATION": 100,
-        "WITH_UNCERTAINTY_RECOMMENDATION": True,
-        "WITH_CLUSTER_RECOMMENDATION": True,
-        "WITH_SNUBA_LITE": False,
-        "MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS": 0,
-        "UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD": 0.99,
-        "UNCERTAINTY_RECOMMENDATION_RATIO": 0.01,
-        "CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED": 0.8,
-        "CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE": 0.3,
-        "ALLOW_RECOMMENDATIONS_AFTER_STOP": True,
-        "STOPPING_CRITERIA_UNCERTAINTY": 0,
-        "STOPPING_CRITERIA_ACC": 0,
-        "STOPPING_CRITERIA_STD": 0,
-        "USER_QUERY_BUDGET_LIMIT": 2000,
-        "RANDOM_SEED": -1,
-        "N_JOBS": -1,
-        "NR_LEARNING_ITERATIONS": 200000,
-    }
+from .config import ALConfig
+
+config = ALConfig(
+    SAMPLING="uncertainty_max_margin",
+    CLUSTER="MostUncertain_max_margin",
+    NR_QUERIES_PER_ITERATION=100,
+    WITH_UNCERTAINTY_RECOMMENDATION=True,
+    WITH_CLUSTER_RECOMMENDATION=True,
+    WITH_SNUBA_LITE=False,
+    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS=0,
+    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD=0.99,
+    UNCERTAINTY_RECOMMENDATION_RATIO=0.01,
+    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED=0.8,
+    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE=0.3,
+    ALLOW_RECOMMENDATIONS_AFTER_STOP=True,
+    STOPPING_CRITERIA_UNCERTAINTY=0,
+    STOPPING_CRITERIA_ACC=0,
+    STOPPING_CRITERIA_STD=0,
+    USER_QUERY_BUDGET_LIMIT=2000,
+    RANDOM_SEED=-1,
+    N_JOBS=-1,
+    NR_LEARNING_ITERATIONS=200000,
+)
 
     init_logger("log.txt")
 
@@ -59,17 +60,18 @@ if __name__ == "__main__":
     label_encoder = LabelEncoder()
     label_encoder.fit(label_encoder_classes)
 
-    # Y_train are the resulting labels
-    # metrics_per_al_cycle contains a lot of labels useful for visualisation
-    (_, Y_train, _, metrics_per_al_cycle, _, _) = train_al(
-        X_labeled,
-        Y_labeled,
-        X_unlabeled,
-        label_encoder,
-        START_SET_SIZE=3,
-        hyper_parameters=config,
-        oracle=AergiaOracle(),  # this class needs to be extended!
-    )
+
+# Y_train are the resulting labels
+# metrics_per_al_cycle contains a lot of labels useful for visualisation
+(_, Y_train, _, metrics_per_al_cycle, _, _) = train_al(
+    X_labeled,
+    Y_labeled,
+    X_unlabeled,
+    label_encoder,
+    START_SET_SIZE=3,
+    hyper_parameters=config.__dict__,
+    oracle=AergiaOracle(),  # this class needs to be extended!
+)
 
     print(
         "Done with labeling {} new datapoints".format(
