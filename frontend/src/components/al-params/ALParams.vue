@@ -6,9 +6,11 @@
 					<tr v-for="(control,name) in paramsTypes" :key="name">
 						<td> {{ name }} </td>
 						<td v-if='control.type == "enum"'>
-							<b-select v-model="params[name]">
-								<option v-for='(value) in control.values' :key="value" v-value="value"> {{value}} </option>
-							</b-select>
+                            <div class="select">
+                                <b-select v-model="params[name]">
+                                    <option v-for='(value) in control.values' :key="value" v-value="value"> {{value}} </option>
+                                </b-select>
+                            </div>
 						</td>
 						<td v-if='control.type == "intGZ"'>
                             <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="1" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
@@ -27,6 +29,9 @@
 						</td>
 					</tr>
                 </table>
+                <div class="submit-button">
+                    <b-button type="is-info" tag="input" native-type="submit" value="Submit changes"/>
+                </div>
                 <b-loading
                         :is-full-page="false"
                         :active.sync="loading"
@@ -141,5 +146,11 @@
 <style scoped lang="scss">
 table {
     width: 100%;
+}
+
+@import "../../assets/ALParams.css";
+
+.select:not(.is-multiple):not(.is-loading)::after {
+    border-color: #167df0;
 }
 </style>
