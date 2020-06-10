@@ -2,6 +2,7 @@
 .vim
 .idea
 .vscode
+backend/data
 *.suo
 *.ntvs*
 *.njsproj
