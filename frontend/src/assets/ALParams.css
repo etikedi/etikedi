@@ -1,7 +1,3 @@
 .submit-button {
     text-align: center;
 }
-
-.select:not(.is-multiple):not(.is-loading)::after {         /* Custom css in this context does´nt seem so work, brcause the bulma/buefy css gets evaluated later*/
-    border-color: #ff0000;
-}
