@@ -3,9 +3,9 @@ from flask_restful import Resource
 from werkzeug.exceptions import BadRequest
 
 from .utils import convert_dataclass_to_parser
-from ..config import api, ALConfig
+from ..config import api
 from ..models import Dataset
-from ..config import active_learning_config
+from ..active_learning_process.al_config import config, ALConfig
 
 
 config_parser = convert_dataclass_to_parser(ALConfig)
@@ -25,7 +25,7 @@ class ConfigAPI(Resource):
         if not dataset:
             return None, 404
 
-        return active_learning_config.__dict__
+        return config.__dict__
 
     def post(self, dataset_id):
         """ Update the configuration for the given dataset. Implies a restart of the AL process. """

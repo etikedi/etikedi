@@ -31,7 +31,7 @@ class ProcessManager:
         else:
             app.logger.debug("Backend.ProcessManager:\tStarting new process for dataset {}".format(dataset_id))
             backend_endpoint, process_endpoint = Pipe()
-            new_process = ALProcess(al_config.config(), dataset_id, process_endpoint)
+            new_process = ALProcess(al_config.config().__dict__, dataset_id, process_endpoint)
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             # Wait for active-learning code to finish initializing?
