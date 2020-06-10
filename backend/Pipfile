@@ -3,13 +3,6 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[dev-packages]
-pylint = "*"
-pydocstyle = "*"
-rope = "*"
-black = "==19.10b0"
-jedi = "*"
-
 [packages]
 flask-restful = "*"
 flask-cors = "*"
@@ -27,6 +20,15 @@ tabulate = "*"
 flask-marshmallow = "*"
 marshmallow-sqlalchemy = "*"
 flask-swagger-ui = "*"
+pillow = "*"
+requests = "*"
+
+[dev-packages]
+pylint = "*"
+pydocstyle = "*"
+rope = "*"
+black = "==19.10b0"
+jedi = "*"
 
 [requires]
 python_version = "3"

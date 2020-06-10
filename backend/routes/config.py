@@ -5,7 +5,8 @@ from werkzeug.exceptions import BadRequest
 from .utils import convert_dataclass_to_parser
 from ..config import api, ALConfig
 from ..models import Dataset
-from ..example_active_learning_run import config as active_learning_config
+from ..config import active_learning_config
+
 
 config_parser = convert_dataclass_to_parser(ALConfig)
 
