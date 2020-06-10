@@ -43,6 +43,8 @@
 </template>
 
 <script lang="ts">
+import ALPAramsService from '@/api/ALParams-Service';
+import ALParamsService from '@/api/ALParams-Service';
 
 	const paramsTypes = {
 		CLASSIFIER: 			{type:"enum", values:["RF", "DT", "SVM", "ANN"]},
@@ -134,7 +136,16 @@
 		}},
         components: {},
         computed: {},
-        methods: {},
+        methods: {
+            beforeMount() {
+                params: alParams;
+                for (const key in ALPAramsService.loadALParams().then(function(data) {
+                    return data;
+                })) {
+                    params[key] = key.valueOf();
+                }
+            }
+        },
         mounted(): void {
             this.$store.commit('setDatasetType', "none")
             this.$store.commit('toggleIsHomePage', true)
