@@ -3,6 +3,7 @@ from multiprocessing import Pipe
 
 from . import al_config
 from .al_process import ALProcess
+from ..config import app
 
 
 class ProcessManager:
@@ -25,10 +26,10 @@ class ProcessManager:
         :return:            Process resources as a dictionary with the fields: 'process' and 'pipe'
         """
         if dataset_id in self.process_resources_by_dataset_id:
-            print("Backend.ProcessManager:\tProcess for this dataset {} already running".format(dataset_id))
+            app.logger.debug("Backend.ProcessManager:\tProcess for this dataset {} already running".format(dataset_id))
             return self.process_resources_by_dataset_id[dataset_id]
         else:
-            print("Backend.ProcessManager:\tStarting new process for dataset {}".format(dataset_id))
+            app.logger.debug("Backend.ProcessManager:\tStarting new process for dataset {}".format(dataset_id))
             backend_endpoint, process_endpoint = Pipe()
             new_process = ALProcess(al_config.config(), dataset_id, process_endpoint)
             new_process.start()
@@ -53,13 +54,13 @@ class ProcessManager:
         new_process = ALProcess(config, dataset_id, process_endpoint)
         if dataset_id in self.process_resources_by_dataset_id:
             old_process = self.process_resources_by_dataset_id[dataset_id]["process"]
-            print("Backend.ProcessManager:\tRestarting process for dataset {} with new configuration".format(dataset_id))
+            app.logger.debug("Backend.ProcessManager:\tRestarting process for dataset {} with new configuration".format(dataset_id))
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             old_process.terminate()
             return self.process_resources_by_dataset_id[dataset_id]
         else:
-            print("Backend.ProcessManager:\tStarting process for dataset {} with new configuration".format(dataset_id))
+            app.logger.debug("Backend.ProcessManager:\tStarting process for dataset {} with new configuration".format(dataset_id))
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             return self.process_resources_by_dataset_id[dataset_id]

@@ -49,12 +49,12 @@ class DatasetDetail(Resource):
         pipe_endpoint = process_resources["pipe"]
         # Poll for new data points
         if pipe_endpoint.poll(5):
-            print("Backend:\tFound new datapoints")
+            app.logger.info("Backend:\tFound new datapoints")
             next_sample_id = pipe_endpoint.recv()
             return next_sample_id
         else:
             # What should happen here? Wait and try again?
-            print("Backend:\tNo samples available atm")
+            app.logger.info("Backend:\tNo samples available atm")
             return None
 
     def post(self):

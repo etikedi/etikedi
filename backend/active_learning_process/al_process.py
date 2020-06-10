@@ -6,6 +6,7 @@ from sklearn.preprocessing import LabelEncoder
 
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
+from ..config import app
 from .al_oracle import ParallelOracle
 from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
 
@@ -32,7 +33,7 @@ class ALProcess(multiprocessing.Process):
         init_logger("log.txt")
         sample_ids = {}
         features, labels, indices_labeled_data, label_meanings = [], [], [], []
-        print("ALProcess:\tStarting for dataset: " + self.dataset_name)
+        app.logger.info("ALProcess:\tStarting for dataset: " + self.dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
         if self.dataset_name == "-1":
