@@ -3,11 +3,11 @@ function delegateAction(actionName) {
         console.log(
             "Root Store Delegating Action '" +
                 actionName +
-                "' to current datasetType '" +
-                state.datasetType +
+                "' to current API type '" +
+                state.apiType +
                 "'"
         );
-        dispatch(state.datasetType + "/" + actionName);
+        dispatch("api_" + state.apiType + "/" + actionName);
     };
 }
 

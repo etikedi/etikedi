@@ -5,10 +5,7 @@ import * as actions from "./actions";
 import * as mutations from "./mutations";
 import {State} from "./models";
 
-import {cvStore} from "@/components/CV/store/module";
-import {dwtcStore} from "@/components/dwtc/store/module";
-import {religiousStore} from "@/components/religious/store/module";
-import {cifarStore} from "@/components/CIFAR/store/module";
+import {defaultApiStore} from "default/module";
 
 Vue.use(Vuex);
 
@@ -16,6 +13,12 @@ const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
     datasetType: "cv",
+    
+    // Which API to use to perform requests.
+    // Actions from header buttons are delegated to the active
+    // apiType. For most datasets in AERGIA, the 'default' apiType
+    // will be used, which calls the AergiaDefaultApiService
+    apiType: "default",
 
     loading: false,
     prevButtonDisabled: false,
@@ -28,11 +31,8 @@ const state: State = {
 const store = new Vuex.Store({
     state,
     modules: {
-        cv: cvStore,
-        dwtc: dwtcStore,
-        religious: religiousStore,
-        cifar: cifarStore
-        // add imported dataset type modules here!
+		//api_<apiType>
+        api_default: defaultApiStore,
     },
     getters,
     actions,
