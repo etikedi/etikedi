@@ -5,21 +5,17 @@ from ..models import Sample, Label, Dataset, Association
 from ..models.iris_model import Flower
 
 
-def samples_of_dataset(name: str) -> List[Sample]:
+def samples_of_dataset(dataset_id: int) -> List[Sample]:
     """
     Returns all samples of the dataset with the given name.
 
     Exception:
         ValueError: There is no dataset with the given name.
     """
-    dataset: Dataset = db.session.query(Dataset).filter(
-        Dataset.name == name
-    ).first()
-
-    if not dataset:
-        raise ValueError('There is no dataset with name "{}"'.format(name))
-
-    return dataset.items
+    try:
+        return Dataset.query.get(dataset_id).items
+    except AttributeError:
+        raise ValueError('There is no dataset with id "{}"'.format(dataset_id))
 
 
 def labels_of_dataset(name: str) -> List[Label]:
@@ -46,8 +42,9 @@ def samples_to_feature_dict(samples: List[Sample]) -> Dict[int, dict]:
     The returned dict has the ids of the sample as key and dictionaries containing the features
     loaded from the stored json as values.
     """
+    import json
     return {
-        sample.id: sample.features
+        sample.id: json.loads(sample.features)
         for sample in samples
     }
 
