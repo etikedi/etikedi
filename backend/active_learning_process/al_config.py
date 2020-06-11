@@ -23,6 +23,8 @@ class ALConfig:
     N_JOBS: int
     NR_LEARNING_ITERATIONS: int
 
+    RANDOM_SAMPLE_EVERY: int
+
 
 def config() -> ALConfig:
     return ALConfig(
@@ -45,4 +47,5 @@ def config() -> ALConfig:
         RANDOM_SEED=-1,
         N_JOBS=-1,
         NR_LEARNING_ITERATIONS=200000,
+        RANDOM_SAMPLE_EVERY=10
     )
