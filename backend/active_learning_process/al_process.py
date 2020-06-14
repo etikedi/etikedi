@@ -6,7 +6,8 @@ from sklearn.preprocessing import LabelEncoder
 
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
-from ..config import app
+from ..config import app, db
+from ..models import Association, Sample
 from .al_oracle import ParallelOracle
 from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers, check_for_label, \
     labels_of_dataset, dataset_name_by_dataset_id
@@ -14,10 +15,11 @@ from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flo
 
 class ALProcess(multiprocessing.Process):
     """
-    Extension of multiprocessing.Process as a wrapper class for asynchronous execution of active-learning
+    Extension of multiprocessing. Process as a wrapper class for asynchronous execution of active-learning
     code lifecycle.
     """
-    def __init__(self, config, dataset_id, pipe_endpoint):
+
+    def __init__(self, config, dataset_id: int, pipe_endpoint):
         super().__init__()
         self.dataset_id = dataset_id
         self.config = config
@@ -33,11 +35,10 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
         sample_ids = {}
-        features = []
-        labels, indices_labeled_data, label_meanings = [], [], []
+        features, labels, indices_labeled_data, label_meanings = [], [], [], []
         dataset_name = dataset_name_by_dataset_id(self.dataset_id)
-        app.logger.info("Starting for dataset: " + dataset_name)
-
+        app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
+        
         # Data preparation for usage of aL-code with iris-dataset (test)
         if dataset_name == "":
             samples = query_flowers()
@@ -53,43 +54,49 @@ class ALProcess(multiprocessing.Process):
 
         # Data preparation for usage of aL-code with proper data
         else:
-            samples = samples_of_dataset(dataset_name)
-            feature_dict = samples_to_feature_dict(samples)
-            for i in range(len(samples)):
-                sample = samples[i]
-                sample_ids[i] = sample.id
-                feature = feature_dict[sample.id]
-                features.append(feature)
-                label = check_for_label(sample.id)
-                labels.append(label)
-                if label is not None:
-                    indices_labeled_data.append(i)
+            # TODO: Only fetch necessary data as plain values to improve performance
+            # samples = samples_of_dataset(self.dataset_id)
+            # features = samples_to_feature_dict(samples)
+            import json
 
-            feature_array = pd.DataFrame(features)
-            #TODO Resolve Feature names
-            #TODO resolve label meanings
-            label_meanings = labels_of_dataset(dataset_name)
-            feature_names = [str(i) for i in range(1, len(feature_array.columns) + 1)]
+            result = db.session.query(Sample.id, Sample.features).filter(Sample.dataset_id == self.dataset_id).all()
+            data = [[id, *json.loads(feature_string).values()] for id, feature_string in result]
 
-        # X and Y need to be both of the same data frame in order to have consistent indexing!
-        df = pd.DataFrame(
-            data=np.c_[feature_array, labels],
-            columns=feature_names + ["target"],
-            dtype=float,
-        )
-        X = df
-        Y = df.pop("target")
-        Y = pd.DataFrame(
-            Y.to_numpy(), dtype=int
-        )
+            # for index, sample in enumerate(samples):
+            #     sample_ids[index] = sample.id
+            #     if sample.labels:
+            #         labels.append(sample.label.id)
+            #         indices_labeled_data.append(index)
+            #     else:
+            #         labels.append(None)
+
+            # TODO: Refactor after saving feature names separate
+            first_sample = json.loads(result[0][1])
+            feature_names = list(first_sample.keys())
+
+        sample_df = pd.DataFrame(data=data, columns=['id'] + feature_names).set_index('id')
+
         # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy()
         # first to remove it
 
+        associated_labels = db.session.query(
+            Association.sample_id, Association.label_id
+        ).join(Association.sample).filter(Sample.dataset_id == 2).all()
+
+        label_df = pd.DataFrame(associated_labels, columns=['id', 0]).set_index('id')
+        ids_of_labeled_samples = np.array(associated_labels)[:,0]
+
+        # label_df = pd.DataFrame(label_df.to_numpy(), dtype=int).loc[indices_labeled_data]
+
+        # X => features
+        # Y => pandas.Series containing only the labels
+
         # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled
         # set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
-        X_labeled = X.loc[indices_labeled_data]
-        Y_labeled = Y.loc[indices_labeled_data]
-        X_unlabeled = X.drop(indices_labeled_data)
+        # labeled_sample_df = sample_df.loc[indices_labeled_data]
+        # unlabeled_sample_df = sample_df.drop(indices_labeled_data)
+        labeled_sample_df = sample_df.loc[ids_of_labeled_samples]
+        unlabeled_sample_df = sample_df.drop(ids_of_labeled_samples)
 
         # Get label meanings from data base
         label_encoder_classes = label_meanings
@@ -99,10 +106,10 @@ class ALProcess(multiprocessing.Process):
         # Y_train are the resulting labels
         # metrics_per_al_cycle contains a lot of labels useful for visualisation
         (_, Y_train, _, metrics_per_al_cycle, _, _) = train_al(
-            X_labeled,
-            Y_labeled,
-            X_unlabeled,
-            label_encoder,
+            X_labeled=labeled_sample_df,
+            X_unlabeled=unlabeled_sample_df,
+            Y_labeled=label_df,
+            label_encoder=label_encoder,
             START_SET_SIZE=3,
             hyper_parameters=self.config,
             oracle=ParallelOracle(sample_ids, self.pipe_endpoint)
