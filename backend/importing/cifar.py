@@ -8,7 +8,7 @@ from PIL import Image as PillowImage
 
 from .utils import get_or_create_dataset, download_archive
 from ..config import db, app
-from ..models import Image, Sample
+from ..models import Image, Sample, Label
 
 files = [
     'data_batch_1',
@@ -79,3 +79,10 @@ def import_cifar(data_path: Path):
 
             db.session.add(sample)
         db.session.commit()
+
+    labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
+    db.session.add_all(
+        Label(dataset=cifar, name=label_name)
+        for label_name in labels
+    )
+    db.session.commit()
