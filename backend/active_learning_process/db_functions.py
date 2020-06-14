@@ -17,7 +17,7 @@ def samples_of_dataset(name: str) -> List[Sample]:
     ).first()
 
     if not dataset:
-        raise ValueError('There is no dataset with name "{}"'.format(name))
+        raise ValueError('There is no dataset with id "{}"'.format(name))
 
     return dataset.items
 
@@ -51,12 +51,22 @@ def samples_to_feature_dict(samples: List[Sample]) -> Dict[int, dict]:
         for sample in samples
     }
 
+def check_for_label(sample_id):
+    label = db.session.query(Association).filter(Association.sample_id == sample_id).first()
+    return label
+
 
 def query_flowers():
     flowers = db.session.query(Flower).all()
     db.session.commit()
     return flowers
 
+
+def dataset_name_by_dataset_id(dataset_id):
+    dataset = db.session.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if dataset is None:
+        return ""
+    return dataset.name
 
 if __name__ == "__main__":
     all_labels = labels_of_dataset('Lorem')
