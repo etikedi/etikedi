@@ -23,13 +23,6 @@ with app.app_context():
         petal_length = petal_lengths.item(i)
         petal_width = petal_widths.item(i)
         label = np.take(labels, i).item()
-        print(type(label))
-        pprint(id)
-        pprint(sepal_length)
-        pprint(sepal_width)
-        pprint(petal_length)
-        pprint(petal_width)
-        pprint(label)
         flower = Flower(id=id, sepal_length=sepal_length, sepal_width=sepal_width, petal_length=petal_length,
                         petal_width=petal_width, label=label)
         db.session.add(flower)

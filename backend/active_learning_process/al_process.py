@@ -8,7 +8,8 @@ from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
 from ..config import app
 from .al_oracle import ParallelOracle
-from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers
+from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers, check_for_label, \
+    labels_of_dataset, dataset_name_by_dataset_id
 
 
 class ALProcess(multiprocessing.Process):
@@ -16,9 +17,9 @@ class ALProcess(multiprocessing.Process):
     Extension of multiprocessing.Process as a wrapper class for asynchronous execution of active-learning
     code lifecycle.
     """
-    def __init__(self, config, dataset_name, pipe_endpoint):
+    def __init__(self, config, dataset_id, pipe_endpoint):
         super().__init__()
-        self.dataset_name = str(dataset_name)
+        self.dataset_id = dataset_id
         self.config = config
         self.pipe_endpoint = pipe_endpoint
 
@@ -32,11 +33,13 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
         sample_ids = {}
-        features, labels, indices_labeled_data, label_meanings = [], [], [], []
-        app.logger.info("ALProcess:\tStarting for dataset: " + self.dataset_name)
+        features = []
+        labels, indices_labeled_data, label_meanings = [], [], []
+        dataset_name = dataset_name_by_dataset_id(self.dataset_id)
+        app.logger.info("Starting for dataset: " + dataset_name)
 
         # Data preparation for usage of aL-code with iris-dataset (test)
-        if self.dataset_name == "-1":
+        if dataset_name == "":
             samples = query_flowers()
             for i in range(len(samples)):
                 sample = samples[i]
@@ -50,18 +53,23 @@ class ALProcess(multiprocessing.Process):
 
         # Data preparation for usage of aL-code with proper data
         else:
-            samples = samples_of_dataset(self.dataset_name)
-            features = samples_to_feature_dict(samples)
+            samples = samples_of_dataset(dataset_name)
+            feature_dict = samples_to_feature_dict(samples)
             for i in range(len(samples)):
                 sample = samples[i]
                 sample_ids[i] = sample.id
-                labels.append(sample.label.id)
-                if sample.label is not None:
+                feature = feature_dict[sample.id]
+                features.append(feature)
+                label = check_for_label(sample.id)
+                labels.append(label)
+                if label is not None:
                     indices_labeled_data.append(i)
 
-            feature_array = pd.DataFrame.from_dict(features, orient="index")
+            feature_array = pd.DataFrame(features)
             #TODO Resolve Feature names
-            feature_names = [str(i) for i in range(len(feature_array.columns) + 1)]
+            #TODO resolve label meanings
+            label_meanings = labels_of_dataset(dataset_name)
+            feature_names = [str(i) for i in range(1, len(feature_array.columns) + 1)]
 
         # X and Y need to be both of the same data frame in order to have consistent indexing!
         df = pd.DataFrame(

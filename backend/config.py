@@ -1,4 +1,6 @@
 from datetime import timedelta
+from logging.config import dictConfig
+
 from flask.app import Flask
 from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
@@ -19,6 +21,22 @@ class Config(object):
     JWT_ACCESS_LIFESPAN = {'hours': 24}
     JWT_REFRESH_LIFESPAN = {'days': 30}
 
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
 app.config.from_object(Config())

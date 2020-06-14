@@ -26,16 +26,16 @@ class ProcessManager:
         :return:            Process resources as a dictionary with the fields: 'process' and 'pipe'
         """
         if dataset_id in self.process_resources_by_dataset_id:
-            app.logger.debug("Backend.ProcessManager:\tProcess for this dataset {} already running".format(dataset_id))
+            app.logger.debug("Process for this dataset {} already running".format(dataset_id))
             return self.process_resources_by_dataset_id[dataset_id]
         else:
-            app.logger.debug("Backend.ProcessManager:\tStarting new process for dataset {}".format(dataset_id))
+            app.logger.debug("Starting new process for dataset {}".format(dataset_id))
             backend_endpoint, process_endpoint = Pipe()
             new_process = ALProcess(al_config.config().__dict__, dataset_id, process_endpoint)
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             # Wait for active-learning code to finish initializing?
-            time.sleep(5)
+            # time.sleep(15)
             return self.process_resources_by_dataset_id[dataset_id]
 
     def restart_with_config(self, dataset_id, config):
@@ -54,13 +54,13 @@ class ProcessManager:
         new_process = ALProcess(config, dataset_id, process_endpoint)
         if dataset_id in self.process_resources_by_dataset_id:
             old_process = self.process_resources_by_dataset_id[dataset_id]["process"]
-            app.logger.debug("Backend.ProcessManager:\tRestarting process for dataset {} with new configuration".format(dataset_id))
+            app.logger.debug("Restarting process for dataset {} with new configuration".format(dataset_id))
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             old_process.terminate()
             return self.process_resources_by_dataset_id[dataset_id]
         else:
-            app.logger.debug("Backend.ProcessManager:\tStarting process for dataset {} with new configuration".format(dataset_id))
+            app.logger.debug("Starting process for dataset {} with new configuration".format(dataset_id))
             new_process.start()
             self.process_resources_by_dataset_id[dataset_id] = {"process": new_process, "pipe": backend_endpoint}
             return self.process_resources_by_dataset_id[dataset_id]
