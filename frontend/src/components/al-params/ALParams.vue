@@ -30,7 +30,7 @@
 					</tr>
                 </table>
                 <div class="submit-button">
-                    <b-button type="is-info" tag="input" native-type="submit" value="Submit changes"/>
+                    <b-button type="is-info" tag="input" native-type="submit" value="Submit changes" @click="submitParams"/>
                 </div>
                 <b-loading
                         :is-full-page="false"
@@ -140,6 +140,9 @@ import AppVue from '../../App.vue';
         methods: { 
             setParams: function(newParams) {
                 this.params = newParams;
+            },
+            submitParams: function() {
+                ALPAramsService.submitALParams(this.params);
             }
         },
         mounted(): void {
