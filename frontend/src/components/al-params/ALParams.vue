@@ -132,25 +132,74 @@ import ALParamsService from '@/api/ALParams-Service';
         name: "ALParams",
 		data: function() { return {
 			paramsTypes: paramsTypes,
-			params: alParams,
+            params: alParams,
 		}},
         components: {},
         computed: {},
-        methods: {
-            beforeMount() {
-                params: alParams;
-                for (const key in ALPAramsService.loadALParams().then(function(data) {
-                    return data;
-                })) {
-                    params[key] = key.valueOf();
-                }
+        methods: { 
+            setParams: function(newParams) {
+                console.log("setParams()");
+                this.params = newParams;
             }
         },
         mounted(): void {
             this.$store.commit('setDatasetType', "none")
             this.$store.commit('toggleIsHomePage', true)
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
-        }
+            console.log("Mounted()");
+        },
+        beforeMount() {
+            /*
+                let params : {
+                    CLASSIFIER: 			{type:"enum", values:["RF", "DT", "SVM", "ANN"]},
+                    RANDOM_SEED: 			{type:"intGreaterMinusOne"},
+                    TEST_FRACTION: 			{type:"prob"},
+                    SAMPLING: 				{type:"enum", values:[
+                                                    "random",
+                                                    "uncertainty_lc",
+                                                    "uncertainty_max_margin",
+                                                    "uncertainty_entropy",
+                                            ]},
+                    CLUSTER:				{type:"enum", values:[
+                                                    "dummy",
+                                                    "random",
+                                                    "MostUncertain_lc",
+                                                    "MostUncertain_max_margin",
+                                                    "MostUncertain_entropy"
+                                            ]},
+                    
+                    NR_LEARNING_ITERATIONS:		{type:"intGZ"},
+                    NR_QUERIES_PER_ITERATION:	{type:"intGZ"},
+                    USER_QUERY_BUDGET_LIMIT:	{type:"intGZ"},
+                    
+                    STOPPING_CRITERIA_UNCERTAINTY:	{type:"prob"},
+                    STOPPING_CRITERIA_STD: 			{type:"prob"},
+                    STOPPING_CRITERIA_ACC:			{type:"prob"},
+                    
+                    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS:		{type:"prob"},
+                    
+                    WITH_UNCERTAINTY_RECOMMENDATION:					{type:"bool"},
+                    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD:		{type:"half-to-one"},
+                    UNCERTAINTY_RECOMMENDATION_RATIO:					{type:"prob"},
+                    
+                    WITH_CLUSTER_RECOMMENDATION: 						{type:"bool"},
+                    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE:	{type:"prob"},
+                    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED:		{type:"prob"},
+                    
+                    ALLOW_RECOMMENDATIONS_AFTER_STOP:					{type:"bool"},
+                    
+                    WITH_SNUBA_LITE:									{type:"bool"},
+                    SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				{type:"prob"},
+                };
+                */
+                console.log("BeforeMount()");
+                ALPAramsService.loadALParams().then(function(newData) {
+                    console.log("Inside then function");
+                    console.log(newData);
+                    this.setParams(newData);
+                    console.log("New Data set");
+                });
+        },
     };
 </script>
 
