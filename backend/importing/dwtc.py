@@ -1,62 +1,47 @@
 """ Preprocessing steps for the DWTC dataset """
-import gzip
-import json
 import csv
 from pathlib import Path
+from zipfile import ZipFile
 
-import requests
 from scipy.io.arff import loadarff
 
 from .generic import import_dataset
 from .utils import get_or_create_dataset
 from ..config import app
-from ..models import Table, Sample
-
-DWTC_URL = 'http://wwwdb.inf.tu-dresden.de/misc/dwtc/data_feb15/dwtc-000.json.gz'
+from ..models import Table
 
 
-# def download_dwtc(data_path: Path):
-#     if (data_path / 'dwtc-000.json').exists():
-#         return
-#
-#     app.logger.info('Downloading DWTC...')
-#     response = requests.get(DWTC_URL)
-#     with (data_path / 'dwtc-000.json').open('wb') as f:
-#         f.write(gzip.decompress(response.content))
-#
-#     app.logger.info('Download complete')
-#
-#
-# def import_dwtc(data_path: Path):
-#     dwtc = get_or_create_dataset(name='DWTC')
-#     if Sample.query.filter(Sample.dataset == dwtc).count():
-#         return
-#
-#     download_dwtc(data_path)
-#
-#     with (data_path / 'dwtc-000.json').open() as dataset_file:
-#         lines = dataset_file.readlines()
-#         raw_json = '[' + ','.join(lines) + ']'
-#         data = json.loads(raw_json)
-#
-#     import_dataset(
-#         dataset=dwtc,
-#         data=data,
-#         sample_class=Table,
-#         content_attribute='relation'
-#     )
-
-
-def import_dwtc(data_path: Path):
+def convert_dwtc(data_path: Path):
     dwtc_path = data_path / 'dwtc'
-    with (dwtc_path / 'data.arff').open() as arff_file:
-        arff = loadarff(arff_file)
-    with (dwtc_path / 'table.csv').open() as table_file:
-        raw_data = list(csv.reader(table_file))
-        # A dictionary with the id of the table as the key and the html content as the value
-        content = {int(entry[0]): entry[8] for entry in raw_data}
 
-    data, metadata = arff
-    feature_names = data.dtype.names
-    possible_labels = metadata._attributes['CLASS'].values
+    arff_path = dwtc_path / 'data.arff'
+    db_csv_dump_path = dwtc_path / 'table.csv'
+    target_csv_path = dwtc_path / 'dwtc.csv'
+    target_zip_path = dwtc_path / 'dwtc.zip'
 
+    with arff_path.open() as arff_file, target_csv_path.open('w') as csv_file:
+        app.logger.info('Converting DWTC features')
+        csv_writer = csv.writer(csv_file)
+        data, metadata = loadarff(arff_file)
+
+        feature_names = list(data.dtype.names)
+        feature_names[-1] = 'LABEL'
+        csv_writer.writerow(feature_names)
+
+        for entry in data:
+            entry = list(entry)
+            entry[0] = int(entry[0])
+            csv_writer.writerow(entry)
+
+    with db_csv_dump_path.open() as table_file, ZipFile(target_zip_path, 'w') as zip_file:
+        app.logger.info('Converting DWTC data')
+        for entry in list(csv.reader(table_file)):
+            identifier, content = entry[0], entry[8]
+            zip_file.writestr(f'{identifier}.raw', content)
+
+    import_dataset(
+        dataset=get_or_create_dataset('CIFAR'),
+        sample_class=Table,
+        feature_path=target_csv_path,
+        content_path=target_zip_path
+    )

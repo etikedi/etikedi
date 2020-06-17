@@ -1,11 +1,13 @@
-import json
-from typing import List, Type, Union
+import csv
+from zipfile import ZipFile
+from typing import Type
+from pathlib import Path
 
 from ..config import db
 from ..models import Dataset, Sample
 
 
-def import_dataset(dataset: Dataset, data: Union[List[dict], str], sample_class: Type[Sample], content_attribute: str, feature_attributes: List[str] = None):
+def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: Path, content_path: Path):
     """
     Creates samples from the given json list of objects.
 
@@ -13,39 +15,27 @@ def import_dataset(dataset: Dataset, data: Union[List[dict], str], sample_class:
     are taken into account.
 
     :param dataset:
-    :param data:
     :param sample_class:
-    :param content_attribute:
-    :param feature_attributes:
     :return:
     """
-    if isinstance(data, str):
-        data = json.loads(data)
+    with feature_path.open('r') as feature_file, content_path.open('rb') as content_file:
+        lines = list(csv.reader(feature_file))
+        zip_file = ZipFile(content_file, 'r')
 
-    if isinstance(data, list) and all(isinstance(entry, dict) for entry in data):
+        feature_names = lines[0]
+        total = len(lines)
         samples = []
-        total = len(data)
+        labels = set()
 
-        for index, raw_sample in enumerate(data, 1):
+        for index, line in enumerate(lines[1:], 1):
+            identifier, *feature_set, label = line
+            content = zip_file.read(f'{int(identifier)}.raw')
+            labels.add(label)
+
             sample = sample_class()
             sample.dataset = dataset
-
-            try:
-                sample.content = json.dumps(raw_sample[content_attribute])
-            except KeyError:
-                raise ValueError('Sample {} has no content attribute {}: {}'.format(index, content_attribute, raw_sample))
-
-            if feature_attributes is None:
-                feature_attributes = set(raw_sample.keys()) - { content_attribute }
-
-            try:
-                sample.features = json.dumps({
-                    key: raw_sample[key]
-                    for key in feature_attributes
-                })
-            except KeyError:
-                raise ValueError('Sample {} has a missing feature attribute'.format(raw_sample))
-
+            sample.features = feature_set
+            sample.content = content
             samples.append(sample)
 
             if index == total:

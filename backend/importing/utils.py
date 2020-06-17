@@ -14,7 +14,6 @@ def get_or_create_dataset(name):
     except NoResultFound:
         dataset = Dataset(name=name)
         db.session.add(dataset)
-        db.session.commit()
 
     return dataset
 

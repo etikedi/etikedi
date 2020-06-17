@@ -9,9 +9,9 @@ class Dataset(db.Model):
     - All items
     - Possible features
     """
-
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), unique=True, nullable=False)
+    # feature_names = db.Column(db.ARRAY(db.String()))
 
     def __repr__(self):
         return 'Dataset "{}" ({})'.format(self.name, self.id)

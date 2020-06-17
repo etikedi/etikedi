@@ -1,14 +1,18 @@
-import json
+import csv
 import pickle
 from io import BytesIO
 from pathlib import Path
+from itertools import product
+
+from zipfile import ZipFile
 
 import numpy as np
 from PIL import Image as PillowImage
 
-from .utils import get_or_create_dataset, download_archive
-from ..config import db, app
-from ..models import Image, Sample, Label
+from .generic import import_dataset
+from .utils import download_archive, get_or_create_dataset
+from ..config import app
+from ..models import Image
 
 files = [
     'data_batch_1',
@@ -45,44 +49,39 @@ def convert_cifar_to_png(pixels) -> bytes:
     return stream.getvalue()
 
 
-def convert_cifar_to_features(pixels) -> str:
-    """ Converts the color values of a CIFAR image into a json string. """
-    red, green, blue = np.array_split(pixels, 3)
-    return json.dumps({
-        'red': list(map(int, red)),
-        'green': list(map(int, green)),
-        'blue': list(map(int, blue))
-    })
-
-
-def import_cifar(data_path: Path):
-    cifar = get_or_create_dataset(name='CIFAR-10')
-    if Sample.query.filter(Sample.dataset == cifar).count():
-        return
-
+def convert_cifar(data_path: Path):
     download_cifar(data_path)
+    cifar_path = data_path / 'cifar-10-batches-py'
 
-    for file in files:
-        app.logger.info('Importing {}'.format(file))
-        with (data_path / 'cifar-10-batches-py' / file).open('rb') as f:
-            data = pickle.load(f, encoding='bytes')
+    target_csv_path = cifar_path / 'cifar.csv'
+    target_zip_path = cifar_path / 'cifar.zip'
 
-        all_pixels = data[b'data']
-        all_filenames = map(lambda x: x.decode(), data[b'filenames'])
+    with ZipFile(target_zip_path.open('wb'), 'w') as zip_file, target_csv_path.open('w') as csv_file:
+        identifier = 1
 
-        for name, pixels in zip(all_filenames, all_pixels):
-            sample = Image()
-            sample.dataset = cifar
-            sample.name = name
-            sample.content = convert_cifar_to_png(pixels)
-            sample.features = convert_cifar_to_features(pixels)
+        csv_writer = csv.writer(csv_file)
+        colors = ['red', 'green', 'blue']
+        color_features = [
+            f'{color}{index}'
+            for color, index in product(colors, range(1, 1024 + 1))
+        ]
+        feature_names = ['ID'] + color_features + ['LABEL']
+        csv_writer.writerow(feature_names)
 
-            db.session.add(sample)
-        db.session.commit()
+        for file_index, file in enumerate(files, 1):
+            app.logger.info(f'Converting CIFAR {file_index}/{len(files)}')
 
-    labels = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
-    db.session.add_all(
-        Label(dataset=cifar, name=label_name)
-        for label_name in labels
+            with (cifar_path / file).open('rb') as f:
+                data = pickle.load(f, encoding='bytes')
+
+            for pixels, label in zip(data[b'data'], data[b'labels']):
+                zip_file.writestr(f'{identifier}.raw', convert_cifar_to_png(pixels))
+                csv_writer.writerow([identifier] + list(pixels) + [label])
+                identifier += 1
+
+    import_dataset(
+        dataset=get_or_create_dataset('CIFAR'),
+        sample_class=Image,
+        feature_path=target_csv_path,
+        content_path=target_zip_path
     )
-    db.session.commit()

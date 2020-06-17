@@ -14,7 +14,7 @@ class Sample(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
 
-    features = db.Column(db.Text(), nullable=True)
+    # features = db.Column(db.ARRAY(db.Integer))
 
     dataset_id = db.Column(db.Integer, ForeignKey('dataset.id'), nullable=False)
     dataset = db.relationship(
