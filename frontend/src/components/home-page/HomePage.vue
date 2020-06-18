@@ -61,10 +61,8 @@
 export default {
     name: "HomePage",
     components: {},
-    mounted(): void {
-        this.$store.commit("setDatasetType", "none");
-        this.$store.commit("toggleIsHomePage", true);
-    }
+    //mounted(): void {
+    //}
 };
 </script>
 

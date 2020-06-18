@@ -23,8 +23,7 @@ export default {
     props: {},
     components: {},
     computed: {
-        ...mapState("dwtc", ["dwtc"]),
-        ...mapState(["loading", "displayFeatureTooltips"]),
+        ...mapState(["loading"]),
         isHomePage: {
             get(): boolean {
                 return store.state.isHomePage;
@@ -32,12 +31,8 @@ export default {
         }
     },
     methods: {},
-    mounted(): void {
-        this.$store.commit("setDatasetType", "dwtc");
-        this.$store.dispatch("loadDataset");
-        this.$store.commit("toggleIsHomePage", false);
-        this.$store.commit("toggleShowFeatureTooltipsSwitch", false);
-    }
+    //mounted(): void {
+    //}
 };
 </script>
 

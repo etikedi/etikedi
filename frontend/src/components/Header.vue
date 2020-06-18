@@ -80,7 +80,7 @@ export default {
     },
     methods: {
     },
-    mounted(): void {
+    created(): void {
         this.$store.dispatch("loadAllDatasets");
     },
 };

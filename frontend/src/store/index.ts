@@ -15,21 +15,25 @@ Vue.use(Vuex);
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    datasetType: "cv",
-    
+	// Note: datasetType is no longer set in State, as only the LabelView needs to know about it
+	
     // Which API to use to perform requests.
     // Actions from header buttons are delegated to the active
     // apiType. For most datasets in AERGIA, the 'default' apiType
     // will be used, which calls the AergiaDefaultApiService
-    apiType: "default",
+    // -!- apiType has moved to a getter, which retrieves it from activeDataset
     
     // Available datasets (retrieved from server)
     // datasetId: {name:"bla"}
     datasets: {},
+    // currently active dataset ID
+    activeDatasetId: null,
+    // currently active dataset, updated by 'updateActiveDataset' action!
+    activeDataset: null,
+    // labels for the active dataset
+    labels: [],
 
     loading: false,
-    prevButtonDisabled: false,
-    nextButtonDisabled: false,
 };
 
 const store = new Vuex.Store({

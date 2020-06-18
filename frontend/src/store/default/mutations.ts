@@ -35,7 +35,7 @@ export const appendSample = (state: State, {sampleData}) => {
     
     const historyLen = state.samples.length
     
-    state.samples.push_back(sample.id)
+    state.samples.push(sample.id)
     state.currentSampleIndex = historyLen
     state.currentSampleId = sample.id;
     state.currentSample = sample.data;

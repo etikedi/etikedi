@@ -2,7 +2,7 @@
 	<article>
 		<header>
 			<nav
-				class="navbar is-fixed-top hero is-info is-bold"
+				class="navbar hero is-info is-bold"
 				role="navigation"
 				aria-label="main navigation"
 			>
@@ -15,7 +15,7 @@
 									tag="a"
 									type="is-link"
 									icon-left="chevron-left"
-									@click="prevDataset"
+									@click="prevSample"
 									:disabled="prevButtonDisabled"
 									inverted
 									outlined
@@ -23,14 +23,14 @@
 									Prev
 								</b-button>
 								<h2 class="title" style="padding: 0 1rem 0 1rem">
-									{{ $store.getters.activeDatasetId }}
+									{{ $store.getters.sampleShortTitle }}
 								</h2>
 								<b-button
 									class="navbar-item"
 									tag="a"
 									type="is-link"
 									icon-right="chevron-right"
-									@click="nextDataset"
+									@click="nextSample"
 									:disabled="nextButtonDisabled"
 									inverted
 									outlined
@@ -45,11 +45,11 @@
 									class="navbar-item"
 									tag="a"
 									type="is-link"
-									@click="labelDataset(label)"
+									@click="labelSample(label.id)"
 									inverted
 									outlined
 								>
-									{{ label }}
+									{{ label.name }}
 								</b-button>
 							</div>
 						</div>
@@ -59,6 +59,29 @@
 		</header>
 		<section>
 			<!-- here go datasetType views -->
+			<CV v-if="datasetType == 'cv'"/>
+			<DWTC v-if="datasetType == 'dwtc'"/>
+			<Religious v-if="datasetType == 'religious'"/>
+			<CIFAR v-if="datasetType == 'cifar'"/>
+			<p v-if="datasetType == 'none'">No dataset selected!</p>
+			
+			<!-- fallback for dataset type "none" -->
+			<section class="section" v-if="datasetType == 'none'">
+				<div class="container">
+					<div style="position: relative;">
+						<span>
+							No dataset selected!
+						</span>
+					</div>
+				</div>
+			</section>
+			
+			<b-loading
+                    :is-full-page="false"
+                    :active.sync="loading"
+                    :can-cancel="false"
+                >
+                </b-loading>
 		</section>
 	</article>
 </template>
@@ -67,34 +90,31 @@
 import {mapState, mapActions, mapGetters} from "vuex";
 import store from "@/store";
 
-import CV from "./components/CV/CV.vue";
-import DWTC from "./components/dwtc/DWTC.vue";
+import CV from "@/components/CV/CV.vue";
+import DWTC from "@/components/dwtc/DWTC.vue";
 import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 
 export default {
     name: "LabelView",
+    components: {
+		CV,
+		DWTC,
+		Religious,
+		CIFAR,
+	},
     props: {
     },
     computed: {
-        ...mapState(["prevButtonDisabled", "nextButtonDisabled"]),
-        ...mapGetters(["labels"]),
-        datasetId: function() {
-			return this.$route.params.datasetId;
-		},
-        datasetType: function() {
-			const ds = this.$store.datasets[this.datasetId];
-			if(ds.type){
-				// the backend told us the DatasetType to display. Use this.
-				return ds.type;
-			}
-			// guess the dataset type (dumb approach)
-			return ds.name.toLowerCase()
-		},
+        ...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
+        ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
     methods: {
-        ...mapActions(["nextDataset", "prevDataset", "labelDataset"])
-    }
+        ...mapActions(["nextSample", "prevSample", "labelSample"])
+    },
+    created(): void {
+		this.$store.commit("setActiveDatasetId", this.$route.params.datasetId);
+    },
 };
 </script>
 

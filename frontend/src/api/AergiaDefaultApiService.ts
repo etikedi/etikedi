@@ -15,27 +15,27 @@ export default {
         return api.get("/datasets");
     },
 
-    getLabels(params: {datasetID: string}): Promise<any> {
-        return api.get("/dataset/" + params.datasetID + "/labels");
+    getLabels({datasetId}): Promise<any> {
+        return api.get("/dataset/" + params.datasetId + "/labels");
     },
 
-    getSampleById(params: {sampleID: any}): Promise<any> {
-        return api.get("/sample/" + params.sampleID);
+    getSampleById({sampleId}): Promise<any> {
+        return api.get("/sample/" + params.sampleId);
     },
     
-    getNextSample(params: {datasetID: string}): Promise<any> {
-        return api.get("/dataset/" + params.datasetID)
+    getNextSample({datasetId}): Promise<any> {
+        return api.get("/dataset/" + params.datasetId)
     },
 
-    labelSample(params: {
-        sampleID: string;
-        labelID: any;
-        userID: any;
+    labelSample({
+        sampleId,
+        labelId,
+        userId,
     }): Promise<any> {
-        return api.post("/sample/" + params.sampleID, {
+        return api.post("/sample/" + params.sampleId, {
             association: {
-                "label_id": params.labelID,
-                "user_id": params.userID
+                "label_id": params.labelId,
+                "user_id": params.userId
             }
         });
     }

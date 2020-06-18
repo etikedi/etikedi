@@ -3,14 +3,8 @@
         <div class="container">
             <div style="position: relative;">
                 <span>
-                    {{ religiousText }}
+                    {{ currentSample }}
                 </span>
-                <b-loading
-                    :is-full-page="false"
-                    :active.sync="loading"
-                    :can-cancel="false"
-                >
-                </b-loading>
             </div>
         </div>
     </section>
@@ -24,16 +18,11 @@ export default {
     props: {},
     components: {},
     computed: {
-        ...mapState(["religiousText", "loading"]),
-        ...mapState("religious", ["religiousText"])
+        ...mapState("api_default", ["currentSample"])
     },
     methods: {},
-    mounted(): void {
-        this.$store.commit("setDatasetType", "religious");
-        this.$store.dispatch("loadDataset");
-        this.$store.commit("toggleIsHomePage", false);
-        this.$store.commit("toggleShowFeatureTooltipsSwitch", false);
-    }
+    //mounted(): void {
+    //}
 };
 </script>
 
