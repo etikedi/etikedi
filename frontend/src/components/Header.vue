@@ -16,9 +16,9 @@
                                 <b-navbar-item
 										v-for="(dataset, datasetId) in datasets"
 										:key="datasetId"
-										:href="'/label/' + datasetId"
+										href="#"
 										style="color: #000000;">
-                                    {{ dataset.name }}
+									<router-link :to="'/label/'+datasetId">{{ dataset.name }}</router-link>
                                 </b-navbar-item>
                             </b-navbar-dropdown>
                             <b-navbar-item href="#">

@@ -44,6 +44,10 @@ export const loadAllDatasets = function({dispatch, commit, state}) {
 	})
 }
 
+// This construct is required because when the page is loaded, all views get mounted, but the list of available datasets isn't known at that time.
+// So, later, when the list of datasets has been retrieved AND the LabelView has told us the active datasetId (which it obtains from the route parameter)
+// we can actually retrieve our dataset description and apiType and datasetType are finally available.
+// When these are available, we can load our labels and the first sample.
 export const updateActiveDataset = function({dispatch, commit, state}) {
 	console.log("Updating active dataset")
 	if(state.activeDatasetId){

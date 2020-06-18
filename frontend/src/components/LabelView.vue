@@ -63,7 +63,6 @@
 			<DWTC v-if="datasetType == 'dwtc'"/>
 			<Religious v-if="datasetType == 'religious'"/>
 			<CIFAR v-if="datasetType == 'cifar'"/>
-			<p v-if="datasetType == 'none'">No dataset selected!</p>
 			
 			<!-- fallback for dataset type "none" -->
 			<section class="section" v-if="datasetType == 'none'">
@@ -112,9 +111,15 @@ export default {
     methods: {
         ...mapActions(["nextSample", "prevSample", "labelSample"])
     },
-    created(): void {
+    mounted(): void {
+		console.log("mounting LabelView - setting activeDatasetId to "+this.$route.params.datasetId)
 		this.$store.commit("setActiveDatasetId", this.$route.params.datasetId);
+		this.$store.dispatch("updateActiveDataset");
     },
+    beforeDestroy(): void {
+		console.log("destroying LabelView - unsetting activeDatasetId")
+		this.$store.commit("setActiveDatasetId", null);
+	}
 };
 </script>
 

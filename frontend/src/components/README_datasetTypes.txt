@@ -2,48 +2,50 @@
 Dataset Types handling in AERGIA
 ================================
 
-AERGIA uses VueX store modules to keep local states for each of the dataset types. The root store is used to save the selected dataset type, and to delegate the actions from the header view.
+NOTE: With the introduction of the backend API, this has changed fundamentally!
 
-Responsibility of modules
-=========================
-The module is fully responsible for
-- keeping track of the dataset that is loaded, especially its ID has to be in the module store
-- Communicating with the backend, both to retrieve datasets and to submit labels
-- Providing the dataset view
+Every dataset in AERGIA has 2 properties assigned to it: apiType and datasetType. These are supposed to be sent by the backend, but as long as this isn't the case they are guessed.
 
-AERGIA handles these tasks:
-- providing Next, Prev, and label buttons and delegation of actions
-- asking the module for available labels and current dataset ID
-- Selection of used dataset type
-
-Adding a dataset type
-=====================
-
-To add a dataset type, Code has to be inserted in the following places:
-1. create a Vue view to display datasets, preferably in /components/<yourdatasettype>/<yourdatasettype>.vue
-2. Create a file which exports a state module table (see VueX modules documentation), e.g. something that can be inserted into the "modules" table of a VueX store
-   (for the required actions and getters, see below)
-3. Import the VueX state module in /store/index.ts and add it to the "modules" table. The module name must equal the internal ID used for your dataset type (e.g. 'cv' for CV's)
-4. In /components/Header.vue, add an entry to the dropdown menu
-5. In /App.vue, import the view component and add:
-	- an entry to the template to show the view when required
-	- the view to the "components" table
-
-VueX Store actions and getters
-==============================
-
-AERGIA assumes that the following actions are defined in the store module:
-- nextDataset: load the next dataset of your type
-- prevDataset: load previous
-- loadDataset: initially load or reload the current dataset
-- labelDataset(payload = label:String): Label the dataset with the clicked label.
-
-The following getters have to be defined:
-- activeDatasetId: The ID of the currently loaded dataset. As of now, only used to be displayed in header
-- labels: A list of strings which are the available labels to be shown in header, and to be passed to labelDataset.
-
-AERGIA delegates any action and getter requests the header UI does to the module that is selected in the dropdown.
-
-Example
+apiType
 =======
-For an example, see the "CV" module (internal ID 'cv')
+This determines which API to use to retrieve datasets. Most datasets will use the common AergiaDefaultAPI, which is also used to load available datasets and labels, however it might be necessary for special datasets/AL backends to implement an own API endpoint.
+
+apiType implementations should go into /store/<apiType>. Each apiType uses a namespaced VueX sub-store, and actions and getters are delegated. See the default API which getters and actions need to be implemented. The namespaced submodule must be named "api_<apiType>".
+
+apiType defaults to 'default'.
+
+datasetType
+===========
+This determines how the samples are rendered. Each datasetType is associated with a view. Due to limitations of the Vue stack, these views can not be dynamically registered.
+To add a datasetType with associated view, you must do this:
+- in LabelView.vue, import the view class and add it to the components table.
+- In the LabelView template, add a v-if clause with your view, with appropriate datasetType=='foo' comparison.
+
+If the apiType is 'default' (which it will be unless you know what you are doing), the current dataset data to be rendered can be obtained by `mapState("api_default", ["currentSample"])`.
+
+A working example which just displays the contents as plain text would be:
+<template>
+    <section class="section">
+        <div class="container">
+            <div style="position: relative;">
+                <span>
+                    {{ currentSample }}
+                </span>
+            </div>
+        </div>
+    </section>
+</template>
+
+<script lang="ts">
+import {mapState} from "vuex";
+
+export default {
+    name: "Plain Text",
+    props: {},
+    components: {},
+    computed: {
+        ...mapState("api_default", ["currentSample"])
+    },
+    methods: {},
+};
+</script>
