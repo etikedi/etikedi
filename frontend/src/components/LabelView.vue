@@ -61,7 +61,7 @@
 			<!-- here go datasetType views -->
 			<CV v-if="datasetType == 'cv'"/>
 			<DWTC v-if="datasetType == 'dwtc'"/>
-			<Religious v-if="datasetType == 'religious'"/>
+			<PlainText v-if="datasetType == 'religious'"/>
 			<CIFAR v-if="datasetType == 'cifar'"/>
 			
 			<!-- fallback for dataset type "none" -->
@@ -91,7 +91,7 @@ import store from "@/store";
 
 import CV from "@/components/CV/CV.vue";
 import DWTC from "@/components/dwtc/DWTC.vue";
-import Religious from "@/components/religious/Religious.vue";
+import PlainText from "@/components/dst_plaintext/PlainText.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 
 export default {
@@ -99,7 +99,7 @@ export default {
     components: {
 		CV,
 		DWTC,
-		Religious,
+		PlainText,
 		CIFAR,
 	},
     props: {
