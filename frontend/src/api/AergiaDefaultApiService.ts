@@ -1,38 +1,29 @@
-import Api from "@/api/api";
+
+const api = axios.create({
+        //baseURL: 'http://25.93.150.69:5000/api/',
+        baseURL: "http://127.0.0.1:5000/api",
+        withCredentials: false,
+        headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json"
+        }
+    });
 
 export default {
     getAllDatasets(): Promise<any> {
-        // return Api().get("/datasets");
-        return new Promise(resolve => {
-            resolve({
-                datasets: [
-                    {
-                        id: 27138,
-                        name: "DWTC",
-                        datasetType: "dwtc",
-                        apiType: "default",
-                    },
-                    {
-                        id: 45632,
-                        name: "CIFAR"
-                        datasetType: "cifar",
-                        apiType: "default",
-                    }
-                ]
-            });
-        });
+        return api.get("/datasets");
     },
 
     getLabels(params: {datasetID: string}): Promise<any> {
-        return Api().get("/dataset/" + params.datasetID + "/labels");
+        return api.get("/dataset/" + params.datasetID + "/labels");
     },
 
     getSampleById(params: {sampleID: any}): Promise<any> {
-        return Api().get("/sample/" + params.sampleID);
+        return api.get("/sample/" + params.sampleID);
     },
     
     getNextSample(params: {datasetID: string}): Promise<any> {
-        return Api().get("/dataset/" + params.datasetID)
+        return api.get("/dataset/" + params.datasetID)
     },
 
     labelSample(params: {
@@ -40,7 +31,7 @@ export default {
         labelID: any;
         userID: any;
     }): Promise<any> {
-        return Api().post("/sample/" + params.sampleID, {
+        return api.post("/sample/" + params.sampleID, {
             association: {
                 "label_id": params.labelID,
                 "user_id": params.userID
