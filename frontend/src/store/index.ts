@@ -1,3 +1,6 @@
+/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/camelcase */
+
 import Vue from "vue";
 import Vuex from "vuex";
 import * as getters from "./getters";
@@ -5,7 +8,7 @@ import * as actions from "./actions";
 import * as mutations from "./mutations";
 import {State} from "./models";
 
-import {defaultApiStore} from "default/module";
+import {defaultApiStore} from "./default/module";
 
 Vue.use(Vuex);
 
@@ -19,13 +22,14 @@ const state: State = {
     // apiType. For most datasets in AERGIA, the 'default' apiType
     // will be used, which calls the AergiaDefaultApiService
     apiType: "default",
+    
+    // Available datasets (retrieved from server)
+    // datasetId: {name:"bla"}
+    datasets: {},
 
     loading: false,
     prevButtonDisabled: false,
     nextButtonDisabled: false,
-    displayFeatureTooltips: true,
-    displayFeatureTooltipsSwitch: true,
-    isHomePage: true
 };
 
 const store = new Vuex.Store({

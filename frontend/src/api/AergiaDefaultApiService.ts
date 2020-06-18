@@ -1,3 +1,4 @@
+import axios from "axios";
 
 const api = axios.create({
         //baseURL: 'http://25.93.150.69:5000/api/',

@@ -10,3 +10,6 @@ Open-source active-learning backed multipurpose labeling tool.
 Inspired by [prodigy](https://prodi.gy/demo) and [Labelobx](https://labelbox.com/).
 
 Photo by [Holger Link](https://unsplash.com/@photoholgic) on [Unsplash](https://unsplash.com/).
+
+## One-liner to start app:
+```pipenv run env FLASK_APP=aergia.py FLASK_ENV=development flask run```

@@ -1,3 +1,5 @@
+import api from "@/api/AergiaDefaultApiService"
+
 function delegateAction(actionName) {
     return ({dispatch, commit, state}) => {
         console.log(
@@ -11,10 +13,21 @@ function delegateAction(actionName) {
     };
 }
 
-export const nextDataset = delegateAction("nextDataset");
+export const nextSample = delegateAction("nextSample");
 
-export const prevDataset = delegateAction("prevDataset");
+export const prevSample = delegateAction("prevSample");
 
-export const loadDataset = delegateAction("loadDataset");
+export const loadSample = delegateAction("loadSample");
 
-export const labelDataset = delegateAction("labelDataset");
+export const labelSample = delegateAction("labelSample");
+
+
+export const loadAllDatasets = function({dispatch, commit, state}) {
+	api.getAllDatasets().then(function(datasetsIn) {
+		const newDatasets = {};
+		for (const dataset in datasetsIn) {
+			newDatasets[dataset.id] = dataset;
+		}
+		commit("setDatasets", newDatasets);
+	})
+}

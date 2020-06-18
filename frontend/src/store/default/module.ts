@@ -8,7 +8,7 @@ const debug = process.env.NODE_ENV !== "production";
 const state: State = {
     currentSampleId:"", // currently loaded sample
     samples: [], // sample history, a list of all sample ids. Navigable by clicking next/prev buttons
-    currentSampleIndex = 0, // index in samples table. If at end of list, and next button is clicked,
+    currentSampleIndex: 0, // index in samples table. If at end of list, and next button is clicked,
     // calls getNextSample() from API and inserts new ID into samples table
     
     currentSample: {}, // the JSON object of the current sample

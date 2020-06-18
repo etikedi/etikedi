@@ -1,11 +1,8 @@
 export interface State {
+	apiType: string;
     datasetType: string;
     loading: boolean;
-    prevButtonDisabled: boolean;
-    nextButtonDisabled: boolean;
-    displayFeatureTooltips: boolean;
-    displayFeatureTooltipsSwitch: boolean;
-    isHomePage: boolean;
+    datasets: any;
 }
 
 export interface LabelPayload {

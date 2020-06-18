@@ -11,12 +11,12 @@ export const prevSample = ({dispatch, commit}: any) => {
 };
 
 export const loadSample = ({commit, state, rootState}: any) => {
-	var index = state.currentSampleIndex;
+	const index = state.currentSampleIndex;
     console.log("Loading current sample index" + index);
     commit("startLoading", null, {root: true});
     
     // what do we need to fetch? By ID, or by nextSample?
-    var historyLen = state.samples.length;
+    const historyLen = state.samples.length;
     if(index >= historyLen){
 		// fetch by suggestion
 		return ApiService.getNextSample({datasetId: rootState.datasetId})
