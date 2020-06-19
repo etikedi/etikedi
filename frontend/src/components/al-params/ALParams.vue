@@ -142,7 +142,7 @@ import AppVue from '../../App.vue';
                 this.params = newParams;
             },
             submitParams: function() {
-                ALPAramsService.submitALParams(this.params);
+                ALPAramsService.submitALParams(JSON.stringify(this.params));
             }
         },
         mounted(): void {
@@ -152,7 +152,7 @@ import AppVue from '../../App.vue';
         },
         beforeMount() {
                 ALPAramsService.loadALParams().then((newData) => {
-                    this.setParams(newData);
+                    this.setParams(JSON.parse(newData));
                 });
         },
     };

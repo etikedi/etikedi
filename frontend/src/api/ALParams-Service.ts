@@ -3,7 +3,7 @@ import Api from "@/api/api";
 export default {
     loadALParams(): Promise<any> {
         //return Api().get("/alparams/")
-        return Promise.resolve({
+        const obj = {
             "CLASSIFIER": "DT",
             "RANDOM_SEED": 23,
             "TEST_FRACTION": 0.6,
@@ -25,32 +25,11 @@ export default {
             "ALLOW_RECOMMENDATIONS_AFTER_STOP": true,
             "WITH_SNUBA_LITE": true,
             "SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY": 0.5,
-        });
+        };
+        return Promise.resolve(JSON.stringify(obj));
     },
 
-    submitALParams(params: {
-        CLASSIFIER: string;
-        RANDOM_SEED: number;
-        TEST_FRACTION: number;
-        SAMPLING: string;
-        CLUSTER: string;
-        NR_LEARNING_ITERATIONS: number;
-        NR_QUERIES_PER_ITERATION: number;
-        USER_QUERY_BUDGET_LIMIT: number;
-        STOPPING_CRITERIA_UNCERTAINTY: number;
-        STOPPING_CRITERIA_STD: number;
-        STOPPING_CRITERIA_ACC: number;
-        MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS: number;
-        WITH_UNCERTAINTY_RECOMMENDATION: boolean;
-        UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD: number;
-        UNCERTAINTY_RECOMMENDATION_RATIO: number;
-        WITH_CLUSTER_RECOMMENDATION: boolean;
-        CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE: number;
-        CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED: number;
-        ALLOW_RECOMMENDATIONS_AFTER_STOP: boolean;
-        WITH_SNUBA_LITE: boolean;
-        SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY: number;
-    }): Promise<any> {
+    submitALParams(params: string): Promise<any> {
         return Api.post("/alparams/", {
             association: {
                 "label_id": params,
