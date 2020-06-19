@@ -127,13 +127,16 @@ import AppVue from '../../App.vue';
 		
 		WITH_SNUBA_LITE:									false,
 		SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				0.5,	// [zwischen 0.0 und 1.0],
-	}
+    }
+    
+    let datasetID: number;
     
     export default {
         name: "ALParams",
 		data: function() { return {
 			paramsTypes: paramsTypes,
             params: alParams,
+            datasetID: 0,
 		}},
         components: {},
         computed: {},
@@ -142,7 +145,10 @@ import AppVue from '../../App.vue';
                 this.params = newParams;
             },
             submitParams: function() {
-                ALPAramsService.submitALParams(JSON.stringify(this.params));
+                ALPAramsService.submitALParams(JSON.stringify({datasetID, this.params}));
+            },
+            getDatasetID: function() {
+
             }
         },
         mounted(): void {
@@ -151,7 +157,11 @@ import AppVue from '../../App.vue';
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         },
         beforeMount() {
-                ALPAramsService.loadALParams().then((newData) => {
+            ALPAramsService.getAllDatasets().then((data) => {
+                const parsedData = JSON.parse(data);
+                
+            })
+                ALPAramsService.loadALParams(this.datasetID).then((newData) => {
                     this.setParams(JSON.parse(newData));
                 });
         },
