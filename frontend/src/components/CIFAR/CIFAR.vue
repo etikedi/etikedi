@@ -1,11 +1,25 @@
 <template>
     <section class="section">
+        <center>
+            <h1 class="title">CIFAR</h1>
+            <h2 class="subtitle">Let's go and label this picture!</h2>
+        </center>
+        <br />
         <div class="container">
-            <div class="columns is-desktop">
-                <div class="box">
-                    <h1 class="title">CIFAR</h1>
-                    <h2 class="subtitle">Let's go and label this picture!</h2>
+            <div class="columns is-desktop is-vcentered">
+                <!-- left preview -->
 
+                <div v-if="count>0" class="box" id="preview">
+                    <div class="card-content">
+                        <img
+                            class="image is-128x128 is-horizontal-center"
+                            :src="samples[count-1].src"
+                        />
+                    </div>
+                    Label-ID: {{samples[count-1].labelId}}
+                </div>
+
+                <div class="box">
                     <div class="card-content">
                         <img
                             class="image is-128x128 is-horizontal-center"
@@ -14,28 +28,29 @@
                     </div>
 
                     <div class="field">
-                        <div class="control">
-                            <div class="select is-info is-fullwidth">
-                                <select v-model="selected">
-                                    <option
-                                        v-for="item in labels"
-                                        :key="item.id"
-                                        :value="item.id"
-                                        >{{ item.name }}</option
-                                    >
-                                </select>
-                            </div>
-                        </div>
+                        <input
+                            v-model="labelName"
+                            class="input is-fullwidth"
+                            type="text"
+                            placeholder="Label"
+                        />
+
                     </div>
 
                     <div class="field">
-                        <button
-                            @click="click()"
-                            class="button is-info is-fullwidth"
-                        >
-                            Send
-                        </button>
+                        <button v-on:click="click()" class="button is-info is-fullwidth">Send</button>
                     </div>
+                </div>
+
+                <!-- right preview -->
+                <div v-if="count+1<=maxCount" class="box" id="preview">
+                    <div class="card-content">
+                        <img
+                            class="image is-128x128 is-horizontal-center"
+                            :src="samples[count+1].src"
+                        />
+                    </div>
+                    Label-ID: {{samples[count+1].labelId}}
                 </div>
             </div>
 
@@ -154,6 +169,7 @@ export default Vue.extend({
             samples,
             labels: labels,
             count: 0,
+            maxCount: samples.length - 1,
             selected
         };
     },
@@ -211,9 +227,14 @@ export default Vue.extend({
     }
 }
 
+#preview {
+    opacity: 0.4;
+    height: 250px;
+}
+
 .container {
     margin: 10px auto;
-
+    width: 800px;
     .title,
     .subtitle {
         text-align: center;
