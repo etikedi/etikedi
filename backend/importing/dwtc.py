@@ -11,6 +11,8 @@ from ..config import app
 from ..models import Table
 
 
+# Important: This implementation uses a CSV export of a database obtained from here:
+#   https://cloudstore.zih.tu-dresden.de/index.php/s/wdX6X3t7AwiFdrY
 def convert_dwtc(data_path: Path):
     dwtc_path = data_path / 'dwtc'
 
