@@ -56,28 +56,31 @@ def convert_cifar(data_path: Path):
     target_csv_path = cifar_path / 'cifar.csv'
     target_zip_path = cifar_path / 'cifar.zip'
 
-    with ZipFile(target_zip_path.open('wb'), 'w') as zip_file, target_csv_path.open('w') as csv_file:
-        identifier = 1
+    if not (target_csv_path.exists() and target_zip_path.exists()):
+        with ZipFile(target_zip_path.open('wb'), 'w') as zip_file, target_csv_path.open('w') as csv_file:
+            identifier = 1
 
-        csv_writer = csv.writer(csv_file)
-        colors = ['red', 'green', 'blue']
-        color_features = [
-            f'{color}{index}'
-            for color, index in product(colors, range(1, 1024 + 1))
-        ]
-        feature_names = ['ID'] + color_features + ['LABEL']
-        csv_writer.writerow(feature_names)
+            csv_writer = csv.writer(csv_file)
+            colors = ['red', 'green', 'blue']
+            color_features = [
+                f'{color}{index}'
+                for color, index in product(colors, range(1, 1024 + 1))
+            ]
+            feature_names = ['ID'] + color_features + ['LABEL']
+            csv_writer.writerow(feature_names)
 
-        for file_index, file in enumerate(files, 1):
-            app.logger.info(f'Converting CIFAR {file_index}/{len(files)}')
+            for file_index, file in enumerate(files, 1):
+                app.logger.info(f'Converting CIFAR {file_index}/{len(files)}')
 
-            with (cifar_path / file).open('rb') as f:
-                data = pickle.load(f, encoding='bytes')
+                with (cifar_path / file).open('rb') as f:
+                    data = pickle.load(f, encoding='bytes')
 
-            for pixels, label in zip(data[b'data'], data[b'labels']):
-                zip_file.writestr(f'{identifier}.raw', convert_cifar_to_png(pixels))
-                csv_writer.writerow([identifier] + list(pixels) + [label])
-                identifier += 1
+                for pixels, label in zip(data[b'data'], data[b'labels']):
+                    zip_file.writestr(f'{identifier}.raw', convert_cifar_to_png(pixels))
+                    csv_writer.writerow([identifier] + list(pixels) + [label])
+                    identifier += 1
+    else:
+        app.logger.info('Skip converting CIFAR as it is already present')
 
     import_dataset(
         dataset=get_or_create_dataset('CIFAR'),

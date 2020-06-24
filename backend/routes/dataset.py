@@ -73,13 +73,14 @@ class DatasetDetail(Resource):
             if dataset is None:
                 abort(404)
 
-        if should_label_random_sample(dataset, random_sample_every=config().RANDOM_SAMPLE_EVERY):
-            random_sample = Sample.query.filter(
-                Sample.dataset_id == 2,
-                ~Sample.associations.any()
-            ).order_by(db_functions.random()).first()
-
-            return random_sample.id, 200
+        # Should not be needed anymore, as each label needs to have at least one sample associated to it
+        # if should_label_random_sample(dataset, random_sample_every=config().RANDOM_SAMPLE_EVERY):
+        #     random_sample = Sample.query.filter(
+        #         Sample.dataset_id == 2,
+        #         ~Sample.associations.any()
+        #     ).order_by(db_functions.random()).first()
+        #
+        #     return random_sample.id, 200
 
         # Retrieve pipe endpoint from process manager
         process_resources = manager.get_or_else_load(dataset_id)

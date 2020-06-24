@@ -2,16 +2,11 @@ from ..config import db, ma
 
 
 class Dataset(db.Model):
-    """
-    Represents a complete dataset.
-
-    - Name
-    - All items
-    - Possible features
-    """
+    """ Represents a complete dataset. """
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), unique=True, nullable=False)
-    # feature_names = db.Column(db.ARRAY(db.String()))
+    feature_names = db.Column(db.String(), nullable=True)
+    features = db.Column(db.Text(), nullable=True)
 
     def __repr__(self):
         return 'Dataset "{}" ({})'.format(self.name, self.id)

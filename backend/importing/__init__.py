@@ -4,7 +4,6 @@ from .religious_texts import import_religions_texts
 from .cifar import convert_cifar
 from .generic import import_dataset
 
-
 DATA_PATH = (Path(__file__).absolute() / '../../data').resolve()
 
 

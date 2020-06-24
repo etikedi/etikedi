@@ -19,28 +19,32 @@ def convert_dwtc(data_path: Path):
     target_csv_path = dwtc_path / 'dwtc.csv'
     target_zip_path = dwtc_path / 'dwtc.zip'
 
-    with arff_path.open() as arff_file, target_csv_path.open('w') as csv_file:
-        app.logger.info('Converting DWTC features')
-        csv_writer = csv.writer(csv_file)
-        data, metadata = loadarff(arff_file)
+    if not (target_csv_path.exists() and target_zip_path.exists()):
+        with arff_path.open() as arff_file, target_csv_path.open('w') as csv_file:
+            app.logger.info('Converting DWTC features')
+            csv_writer = csv.writer(csv_file)
+            data, metadata = loadarff(arff_file)
 
-        feature_names = list(data.dtype.names)
-        feature_names[-1] = 'LABEL'
-        csv_writer.writerow(feature_names)
+            feature_names = list(data.dtype.names)
+            feature_names[-1] = 'LABEL'
+            csv_writer.writerow(feature_names)
 
-        for entry in data:
-            entry = list(entry)
-            entry[0] = int(entry[0])
-            csv_writer.writerow(entry)
+            for entry in data:
+                entry = list(entry)
+                entry[0] = int(entry[0])
+                csv_writer.writerow(entry)
 
-    with db_csv_dump_path.open() as table_file, ZipFile(target_zip_path, 'w') as zip_file:
-        app.logger.info('Converting DWTC data')
-        for entry in list(csv.reader(table_file)):
-            identifier, content = entry[0], entry[8]
-            zip_file.writestr(f'{identifier}.raw', content)
+        with db_csv_dump_path.open() as table_file, ZipFile(target_zip_path, 'w') as zip_file:
+            app.logger.info('Converting DWTC data')
+            for entry in list(csv.reader(table_file)):
+                identifier, content = entry[0], entry[8]
+
+                zip_file.writestr(f'{identifier}.raw', content)
+    else:
+        app.logger.info('Skip converting DWTC as the files are already present')
 
     import_dataset(
-        dataset=get_or_create_dataset('CIFAR'),
+        dataset=get_or_create_dataset('DWTC'),
         sample_class=Table,
         feature_path=target_csv_path,
         content_path=target_zip_path
