@@ -1,4 +1,5 @@
 import multiprocessing
+from io import StringIO
 
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
 from ..config import app, db
-from ..models import Association, Sample
+from ..models import Association, Sample, Dataset
 from .al_oracle import ParallelOracle
 from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers, check_for_label, \
     labels_of_dataset, dataset_name_by_dataset_id
@@ -37,6 +38,7 @@ class ALProcess(multiprocessing.Process):
         sample_ids = {}
         features, labels, indices_labeled_data, label_meanings = [], [], [], []
         dataset_name = dataset_name_by_dataset_id(self.dataset_id)
+        dataset = Dataset.query.get(self.dataset_id)
         app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
         
         # Data preparation for usage of aL-code with iris-dataset (test)
@@ -51,39 +53,18 @@ class ALProcess(multiprocessing.Process):
             feature_array = np.array(features, dtype='float')
             feature_names = ["sepal length", "sepal width", "petal length", "petal width"]
             label_meanings = ["setosa", "versicolor", "virginica"]
-
-        # Data preparation for usage of aL-code with proper data
         else:
-            # TODO: Only fetch necessary data as plain values to improve performance
-            # samples = samples_of_dataset(self.dataset_id)
-            # features = samples_to_feature_dict(samples)
-            import json
-
-            result = db.session.query(Sample.id, Sample.features).filter(Sample.dataset_id == self.dataset_id).all()
-            data = [[id, *json.loads(feature_string).values()] for id, feature_string in result]
-
-            # for index, sample in enumerate(samples):
-            #     sample_ids[index] = sample.id
-            #     if sample.labels:
-            #         labels.append(sample.label.id)
-            #         indices_labeled_data.append(index)
-            #     else:
-            #         labels.append(None)
-
-            # TODO: Refactor after saving feature names separate
-            first_sample = json.loads(result[0][1])
-            feature_names = list(first_sample.keys())
-
-        sample_df = pd.DataFrame(data=data, columns=['id'] + feature_names).set_index('id')
+            buffer = StringIO(dataset.features)
+            sample_df = pd.read_csv(buffer).set_index('ID')  # = X, in the example
 
         # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy()
         # first to remove it
 
         associated_labels = db.session.query(
             Association.sample_id, Association.label_id
-        ).join(Association.sample).filter(Sample.dataset_id == 2).all()
+        ).join(Association.sample).filter(Sample.dataset == dataset).all()
 
-        label_df = pd.DataFrame(associated_labels, columns=['id', 0]).set_index('id')
+        label_df = pd.DataFrame(associated_labels, columns=['ID', 0]).set_index('ID')
         ids_of_labeled_samples = np.array(associated_labels)[:,0]
 
         # label_df = pd.DataFrame(label_df.to_numpy(), dtype=int).loc[indices_labeled_data]
@@ -114,3 +95,5 @@ class ALProcess(multiprocessing.Process):
             hyper_parameters=self.config,
             oracle=ParallelOracle(sample_ids, self.pipe_endpoint)
         )
+
+        print('Done with the AL code')
