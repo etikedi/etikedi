@@ -61,6 +61,57 @@
                     </p>
                 </div>
             </div>
+            
+            <!-- header component of LabelView, only shown when activeDatasetId set (see labelView) -->
+            <div class="hero-foot" v-if="activeDatasetId != null">
+					<div class="container">
+						<div id="navbarMenuHeroA" class="navbar-menu">
+							<div class="navbar-start">
+								<b-button
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									icon-left="chevron-left"
+									@click="prevSample"
+									:disabled="prevButtonDisabled"
+									inverted
+									outlined
+								>
+									Prev
+								</b-button>
+								<h2 class="title" style="padding: 0 1rem 0 1rem">
+									{{ $store.getters.sampleShortTitle }}
+								</h2>
+								<b-button
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									icon-right="chevron-right"
+									@click="nextSample"
+									:disabled="nextButtonDisabled"
+									inverted
+									outlined
+								>
+									Next
+								</b-button>
+							</div>
+							<div class="navbar-end">
+								<b-button
+									v-for="(label, index) in labels"
+									:key="index"
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									@click="labelSample(label.id)"
+									inverted
+									outlined
+								>
+									{{ label.name }}
+								</b-button>
+							</div>
+						</div>
+					</div>
+				</div>
         </nav>
     </header>
 </template>
@@ -76,9 +127,11 @@ export default {
         subtitle: String
     },
     computed: {
-		...mapState(["datasets"]),
+		...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
+        ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
     methods: {
+		...mapActions(["nextSample", "prevSample", "labelSample"])
     },
     created(): void {
         this.$store.dispatch("loadAllDatasets");

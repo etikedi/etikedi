@@ -1,11 +1,10 @@
 import * as getters from "./getters";
 import * as actions from "./actions";
 import * as mutations from "./mutations";
-import {State} from "./models";
 
 const debug = process.env.NODE_ENV !== "production";
 
-const state: State = {
+const state = {
     currentSampleId:"", // currently loaded sample
     samples: [], // sample history, a list of all sample ids. Navigable by clicking next/prev buttons
     currentSampleIndex: 0, // index in samples table. If at end of list, and next button is clicked,

@@ -80,6 +80,12 @@ export default {
         userId,
     }): Promise<any> {
         return new Promise(resolve => {
+			console.log("DUMMY API Got Label:")
+			console.log([
+				sampleId,
+				labelId,
+				userId,
+			])
             const randi = getRandomInt(10000,99999)
             resolve({
 			  "datasample": {

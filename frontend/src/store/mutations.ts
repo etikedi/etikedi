@@ -1,10 +1,5 @@
 import {State} from "@/store/models";
 
-export const setApiType = (state: State, objectType: string) => {
-    console.log("Setting new API type: " + objectType);
-    state.apiType = objectType;
-};
-
 export const startLoading = (state: State) => {
     state.loading = true;
 };
