@@ -1,8 +1,8 @@
 import Api from "@/api/api";
 
 export default {
-    loadALParams(params : number): Promise<any> {
-        //return Api().get("/datasets/" + params + "/config");
+    loadALParams(datasetID : number): Promise<any> {
+        //return Api().get("/datasets/" + datasetID + "/config");
         const obj = {
             "CLASSIFIER": "DT",
             "RANDOM_SEED": 23,
@@ -31,11 +31,11 @@ export default {
 
     submitALParams(params: {
         datasetID: number, 
-        value: string
+        paramString: string
     }): Promise<any> {
         return Api().post("/datasets/" + params.datasetID + "/config", {
             association: {
-                "label_id": params.value,
+                "label_id": params.paramString,
                 "user_id": params.datasetID
             }
         });
@@ -43,23 +43,24 @@ export default {
 
     getAllDatasets(): Promise<any> {
         // return Api().get("/datasets");
+        const obj = {
+            "datasets": [
+                {
+                    "id": 27138,
+                    "name": "DWTC"
+                },
+                {
+                    "id": 45632,
+                    "name": "CIFAR"
+                },
+                {
+                    "id": 13337,
+                    "name": "ALParams"
+                }
+            ]
+        };
         return new Promise(resolve => {
-            resolve({
-                datasets: [
-                    {
-                        id: 27138,
-                        name: "DWTC"
-                    },
-                    {
-                        id: 45632,
-                        name: "CIFAR"
-                    },
-                    {
-                        id: 13337,
-                        name: "ALParams"
-                    }
-                ]
-            });
+            resolve(JSON.stringify(obj));
         });
     },
 

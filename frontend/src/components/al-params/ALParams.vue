@@ -136,7 +136,6 @@ import AppVue from '../../App.vue';
 		data: function() { return {
 			paramsTypes: paramsTypes,
             params: alParams,
-            datasetID: 0,
 		}},
         components: {},
         computed: {},
@@ -145,10 +144,11 @@ import AppVue from '../../App.vue';
                 this.params = newParams;
             },
             submitParams: function() {
-                ALPAramsService.submitALParams(JSON.stringify({datasetID, this.params}));
+                const paramString : string = JSON.stringify(this.params);
+                ALPAramsService.submitALParams({datasetID, paramString});
             },
-            getDatasetID: function() {
-
+            setDatasetID: function(id: number) {
+                datasetID = id;
             }
         },
         mounted(): void {
@@ -157,13 +157,20 @@ import AppVue from '../../App.vue';
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         },
         beforeMount() {
-            ALPAramsService.getAllDatasets().then((data) => {
+            ALPAramsService.getAllDatasets().then((data) => {       //retrieve all Datasets and find the id for this component
+                let id : number;
                 const parsedData = JSON.parse(data);
-                
-            })
-                ALPAramsService.loadALParams(this.datasetID).then((newData) => {
-                    this.setParams(JSON.parse(newData));
+                const datasets = parsedData.datasets;
+                datasets.forEach(element => {
+                    if (element.name == "ALParams") {
+                        id = element.id;
+                    }
                 });
+                this.setDatasetID(id);
+            });
+            ALPAramsService.loadALParams(this.datasetID).then((newData) => {
+                this.setParams(JSON.parse(newData));
+            });
         },
     };
 </script>
