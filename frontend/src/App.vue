@@ -25,6 +25,7 @@ import DWTC from "./components/dwtc/DWTC.vue";
 import HomePage from "./components/home-page/HomePage.vue";
 import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
+import LOGIN from "@/components/login/LOGIN.vue";
 
 Vue.use(VueRouter);
 
@@ -34,6 +35,11 @@ const routes = [
     {
         path: "/",
         redirect: "/home"
+    },
+    {
+        path: "/login",
+        name: "login",
+        component: LOGIN
     },
     {
         path: "/home",
@@ -72,6 +78,19 @@ const router = new VueRouter({
     routes
 });
 
+router.beforeEach((to, from, next) => {
+    // redirect to login page if not logged in and trying to access a restricted page
+
+    if (
+        ["/login", "/register"].includes(to.path) &&
+        localStorage.getItem("user")
+    ) {
+        return next("/login");
+    }
+
+    next();
+});
+
 export default Vue.extend({
     router,
     name: "app",
@@ -89,7 +108,6 @@ export default Vue.extend({
 #app {
     padding-top: 18.25rem;
 }
-
 .foot {
     margin-top: 20px;
     margin-left: 20%;

@@ -9,6 +9,7 @@ import {cvStore} from "@/components/CV/store/module";
 import {dwtcStore} from "@/components/dwtc/store/module";
 import {religiousStore} from "@/components/religious/store/module";
 import {cifarStore} from "@/components/CIFAR/store/module";
+import {loginStore} from "@/components/login/store/module";
 
 Vue.use(Vuex);
 
@@ -31,7 +32,8 @@ const store = new Vuex.Store({
         cv: cvStore,
         dwtc: dwtcStore,
         religious: religiousStore,
-        cifar: cifarStore
+        cifar: cifarStore,
+        login: loginStore
         // add imported dataset type modules here!
     },
     getters,
