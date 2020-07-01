@@ -15,7 +15,7 @@ class ParallelOracle(BaseOracle):
         self.sample_ids = sample_ids
         self.pipe_endpoint = pipe_endpoint
 
-    def get_labeled_samples(self, query_indices, data_storage):
+    def get_labels(self, query_indices, data_storage):
         """
         As this function is the only interface between backend and active-learning code, two tasks have to be done:
             1)  Resolving the query indices into queried sample_ids and send them to backend

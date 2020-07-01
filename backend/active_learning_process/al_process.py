@@ -42,20 +42,20 @@ class ALProcess(multiprocessing.Process):
         app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
         
         # Data preparation for usage of aL-code with iris-dataset (test)
-        if dataset_name == "":
-            samples = query_flowers()
-            for i in range(len(samples)):
-                sample = samples[i]
-                sample_ids[i] = sample.id
-                features.append([sample.sepal_length, sample.sepal_width, sample.petal_length, sample.petal_width])
-                labels.append(sample.label)
-                indices_labeled_data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 50]
-            feature_array = np.array(features, dtype='float')
-            feature_names = ["sepal length", "sepal width", "petal length", "petal width"]
-            label_meanings = ["setosa", "versicolor", "virginica"]
-        else:
-            buffer = StringIO(dataset.features)
-            sample_df = pd.read_csv(buffer).set_index('ID')  # = X, in the example
+        # if dataset_name == "":
+        #     samples = query_flowers()
+        #     for i in range(len(samples)):
+        #         sample = samples[i]
+        #         sample_ids[i] = sample.id
+        #         features.append([sample.sepal_length, sample.sepal_width, sample.petal_length, sample.petal_width])
+        #         labels.append(sample.label)
+        #         indices_labeled_data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 50]
+        #     feature_array = np.array(features, dtype='float')
+        #     feature_names = ["sepal length", "sepal width", "petal length", "petal width"]
+        #     label_meanings = ["setosa", "versicolor", "virginica"]
+
+        buffer = StringIO(dataset.features)
+        sample_df = pd.read_csv(buffer).set_index('ID')  # = X, in the example
 
         # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy()
         # first to remove it
@@ -74,8 +74,6 @@ class ALProcess(multiprocessing.Process):
 
         # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled
         # set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
-        # labeled_sample_df = sample_df.loc[indices_labeled_data]
-        # unlabeled_sample_df = sample_df.drop(indices_labeled_data)
         labeled_sample_df = sample_df.loc[ids_of_labeled_samples]
         unlabeled_sample_df = sample_df.drop(ids_of_labeled_samples)
 
