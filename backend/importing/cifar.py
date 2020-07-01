@@ -14,25 +14,13 @@ from .utils import download_archive, get_or_create_dataset
 from ..config import app
 from ..models import Image
 
-files = [
+CIFAR_FILES = [
     'data_batch_1',
     # 'data_batch_2',
     # 'data_batch_3',
     # 'data_batch_4',
     # 'data_batch_5'
 ]
-
-
-def download_cifar(data_path: Path):
-    if (data_path / 'cifar-10-batches-py').exists():
-        return
-
-    app.logger.info('Downloading CIFAR...')
-    download_archive(
-        url='http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz',
-        download_path=data_path / 'cifar-10-python.tar.gz',
-        target_path=data_path
-    )
 
 
 def convert_cifar_to_png(pixels) -> bytes:
@@ -50,8 +38,15 @@ def convert_cifar_to_png(pixels) -> bytes:
 
 
 def convert_cifar(data_path: Path):
-    download_cifar(data_path)
     cifar_path = data_path / 'cifar-10-batches-py'
+
+    if not cifar_path.exists():
+        app.logger.info('Downloading CIFAR...')
+        download_archive(
+            url='http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz',
+            download_path=data_path / 'cifar-10-python.tar.gz',
+            target_path=data_path
+        )
 
     target_csv_path = cifar_path / 'cifar.csv'
     target_zip_path = cifar_path / 'cifar.zip'
@@ -69,8 +64,8 @@ def convert_cifar(data_path: Path):
             feature_names = ['ID'] + color_features + ['LABEL']
             csv_writer.writerow(feature_names)
 
-            for file_index, file in enumerate(files, 1):
-                app.logger.info(f'Converting CIFAR {file_index}/{len(files)}')
+            for file_index, file in enumerate(CIFAR_FILES, 1):
+                app.logger.info(f'Converting CIFAR {file_index}/{len(CIFAR_FILES)}')
 
                 with (cifar_path / file).open('rb') as f:
                     data = pickle.load(f, encoding='bytes')

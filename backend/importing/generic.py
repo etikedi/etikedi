@@ -32,11 +32,10 @@ def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: P
 
         zip_file = ZipFile(content_file, 'r')
 
-        total = len(df.index)
-        samples = []
-        associations = []
+        total, samples, associations = len(df.index), [], []
         for index, (identifier, label_name) in enumerate(df['LABEL'].iteritems()):
             content = zip_file.read(f'{int(identifier)}.raw')
+
             sample = sample_class()
             sample.dataset = dataset
             sample.content = content
@@ -49,11 +48,7 @@ def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: P
                     user=user
                 ))
 
-            if index == total:
-                print('Done importing dataset {}'.format(dataset))
-                db.session.add_all(samples)
-                db.session.commit()
-            elif index % 1000 == 0:
+            if index % 1000 == 0:
                 print('{:.2f}% imported ({}/{})'.format((index / total) * 100, index, total))
                 db.session.add_all(samples)
                 db.session.commit()
@@ -61,3 +56,9 @@ def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: P
                 db.session.commit()
                 samples = []
                 associations = []
+
+        print('Done importing dataset {}'.format(dataset))
+        db.session.add_all(samples)
+        db.session.commit()
+        db.session.add_all(associations)
+        db.session.commit()
