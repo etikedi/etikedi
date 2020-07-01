@@ -10,8 +10,6 @@ from ..active_learning.experiment_setup_lib import init_logger
 from ..config import app, db
 from ..models import Association, Sample, Dataset
 from .al_oracle import ParallelOracle
-from .db_functions import samples_of_dataset, samples_to_feature_dict, query_flowers, check_for_label, \
-    labels_of_dataset, dataset_name_by_dataset_id
 
 
 class ALProcess(multiprocessing.Process):
@@ -35,24 +33,8 @@ class ALProcess(multiprocessing.Process):
         data -  fed to the active learning code.
         """
         init_logger("log.txt")
-        sample_ids = {}
-        features, labels, indices_labeled_data, label_meanings = [], [], [], []
-        dataset_name = dataset_name_by_dataset_id(self.dataset_id)
         dataset = Dataset.query.get(self.dataset_id)
         app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
-        
-        # Data preparation for usage of aL-code with iris-dataset (test)
-        # if dataset_name == "":
-        #     samples = query_flowers()
-        #     for i in range(len(samples)):
-        #         sample = samples[i]
-        #         sample_ids[i] = sample.id
-        #         features.append([sample.sepal_length, sample.sepal_width, sample.petal_length, sample.petal_width])
-        #         labels.append(sample.label)
-        #         indices_labeled_data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 100, 50]
-        #     feature_array = np.array(features, dtype='float')
-        #     feature_names = ["sepal length", "sepal width", "petal length", "petal width"]
-        #     label_meanings = ["setosa", "versicolor", "virginica"]
 
         buffer = StringIO(dataset.features)
         sample_df = pd.read_csv(buffer).set_index('ID')  # = X, in the example
