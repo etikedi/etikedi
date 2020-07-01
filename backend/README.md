@@ -33,6 +33,9 @@ flask cli provides the advantage of live reloading the running app when your cod
 
 # or as a oneliner
 > FLASK_APP=aergia.py FLASK_ENV=development flask run
+
+## One-liner to start app without entering pipenv first - run directly in backend folder:
+```pipenv run env FLASK_APP=aergia.py FLASK_ENV=development flask run```
 ```
 
 ### 🐳 Docker
