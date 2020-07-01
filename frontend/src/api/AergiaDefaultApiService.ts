@@ -1,30 +1,24 @@
-import axios from "axios";
-
-const api = axios.create({
-        //baseURL: 'http://25.93.150.69:5000/api/',
-        baseURL: "http://127.0.0.1:5000/api",
-        withCredentials: false,
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json"
-        }
-    });
+import api from "./api"
 
 export default {
     getAllDatasets(): Promise<any> {
-        return api.get("/datasets");
+		console.log("(AergiaDefaultApi) getAllDatasets /datasets/")
+        return api().get("/datasets/");
     },
 
     getLabels({datasetId}): Promise<any> {
-        return api.get("/dataset/" + datasetId + "/labels");
+		console.log("(AergiaDefaultApi) getLabels /datasets/" + datasetId + "/labels")
+        return api().get("/datasets/" + datasetId + "/labels");
     },
 
     getSampleById({sampleId}): Promise<any> {
-        return api.get("/sample/" + sampleId);
+		console.log("(AergiaDefaultApi) getSampleById /sample/" + sampleId)
+        return api().get("/sample/" + sampleId);
     },
     
     getNextSample({datasetId}): Promise<any> {
-        return api.get("/dataset/" + datasetId)
+		console.log("(AergiaDefaultApi) getNextSample /datasets/" + datasetId + "/")
+        return api().get("/datasets/" + datasetId + "/")
     },
 
     labelSample({
@@ -32,7 +26,8 @@ export default {
         labelId,
         userId,
     }): Promise<any> {
-        return api.post("/sample/" + sampleId, {
+        console.log("(AergiaDefaultApi) labelSample /sample/" + sampleId)
+        return api().post("/sample/" + sampleId, {
             association: {
                 "label_id": labelId,
                 "user_id": userId
