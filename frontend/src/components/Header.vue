@@ -149,7 +149,7 @@ export default {
 			}).then(function(result){
 				console.log(result.data);
 				localStorage.setItem('jwtToken', result.data.access_token)
-				console.log("Obtained JWT: "+localStorage.getItem('jwtToken'))
+				alert("Obtained JWT: "+localStorage.getItem('jwtToken'))
 			});
 		},
     },

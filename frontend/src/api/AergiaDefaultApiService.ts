@@ -17,8 +17,11 @@ export default {
     },
     
     getNextSample({datasetId}): Promise<any> {
-		console.log("(AergiaDefaultApi) getNextSample /datasets/" + datasetId + "/")
-        return api().get("/datasets/" + datasetId + "/")
+		// this doesnt work
+		//console.log("(AergiaDefaultApi) getNextSample /datasets/" + datasetId + "/")
+        //return api().get("/datasets/" + datasetId + "/")
+        console.log("(AergiaDefaultApi) getSampleById /sample/1")
+        return api().get("/sample/1");
     },
 
     labelSample({

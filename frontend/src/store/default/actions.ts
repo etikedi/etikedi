@@ -22,7 +22,6 @@ export const loadSample = ({commit, state, rootState}: any) => {
 		// fetch by suggestion
 		return ApiService.getNextSample({datasetId: rootState.activeDatasetId})
 			.then(({data}) => {
-				console.log(data)
 				commit("appendSample", {sampleData: data});
 				commit("endLoading", null, {root: true});
 			});
@@ -45,7 +44,7 @@ export const labelSample = ({commit, state, dispatch}: any, labelId) => {
 			userId: "dummy",
 		})
 			.then(({data}) => {
-				commit("appendSample", {sampleData: data});
+			//	commit("appendSample", {sampleData: data});
 				commit("endLoading", null, {root: true});
 			});
 };
