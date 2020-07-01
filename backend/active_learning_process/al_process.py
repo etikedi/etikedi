@@ -37,32 +37,21 @@ class ALProcess(multiprocessing.Process):
         app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
 
         buffer = StringIO(dataset.features)
-        sample_df = pd.read_csv(buffer).set_index('ID')  # = X, in the example
-
-        # important step: the column name of the Y dataframe has to be '0' as in now column, so call to_numpy()
-        # first to remove it
+        sample_df = pd.read_csv(buffer).set_index('ID')
+        sample_ids = dict(enumerate(sample_df.index))
 
         associated_labels = db.session.query(
             Association.sample_id, Association.label_id
         ).join(Association.sample).filter(Sample.dataset == dataset).all()
 
         label_df = pd.DataFrame(associated_labels, columns=['ID', 0]).set_index('ID')
+        label_encoder = LabelEncoder()
+        label_encoder.fit(label_df[0].unique())
+        label_df[0] = label_encoder.transform(label_df[0])  # Labels now start with 0
         ids_of_labeled_samples = np.array(associated_labels)[:,0]
 
-        # label_df = pd.DataFrame(label_df.to_numpy(), dtype=int).loc[indices_labeled_data]
-
-        # X => features
-        # Y => pandas.Series containing only the labels
-
-        # the labeled dataset needs to contain at least one example of each class, so we include those in the labeled
-        # set, and everything else in the unlabeled  set, and forget as of now the labels for the unlabeled set
         labeled_sample_df = sample_df.loc[ids_of_labeled_samples]
         unlabeled_sample_df = sample_df.drop(ids_of_labeled_samples)
-
-        # Get label meanings from data base
-        label_encoder_classes = label_meanings
-        label_encoder = LabelEncoder()
-        label_encoder.fit(label_encoder_classes)
 
         # Y_train are the resulting labels
         # metrics_per_al_cycle contains a lot of labels useful for visualisation
@@ -73,7 +62,9 @@ class ALProcess(multiprocessing.Process):
             label_encoder=label_encoder,
             START_SET_SIZE=3,
             hyper_parameters=self.config,
-            oracle=ParallelOracle(sample_ids, self.pipe_endpoint)
+            oracle=ParallelOracle(
+                sample_ids=sample_ids,
+                pipe_endpoint=self.pipe_endpoint,
+                label_encoder=label_encoder
+            )
         )
-
-        print('Done with the AL code')
