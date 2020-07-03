@@ -50,12 +50,17 @@ paths:
 
   '/api/datasets/{dataset_id}':
     get:
-      description: Get information about a single dataset
+      description: Returns the next sample for the given dataset
       tags:
         - Active Learning
       responses:
-        '200':
-          description: OK
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sample'
+
         401:
           description: Missing authorisation
     parameters:
@@ -272,6 +277,7 @@ components:
           format: int64
         data:
           type: string
+          description: If the sample contains binary data (e.g. an image), the content is included as base64 encoded.
         type:
           type: string
           enum:

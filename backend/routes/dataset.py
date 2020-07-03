@@ -1,10 +1,9 @@
 from flask_praetorian import auth_required
 from flask_restful import abort, Resource
-from sqlalchemy import func as db_functions
 
+from ..active_learning_process import get_next_sample
 from ..config import app, api
-from ..models import DatasetSchema, Dataset, Association, Sample
-from ..active_learning_process.process_management import manager
+from ..models import DatasetSchema, Dataset, SampleSchema
 
 
 class DatasetList(Resource):
@@ -25,18 +24,6 @@ class DatasetList(Resource):
         pass
 
 
-def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) -> bool:
-    number_of_labeled_samples = Association.query.join(Association.sample).filter(Sample.dataset == dataset).count()
-    return number_of_labeled_samples % random_sample_every
-
-
-def get_random_unlabelled_sample(dataset: Dataset) -> Sample:
-    return Sample.query.filter(
-        Sample.dataset == dataset,
-        ~Sample.associations.any()
-    ).order_by(db_functions.random()).first()
-
-
 class DatasetDetail(Resource):
     method_decorators = [auth_required]
 
@@ -53,21 +40,9 @@ class DatasetDetail(Resource):
         if dataset is None:
             abort(404)
 
-        if should_label_random_sample(dataset=dataset):
-            return get_random_unlabelled_sample(dataset).id, 200
-
-        # Retrieve pipe endpoint from process manager
-        process_resources = manager.get_or_else_load(dataset_id)
-        pipe_endpoint = process_resources["pipe"]
-
-        if pipe_endpoint.poll(5):
-            app.logger.info("Found new datapoints")
-            next_sample_id = pipe_endpoint.recv()
-            return next_sample_id
-        else:
-            # Send back a random label anyway for testing purposes
-            app.logger.info("No samples available from AL, send back a random sample instead")
-            return get_random_unlabelled_sample(dataset).id, 200
+        next_sample = get_next_sample(dataset, app)
+        next_sample.ensure_string_content()
+        return SampleSchema().dump(next_sample), 200
 
     def post(self):
         """ TODO: Update name of dataset. """

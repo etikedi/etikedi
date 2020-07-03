@@ -1,3 +1,5 @@
+import base64
+from typing import Union
 from sqlalchemy import ForeignKey
 from ...config import db, ma
 
@@ -31,10 +33,16 @@ class Sample(db.Model):
     # Saves concrete type of data in this sample
     type = db.Column(db.VARCHAR(10))
 
+    content: Union[str, bytes]
+
     __mapper_args__ = {
         'polymorphic_identity': 'sample',
         'polymorphic_on': 'type'
     }
+
+    def ensure_string_content(self) -> None:
+        """ Converts the content to a base64 encoded string if it is binary """
+        self.content = base64.b64encode(self.content).decode()
 
     def __str__(self):
         return 'Sample {} in {}'.format(self.id, self.dataset)

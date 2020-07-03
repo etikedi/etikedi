@@ -1,11 +1,11 @@
-from flask import request, jsonify
+from flask import request
 from flask_restful import abort, Resource
 from flask_praetorian import auth_required, current_user
 from sqlalchemy.exc import IntegrityError
 
-from ..config import db, api
+from ..config import db, api, app
 from ..models import Sample, Association, SampleSchema, Label, Dataset
-from ..active_learning_process.process_management import manager
+from ..active_learning_process import notify_about_new_sample, get_next_sample
 
 
 class SampleAPI(Resource):
@@ -27,11 +27,11 @@ class SampleAPI(Resource):
         :return:            data set matching ID
         """
         user = current_user()
+        label_id = None
         try:
             label_id = request.json['label_id']
         except KeyError:
             abort(400)
-            return
 
         if not self.can_assign(sample_id, label_id):
             abort(400)
@@ -44,26 +44,22 @@ class SampleAPI(Resource):
             )
             db.session.add(new_association)
             db.session.commit()
-
-            # Retrieve pipe endpoint for process with corresponding dataset_id and send new label
-            dataset_id = Sample.query.get(sample_id).dataset_id
-            process_resources = manager.get_or_else_load(dataset_id)
-            pipe_endpoint = process_resources["pipe"]
-            pipe_endpoint.send({"id": new_association.sample_id,
-                                "label": new_association.label_id,
-                                "user": new_association.user_id})
-
-            # Check for new sample and return. Return None, 409 otherwise
-            if pipe_endpoint.poll(5):
-                print("Backend:\tFound new datapoints")
-                next_sample_id = pipe_endpoint.recv()
-                next_sample = Sample.query.get(next_sample_id)
-                return SampleSchema().dump(next_sample), 201
-            else:
-                print("Backend:\tNo samples available atm")
-                return None, 409
         except IntegrityError:
             return None, 409
+
+        # Retrieve pipe endpoint for process with corresponding dataset_id and send new label
+        dataset = Sample.query.get(sample_id).dataset
+
+        notify_about_new_sample(
+            dataset=dataset,
+            user_id=user.id,
+            sample_id=sample_id,
+            label_id=label_id
+        )
+
+        next_sample = get_next_sample(dataset, app)
+        next_sample.ensure_string_content()
+        return SampleSchema().dump(next_sample), 201
 
     def can_assign(self, sample_id, label_id):
         return bool(db.session.query(Dataset, Sample, Label)

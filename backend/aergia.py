@@ -9,12 +9,6 @@ from .routes import *
 guard.init_app(app, User)
 
 
-def test_active_learning():
-    from .active_learning_process.process_management import manager
-    # Will start the first active learning worker
-    process_resources = manager.get_or_else_load(1)
-
-
 def create_dummy_users():
     app.logger.info('Creating dummy users')
     admin = User(
@@ -51,7 +45,6 @@ with app.app_context():
     if not Sample.query.count():
         import_test_datasets()
 
-    test_active_learning()
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True)
