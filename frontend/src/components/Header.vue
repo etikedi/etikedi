@@ -9,16 +9,16 @@
                 <div class="container">
                     <b-navbar>
                         <template slot="start">
-                            <b-navbar-item href="#">
-                                <router-link to="/home">Home</router-link>
+                            <b-navbar-item @click="route('/home')">
+                                Home
                             </b-navbar-item>
                             <b-navbar-dropdown label="Label">
                                 <b-navbar-item
 										v-for="(dataset, datasetId) in datasets"
 										:key="datasetId"
-										href="#"
+                                        @click="route('/label/' + datasetId)"
 										style="color: #000000;">
-									<router-link :to="'/label/'+datasetId">{{ dataset.name }}</router-link>
+                                    {{dataset.name }}
                                 </b-navbar-item>
                             </b-navbar-dropdown>
                             <b-navbar-item href="#">
@@ -61,7 +61,7 @@
                     </p>
                 </div>
             </div>
-            
+
             <!-- header component of LabelView, only shown when activeDatasetId set (see labelView) -->
             <div class="hero-foot" v-if="activeDatasetId != null">
 					<div class="container">
@@ -119,6 +119,14 @@
 <script lang="ts">
 import {mapState, mapActions, mapGetters} from "vuex";
 import store from "@/store";
+import Router from 'vue-router'
+
+/*
+import Vue from "vue";
+import VueRouter from "vue-router";
+
+Vue.use(VueRouter);
+*/
 
 export default {
     name: "Header",
@@ -131,7 +139,12 @@ export default {
         ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
     methods: {
-		...mapActions(["nextSample", "prevSample", "labelSample"])
+		...mapActions(["nextSample", "prevSample", "labelSample"]),
+        route(toPath) {
+            if (this.$route.path !== toPath) {
+                this.$router.push(toPath);
+            }
+        }
     },
     created(): void {
         this.$store.dispatch("loadAllDatasets");
@@ -141,6 +154,11 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+
+.router-link {
+    width: 100%;
+}
+
 #navbarMenuHeroA {
 }
 
