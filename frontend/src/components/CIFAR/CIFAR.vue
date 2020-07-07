@@ -35,13 +35,13 @@
                     <br />
                     <b-field label="Label:">
                         <b-autocomplete
-                            id="input-field"
-                            class="is-fullwidth"
-                            v-model="labelName"
-                            :data="filteredDataArray"
-                            placeholder="Label"
-                            clearable
-                            @select="option => selected = option"
+                                class="is-fullwidth"
+                                v-model="labelName"
+                                :data="labelData"
+                                placeholder="Label"
+                                clearable
+                                @typing="filteredDataArray"
+                                @select="option => selectedLabel = option"
                         >
                             <template slot="empty">No results found</template>
                         </b-autocomplete>
@@ -79,7 +79,7 @@
 
 <script lang="ts">
 import Vue from "vue";
-import {mapGetters, mapState} from "vuex";
+import {mapActions, mapGetters, mapState} from "vuex";
 
 export default Vue.extend({
     name: "CIFAR",
@@ -198,20 +198,30 @@ export default Vue.extend({
             mockLabels,
             labelName,
             count,
+            labelData: [],
+            selectedLabel: null,
             maxCount: samples.length - 1
         };
     },
     computed: {
-        ...mapState(["loading", "cifarSample", "cifarLabels"]),
-        ...mapGetters(["localLabels", "localImgs"]),
-        filteredDataArray() {
-            const labels: Array<string> = [];
+        ...mapState("api_default", ["currentSample"]),
+        ...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
+        ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
+    },
+    //mounted() {
+        // this.$store.dispatch("loadCifarSample");
+    //},
+    methods: {
+        ...mapActions(["nextSample", "prevSample", "labelSample"]),
 
-            for (let i = 0; i < this.mockLabels.length; i++) {
-                labels.push(this.mockLabels[i].name);
+        filteredDataArray() {
+            const filteredLabels: Array<string> = [];
+
+            for (let i = 0; i < this.labels.length; i++) {
+                filteredLabels.push(this.labels[i].name);
             }
 
-            return labels.filter(option => {
+            this.labelData = filteredLabels.filter(option => {
                 return (
                     option
                         .toString()
@@ -219,12 +229,8 @@ export default Vue.extend({
                         .indexOf(this.labelName.toLowerCase()) >= 0
                 );
             });
-        }
-    },
-    //mounted() {
-        // this.$store.dispatch("loadCifarSample");
-    //},
-    methods: {
+        },
+
         click: function() {
             this.send(this.samples[this.count].id, this.labelName);
         },
@@ -291,6 +297,11 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
+
+#testbox {
+    width: 100%;
+    height: 500px;
+}
 .loading-overlay {
     left: 0;
     top: 0;
