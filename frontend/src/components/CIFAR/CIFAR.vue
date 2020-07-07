@@ -47,7 +47,7 @@
                         </b-autocomplete>
                     </b-field>
                     <div class="field">
-                        <button v-on:click="click()" class="button is-info is-fullwidth">Send</button>
+                        <button :disabled="selectedLabel == null" v-on:click="sendLabel()" class="button is-info is-fullwidth">Send</button>
                     </div>
                 </div>
 
@@ -231,8 +231,11 @@ export default Vue.extend({
             });
         },
 
-        click: function() {
-            this.send(this.samples[this.count].id, this.labelName);
+        sendLabel: function() {
+            console.log(this.selectedLabel);
+            const found = this.labels.find(el => el.name == this.selectedLabel);
+            console.log(found.id);
+            //this.send(this.samples[this.count].id, this.labelName);
         },
         send: function(sampelId: number, labelName: string) {
             if (labelName != "") {
