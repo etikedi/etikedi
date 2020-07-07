@@ -221,9 +221,9 @@ export default Vue.extend({
             });
         }
     },
-    mounted() {
+    //mounted() {
         // this.$store.dispatch("loadCifarSample");
-    },
+    //},
     methods: {
         click: function() {
             this.send(this.samples[this.count].id, this.labelName);
