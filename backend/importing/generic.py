@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from zipfile import ZipFile
 from typing import Type
@@ -5,11 +6,11 @@ from pathlib import Path
 
 from sqlalchemy.orm.exc import NoResultFound
 
-from ..config import db
+from ..config import db, app
 from ..models import Dataset, Sample, Label, User, Association
 
 
-def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: Path, content_path: Path, user: User = None):
+def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: Path, content_path: Path, user: User = None, ensure_incomplete=True):
     if not user:
         try:
             user = User.query.first()
@@ -62,3 +63,19 @@ def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: P
         db.session.commit()
         db.session.add_all(associations)
         db.session.commit()
+
+        if ensure_incomplete:
+            number_of_samples = Sample.query.filter(Sample.dataset==dataset).count()
+            number_of_associations = db.session.query(Association.sample_id).join(Association.sample).filter(Sample.dataset==dataset).count()
+
+            if number_of_samples == number_of_associations:
+                app.logger.info(f'{dataset} is already complete. Thinning it out!')
+                sample_ids = db.session.query(Association.sample_id).join(Association.sample).filter(Sample.dataset==dataset).all()
+                flat_sample_ids = list(map(int, np.array(sample_ids)[:,0]))
+                to_delete = flat_sample_ids[::3]
+
+                # Dirty; Use a raw query because otherwise SQLAlchemy unsuccessfully tries to synchronise the
+                # current session
+                db.session.execute(f'DELETE FROM association WHERE sample_id IN ({",".join(map(str, to_delete))})')
+                db.session.commit()
+

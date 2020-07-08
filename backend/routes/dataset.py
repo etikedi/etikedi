@@ -41,6 +41,8 @@ class DatasetDetail(Resource):
             abort(404)
 
         next_sample = get_next_sample(dataset, app)
+        if not next_sample:
+            abort(400)
         next_sample.ensure_string_content()
         return SampleSchema().dump(next_sample), 200
 
