@@ -1,11 +1,11 @@
 import CifarService from "@/api/CifarService";
 
-export const nextDataset = ({dispatch, commit}: any) => {
+export const nextSample = ({dispatch, commit}: any) => {
     commit("nextCifarSample");
     dispatch("loadDataset");
 };
 
-export const prevDataset = ({dispatch, commit}: any) => {
+export const prevSample = ({dispatch, commit}: any) => {
     commit("prevCifarSample");
     dispatch("loadDataset");
 };
@@ -19,7 +19,7 @@ export const loadDataset = ({commit, state}: any) => {
     });
 };
 
-export const labelDataset = ({commit}: any, label: string) => {
+export const labelSample = ({commit}: any, label: string) => {
     const selection = window.getSelection();
 
     // window.console.log(label);
