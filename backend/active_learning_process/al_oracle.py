@@ -29,7 +29,7 @@ class ParallelOracle(BaseOracle):
         """
         return self.label_encoder.transform([label])[0]
 
-    def get_labels(self, query_indices, data_storage):
+    def get_labels(self, requested_sample_ids, data_storage):
         """
         As this function is the only interface between backend and active-learning code, two tasks have to be done:
             1)  Resolving the query indices into queried sample_ids and send them to backend
@@ -41,29 +41,28 @@ class ParallelOracle(BaseOracle):
             -   Messages sent by this class represent the datapoints queried by the active-learning code.
             -   Messages received by this class represent updated label data.
 
-        :param query_indices    indices of data points which have to get labeled by frontend
-        :param data_storage     data points the active-learning code was started with
-        :return:                List of labels, retrieved from frontend
+        :param requested_sample_ids    indices of data points which have to get labeled by frontend
+        :param data_storage            data points the active-learning code was started with
+        :return                        List of labels, retrieved from frontend
         """
-        query_sample_ids = [self.sample_ids[index] for index in tuple(query_indices)]
-        for sample_id in query_sample_ids:
-            self.pipe_endpoint.send(sample_id)
+        for sample_id in requested_sample_ids:
+            self.pipe_endpoint.send(int(sample_id))
 
-        app.logger.debug("ALProcess.Oracle:\tRequesting labels for sample ids: " + str(query_sample_ids))
-        remaining_sample_ids = query_sample_ids.copy()
+        app.logger.debug("ALProcess.Oracle:\tRequesting labels for sample ids: " + str(requested_sample_ids))
+        remaining_sample_ids = requested_sample_ids.copy()
         labels_by_query_index = {}
-        while len(query_indices) is not len(labels_by_query_index):
+        while len(requested_sample_ids) is not len(labels_by_query_index):
             if self.pipe_endpoint.poll():
                 data = self.pipe_endpoint.recv()
                 app.logger.debug("ALProcess.Oracle:\tFound label " + str(data["label"]) + " for sample with id " + str(data["id"]))
 
-                position = query_sample_ids.index(data["id"])
+                position = requested_sample_ids.index(data["id"])
                 labels_by_query_index[position] = self.label_to_internal_representation(data['label'])
 
                 remaining_sample_ids.remove(data["id"])
                 if len(remaining_sample_ids) != 0:
                     app.logger.debug("ALProcess.Oracle:\tWaiting for remaining labels of samples " + str(remaining_sample_ids))
         app.logger.debug("ALProcess.Oracle:\tRequested labels complete. Current iteration successfully terminated")
-        labels = [labels_by_query_index[i] for i in range(len(query_indices))]
+        labels = [labels_by_query_index[i] for i in range(len(requested_sample_ids))]
         return labels
 

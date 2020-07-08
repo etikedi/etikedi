@@ -34,7 +34,7 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
         dataset = Dataset.query.get(self.dataset_id)
-        app.logger.info("ALProcess:\tStarting for dataset {}".format(self.dataset_id))
+        app.logger.info("Starting for dataset {}".format(self.dataset_id))
 
         buffer = StringIO(dataset.features)
         sample_df = pd.read_csv(buffer).set_index('ID')
@@ -49,6 +49,10 @@ class ALProcess(multiprocessing.Process):
         label_encoder.fit(label_df[0].unique())
         label_df[0] = label_encoder.transform(label_df[0])  # Labels now start with 0
         ids_of_labeled_samples = np.array(associated_labels)[:,0]
+
+        all_sample_ids = db.session.query(Sample.id).filter(Sample.dataset_id==self.dataset_id).all()
+        all_sample_ids = np.array(all_sample_ids)[:,0]
+        sample_df.index = pd.Int64Index(all_sample_ids)
 
         labeled_sample_df = sample_df.loc[ids_of_labeled_samples]
         unlabeled_sample_df = sample_df.drop(ids_of_labeled_samples)
