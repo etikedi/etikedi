@@ -161,9 +161,9 @@ export default Vue.extend({
         ...mapState(["loading", "cifarSample", "cifarLabels"]),
         ...mapGetters(["localLabels", "localImgs"])
     },
-    mounted() {
+    //mounted() {
         // this.$store.dispatch("loadCifarSample");
-    },
+    //},
     methods: {
         click: function() {
             this.count++;

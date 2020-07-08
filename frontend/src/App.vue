@@ -20,12 +20,14 @@ import VueRouter from "vue-router";
 import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
-import CV from "./components/CV/CV.vue";
-import DWTC from "./components/dwtc/DWTC.vue";
 import HomePage from "./components/home-page/HomePage.vue";
+<<<<<<< HEAD
 import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 import LOGIN from "@/components/login/LOGIN.vue";
+=======
+import LabelView from "@/components/LabelView.vue";
+>>>>>>> origin/master
 
 Vue.use(VueRouter);
 
@@ -47,29 +49,9 @@ const routes = [
         component: HomePage
     },
     {
-        path: "/cifar",
-        name: "cifar",
-        component: CIFAR
-    },
-    {
-        path: "/dwtc",
-        name: "dwtc",
-        component: DWTC
-    },
-    {
-        path: "/equations",
-        name: "equations",
-        component: Equations
-    },
-    {
-        path: "/religious-texts",
-        name: "religious-texts",
-        component: Religious
-    },
-    {
-        path: "/cv",
-        name: "cv",
-        component: CV
+        path: "/label/:datasetId",
+        name: "label",
+        component: LabelView
     }
 ];
 
@@ -95,7 +77,6 @@ export default Vue.extend({
     router,
     name: "app",
     computed: {
-        ...mapState(["datasetType"])
     },
     components: {
         Header,

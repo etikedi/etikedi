@@ -22,6 +22,7 @@ marshmallow-sqlalchemy = "*"
 flask-swagger-ui = "*"
 pillow = "*"
 requests = "*"
+dataclasses = "*"
 
 [dev-packages]
 pylint = "*"

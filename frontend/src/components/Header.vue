@@ -12,33 +12,20 @@
                             <b-navbar-item href="#">
                                 <router-link to="/home">Home</router-link>
                             </b-navbar-item>
-                            <b-navbar-item href="#">
-                                Label
-                            </b-navbar-item>
+                            <b-navbar-dropdown label="Label">
+                                <b-navbar-item
+										v-for="(dataset, datasetId) in datasets"
+										:key="datasetId"
+										href="#"
+										style="color: #000000;">
+									<router-link :to="'/label/'+datasetId">{{ dataset.name }}</router-link>
+                                </b-navbar-item>
+                            </b-navbar-dropdown>
                             <b-navbar-item href="#">
                                 Upload
                             </b-navbar-item>
                             <b-navbar-item href="#">
                                 Browse
-                            </b-navbar-item>
-                            <b-navbar-item class="remove-later">
-                                <router-link to="/cifar">Cifar</router-link>
-                            </b-navbar-item>
-                            <b-navbar-item class="remove-later">
-                                <router-link to="/dwtc">DWTC</router-link>
-                            </b-navbar-item>
-                            <b-navbar-item class="remove-later">
-                                <router-link to="/equations"
-                                    >Equations</router-link
-                                >
-                            </b-navbar-item>
-                            <b-navbar-item class="remove-later">
-                                <router-link to="/religious-texts"
-                                    >Religious-Texts</router-link
-                                >
-                            </b-navbar-item>
-                            <b-navbar-item class="remove-later">
-                                <router-link to="/cv">CV</router-link>
                             </b-navbar-item>
 
                             <b-navbar-dropdown label="Info">
@@ -76,64 +63,57 @@
                     </p>
                 </div>
             </div>
-
-            <div class="hero-foot" v-if="!isHomePage">
-                <div class="container">
-                    <div id="navbarMenuHeroA" class="navbar-menu">
-                        <div class="navbar-start">
-                            <b-button
-                                class="navbar-item"
-                                tag="a"
-                                type="is-link"
-                                icon-left="chevron-left"
-                                @click="prevDataset"
-                                :disabled="prevButtonDisabled"
-                                inverted
-                                outlined
-                            >
-                                Prev
-                            </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">
-                                {{ $store.getters.activeDatasetId }}
-                            </h2>
-                            <b-button
-                                class="navbar-item"
-                                tag="a"
-                                type="is-link"
-                                icon-right="chevron-right"
-                                @click="nextDataset"
-                                :disabled="nextButtonDisabled"
-                                inverted
-                                outlined
-                            >
-                                Next
-                            </b-button>
-                        </div>
-                        <div class="navbar-end">
-                            <b-switch
-                                class="navbar-item"
-                                v-model="localDisplayFeatureTooltips"
-                                type="is-warning"
-                                v-if="localDisplayFeatureTooltipsSwitch"
-                            >
-                                Tooltips
-                            </b-switch>
-                            <b-button
-                                v-for="(label, index) in labels"
-                                :key="index"
-                                class="navbar-item"
-                                tag="a"
-                                type="is-link"
-                                @click="labelDataset(label)"
-                                inverted
-                                outlined
-                            >
-                                {{ label }}
-                            </b-button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            
+            <!-- header component of LabelView, only shown when activeDatasetId set (see labelView) -->
+            <div class="hero-foot" v-if="activeDatasetId != null">
+					<div class="container">
+						<div id="navbarMenuHeroA" class="navbar-menu">
+							<div class="navbar-start">
+								<b-button
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									icon-left="chevron-left"
+									@click="prevSample"
+									:disabled="prevButtonDisabled"
+									inverted
+									outlined
+								>
+									Prev
+								</b-button>
+								<h2 class="title" style="padding: 0 1rem 0 1rem">
+									{{ $store.getters.sampleShortTitle }}
+								</h2>
+								<b-button
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									icon-right="chevron-right"
+									@click="nextSample"
+									:disabled="nextButtonDisabled"
+									inverted
+									outlined
+								>
+									Next
+								</b-button>
+							</div>
+							<div class="navbar-end">
+								<b-button
+									v-for="(label, index) in labels"
+									:key="index"
+									class="navbar-item"
+									tag="a"
+									type="is-link"
+									@click="labelSample(label.id)"
+									inverted
+									outlined
+								>
+									{{ label.name }}
+								</b-button>
+							</div>
+						</div>
+					</div>
+				</div>
         </nav>
     </header>
 </template>
@@ -149,30 +129,15 @@ export default {
         subtitle: String
     },
     computed: {
-        ...mapState(["prevButtonDisabled", "nextButtonDisabled"]),
-        ...mapGetters(["labels"]),
-        localDisplayFeatureTooltips: {
-            get(): boolean {
-                return store.state.displayFeatureTooltips;
-            },
-            set(newValue: boolean) {
-                store.commit("toggleShowFeatureTooltips", newValue);
-            }
-        },
-        localDisplayFeatureTooltipsSwitch: {
-            get(): boolean {
-                return store.state.displayFeatureTooltipsSwitch;
-            }
-        },
-        isHomePage: {
-            get(): boolean {
-                return store.state.isHomePage;
-            }
-        }
+		...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
+        ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
     methods: {
-        ...mapActions(["nextDataset", "prevDataset", "labelDataset"])
-    }
+		...mapActions(["nextSample", "prevSample", "labelSample"])
+    },
+    created(): void {
+        this.$store.dispatch("loadAllDatasets");
+    },
 };
 </script>
 
