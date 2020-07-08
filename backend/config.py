@@ -8,7 +8,6 @@ from flask_cors import CORS
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask_marshmallow import Marshmallow
 
-
 @dataclass
 class ALConfig:
     SAMPLING: str
@@ -95,4 +94,4 @@ ma = Marshmallow(app)
 guard = Praetorian()
 
 # Configure Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}, r"/login": {"origins": "*"}})
