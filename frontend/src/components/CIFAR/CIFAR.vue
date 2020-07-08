@@ -1,38 +1,17 @@
 <template>
     <section class="section">
-        <center>
-            <h1 class="title">CIFAR</h1>
-            <h2 class="subtitle">Let's go and label this picture!</h2>
-        </center>
-        <br />
         <div class="container">
+        <h1 class="title">CIFAR</h1>
+        <h2 class="subtitle">Let's go and label this picture!</h2>
             <div class="columns is-desktop is-vcentered">
-                <!-- left preview -->
-                <div v-if="count>0" class="box" id="preview" v-on:click="previous()">
-                    Sample-ID: {{samples[count-1].id}}
-                    <div class="card-content">
-                        <img
-                            class="image is-64x64 is-horizontal-center"
-                            :src="samples[count-1].src"
-                        />
-                    </div>
-                    <div v-if="samples[count-1].labelId != null">
-                        Label-ID: {{samples[count-1].labelId}}
-                        <br />
-                        Label-Name: {{getLabelByID(samples[count-1].labelId).name}}
-                    </div>
-                </div>
-
                 <div class="box">
                     <div class="card-content">
                         <img
                             class="image is-128x128 is-horizontal-center"
-                            :src="samples[count].src"
+                            src="https://picsum.photos/200"
                         />
                     </div>
-                    Sample-ID: {{samples[count].id}}
-                    <br />
-                    <br />
+                    Sample-ID: {{currentSample}}
                     <b-field label="Label:">
                         <b-autocomplete
                                 class="is-fullwidth"
@@ -48,22 +27,6 @@
                     </b-field>
                     <div class="field">
                         <button :disabled="selectedLabel == null" v-on:click="sendLabel()" class="button is-info is-fullwidth">Send</button>
-                    </div>
-                </div>
-
-                <!-- right preview -->
-                <div v-if="count+1<=maxCount" class="box" id="preview" v-on:click="next()">
-                    Sample-ID: {{samples[count+1].id}}
-                    <div class="card-content">
-                        <img
-                            class="image is-64x64 is-horizontal-center"
-                            :src="samples[count+1].src"
-                        />
-                    </div>
-                    <div v-if="samples[count+1].labelId != null">
-                        Label-ID: {{samples[count+1].labelId}}
-                        <br />
-                        Label-Name: {{getLabelByID(samples[count+1].labelId).name}}
                     </div>
                 </div>
             </div>
@@ -85,126 +48,15 @@ export default Vue.extend({
     name: "CIFAR",
     props: {},
     data: () => {
-        const samples = [
-            {
-                id: 0,
-                labelId: 0,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/airplane4.png"
-            },
-            {
-                id: 1,
-                labelId: null,
-                src: "https://www.cs.toronto.edu/~kriz/cifar-10-sample/dog2.png"
-            },
-            {
-                id: 2,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/automobile4.png"
-            },
-            {
-                id: 3,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/bird6.png"
-            },
-            {
-                id: 4,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/deer6.png"
-            },
-            {
-                id: 5,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/frog10.png"
-            },
-            {
-                id: 6,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/horse2.png"
-            },
-            {
-                id: 7,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/ship1.png"
-            },
-            {
-                id: 8,
-                labelId: null,
-                src:
-                    "https://www.cs.toronto.edu/~kriz/cifar-10-sample/truck4.png"
-            },
-            {
-                id: 9,
-                labelId: null,
-                src: "https://www.cs.toronto.edu/~kriz/cifar-10-sample/cat9.png"
-            }
-        ];
-
-        const mockLabels = [
-            {
-                id: 0,
-                name: "airplane"
-            },
-            {
-                id: 1,
-                name: "car"
-            },
-            {
-                id: 2,
-                name: "bird"
-            },
-            {
-                id: 3,
-                name: "cat"
-            },
-            {
-                id: 4,
-                name: "deer"
-            },
-            {
-                id: 5,
-                name: "dog"
-            },
-            {
-                id: 6,
-                name: "frog"
-            },
-            {
-                id: 7,
-                name: "horse"
-            },
-            {
-                id: 8,
-                name: "ship"
-            },
-            {
-                id: 9,
-                name: "truck"
-            }
-        ];
-
-        const count = 0;
-
-        const labelName = "";
-
         return {
-            samples,
-            mockLabels,
-            labelName,
-            count,
+            labelName: "",
             labelData: [],
             selectedLabel: null,
-            maxCount: samples.length - 1
         };
     },
     computed: {
         ...mapState("api_default", ["currentSample"]),
+        ...mapState("api_default", ["currentSampleId"]),
         ...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
         ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
@@ -234,9 +86,17 @@ export default Vue.extend({
         sendLabel: function() {
             console.log(this.selectedLabel);
             const found = this.labels.find(el => el.name == this.selectedLabel);
-            console.log(found.id);
+            const association = {
+                sampleId: this.currentSampleId,
+                labelId: found.id,
+                userId: "dummy"
+            };
+            console.log(association);
+            this.labelSample(association);
+            this.labelName = "";
             //this.send(this.samples[this.count].id, this.labelName);
         },
+
         send: function(sampelId: number, labelName: string) {
             if (labelName != "") {
                 const label = this.getLabelByName(labelName);
@@ -254,47 +114,6 @@ export default Vue.extend({
                 this.focusMethod();
             }
         },
-        getLabelByName: function(labelName: string) {
-            for (let i = 0; i < this.mockLabels.length; i++) {
-                if (labelName == this.mockLabels[i].name) {
-                    return this.mockLabels[i];
-                }
-            }
-            return null;
-        },
-        getLabelByID: function(labelId: string) {
-            for (let i = 0; i < this.mockLabels.length; i++) {
-                if (labelId == this.mockLabels[i].id) {
-                    return this.mockLabels[i];
-                }
-            }
-            return null;
-        },
-        next: function() {
-            if (this.count < this.mockLabels.length - 1) {
-                this.count++;
-                this.labelName = this.getLabelName(this.count);
-                this.focusMethod();
-            }
-        },
-        previous: function() {
-            if (this.count > 0) {
-                this.count--;
-                this.labelName = this.getLabelName(this.count);
-                this.focusMethod();
-            }
-        },
-        focusMethod: function getFocus() {
-            document.getElementById("input-field").focus();
-            (document.getElementById(
-                "input-field"
-            ) as HTMLInputElement).select();
-        },
-        getLabelName: function(count: number) {
-            if (this.samples[count].labelId != null) {
-                return this.getLabelByID(this.samples[count].labelId).name;
-            } else return "";
-        }
     }
 });
 </script>

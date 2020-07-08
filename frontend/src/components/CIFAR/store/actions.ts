@@ -19,7 +19,7 @@ export const loadDataset = ({commit, state}: any) => {
     });
 };
 
-export const labelSample = ({commit}: any, label: string) => {
+export const changeLabel = ({commit}: any, label: string) => {
     const selection = window.getSelection();
 
     // window.console.log(label);
