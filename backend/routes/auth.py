@@ -1,4 +1,5 @@
 import flask
+
 from ..config import app, guard
 
 

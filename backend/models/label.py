@@ -1,4 +1,5 @@
 from sqlalchemy import ForeignKey
+
 from ..config import db, ma
 
 

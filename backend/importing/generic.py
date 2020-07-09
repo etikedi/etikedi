@@ -1,59 +1,81 @@
-import json
-from typing import List, Type, Union
+import numpy as np
+import pandas as pd
+from zipfile import ZipFile
+from typing import Type
+from pathlib import Path
 
-from ..config import db
-from ..models import Dataset, Sample
+from sqlalchemy.orm.exc import NoResultFound
+
+from ..config import db, app
+from ..models import Dataset, Sample, Label, User, Association
 
 
-def import_dataset(dataset: Dataset, data: Union[List[dict], str], sample_class: Type[Sample], content_attribute: str, feature_attributes: List[str] = None):
-    """
-    Creates samples from the given json list of objects.
+def import_dataset(dataset: Dataset, sample_class: Type[Sample], feature_path: Path, content_path: Path, user: User = None, ensure_incomplete=True):
+    if not user:
+        try:
+            user = User.query.first()
+        except NoResultFound:
+            raise ValueError('To import a dataset, there must be at least one user in the system (for creating the association between samples and lables)')
 
-    If no `feature_attributes` are specified, all attributes besides the one specified by `content_attribute`
-    are taken into account.
+    with feature_path.open('r') as feature_file, content_path.open('rb') as content_file:
+        df = pd.read_csv(feature_file).set_index('ID')
+        feature_df = df.drop(['LABEL'], axis=1)
 
-    :param dataset:
-    :param data:
-    :param sample_class:
-    :param content_attribute:
-    :param feature_attributes:
-    :return:
-    """
-    if isinstance(data, str):
-        data = json.loads(data)
+        dataset.features = feature_df.to_csv()
+        dataset.feature_names = ','.join(feature_df.columns)
 
-    if isinstance(data, list) and all(isinstance(entry, dict) for entry in data):
-        samples = []
-        total = len(data)
+        all_labels = {
+            label_name: Label(name=label_name, dataset=dataset)
+            for label_name in df['LABEL'].unique()
+        }
+        db.session.add_all(all_labels.values())
+        db.session.commit()
 
-        for index, raw_sample in enumerate(data, 1):
+        zip_file = ZipFile(content_file, 'r')
+
+        total, samples, associations = len(df.index), [], []
+        for index, (identifier, label_name) in enumerate(df['LABEL'].iteritems()):
+            content = zip_file.read(f'{int(identifier)}.raw')
+
             sample = sample_class()
             sample.dataset = dataset
-
-            try:
-                sample.content = json.dumps(raw_sample[content_attribute])
-            except KeyError:
-                raise ValueError('Sample {} has no content attribute {}: {}'.format(index, content_attribute, raw_sample))
-
-            if feature_attributes is None:
-                feature_attributes = set(raw_sample.keys()) - { content_attribute }
-
-            try:
-                sample.features = json.dumps({
-                    key: raw_sample[key]
-                    for key in feature_attributes
-                })
-            except KeyError:
-                raise ValueError('Sample {} has a missing feature attribute'.format(raw_sample))
-
+            sample.content = content
             samples.append(sample)
 
-            if index == total:
-                print('Done importing dataset {}'.format(dataset))
-                db.session.add_all(samples)
-                db.session.commit()
-            elif index % 1000 == 0:
+            if label_name and label_name in all_labels:
+                associations.append(Association(
+                    sample=sample,
+                    label=all_labels[label_name],
+                    user=user
+                ))
+
+            if index % 1000 == 0:
                 print('{:.2f}% imported ({}/{})'.format((index / total) * 100, index, total))
                 db.session.add_all(samples)
                 db.session.commit()
+                db.session.add_all(associations)
+                db.session.commit()
                 samples = []
+                associations = []
+
+        print('Done importing dataset {}'.format(dataset))
+        db.session.add_all(samples)
+        db.session.commit()
+        db.session.add_all(associations)
+        db.session.commit()
+
+        if ensure_incomplete:
+            number_of_samples = Sample.query.filter(Sample.dataset==dataset).count()
+            number_of_associations = db.session.query(Association.sample_id).join(Association.sample).filter(Sample.dataset==dataset).count()
+
+            if number_of_samples == number_of_associations:
+                app.logger.info(f'{dataset} is already complete. Thinning it out!')
+                sample_ids = db.session.query(Association.sample_id).join(Association.sample).filter(Sample.dataset==dataset).all()
+                flat_sample_ids = list(map(int, np.array(sample_ids)[:,0]))
+                to_delete = flat_sample_ids[::3]
+
+                # Dirty; Use a raw query because otherwise SQLAlchemy unsuccessfully tries to synchronise the
+                # current session
+                db.session.execute(f'DELETE FROM association WHERE sample_id IN ({",".join(map(str, to_delete))})')
+                db.session.commit()
+
