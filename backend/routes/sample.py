@@ -58,6 +58,8 @@ class SampleAPI(Resource):
         )
 
         next_sample = get_next_sample(dataset, app)
+        if not next_sample:
+            abort(500)
         next_sample.ensure_string_content()
         return SampleSchema().dump(next_sample), 201
 
