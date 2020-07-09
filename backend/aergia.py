@@ -11,6 +11,7 @@ guard.init_app(app, User)
 
 def create_dummy_users():
     app.logger.info('Creating dummy users')
+    User.query.delete()
     admin = User(
         username='ernst_haft',
         password=guard.hash_password('adminadmin'),

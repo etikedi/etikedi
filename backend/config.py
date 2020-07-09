@@ -66,4 +66,4 @@ ma = Marshmallow(app)
 guard = Praetorian()
 
 # Configure Cross Origin Resource Sharing (CORS), making cross-origin AJAX possible
-cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}, r"/login": {"origins": "*"}})
