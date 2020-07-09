@@ -150,5 +150,4 @@ tags
 *.pickle
 datasets/
 *.db
-Pipfile.lock
 log.txt
