@@ -2,6 +2,7 @@ from typing import Dict
 
 from multiprocessing.connection import Connection
 from sklearn.preprocessing import LabelEncoder
+import numpy as np
 
 from ..active_learning.BaseOracle import BaseOracle
 from ..config import app
@@ -56,10 +57,11 @@ class ParallelOracle(BaseOracle):
                 data = self.pipe_endpoint.recv()
                 app.logger.debug("ALProcess.Oracle:\tFound label " + str(data["label"]) + " for sample with id " + str(data["id"]))
 
-                position = requested_sample_ids.index(data["id"])
+                position = np.where(requested_sample_ids == data["id"])[0][0]
                 labels_by_query_index[position] = self.label_to_internal_representation(data['label'])
 
-                remaining_sample_ids.remove(data["id"])
+                position = np.where(remaining_sample_ids == data["id"])[0][0]
+                remaining_sample_ids = np.delete(remaining_sample_ids, position)
                 if len(remaining_sample_ids) != 0:
                     app.logger.debug("ALProcess.Oracle:\tWaiting for remaining labels of samples " + str(remaining_sample_ids))
         app.logger.debug("ALProcess.Oracle:\tRequested labels complete. Current iteration successfully terminated")
