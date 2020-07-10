@@ -45,5 +45,10 @@ export const datasetType = function(state) {
 		return ds.datasetType;
 	}
 	// guess the dataset type (dumb approach)
-	return "plaintext"
+	if(ds.name == "CIFAR")
+		return "cifar";
+	if(ds.name == "DWTC")
+		return "dwtc";
+	
+	return "plaintext";
 }
