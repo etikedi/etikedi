@@ -151,3 +151,4 @@ tags
 datasets/
 *.db
 log.txt
+/data/
