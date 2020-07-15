@@ -80,6 +80,6 @@ def convert_cifar(data_path: Path):
     import_dataset(
         dataset=get_or_create_dataset('CIFAR'),
         sample_class=Image,
-        feature_path=target_csv_path,
-        content_path=target_zip_path
+        features=target_csv_path,
+        content=target_zip_path
     )
