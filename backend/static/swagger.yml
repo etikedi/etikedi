@@ -111,6 +111,49 @@ paths:
         schema:
           type: integer
 
+  '/api/datasets/{dataset_id}/import':
+    post:
+      description: Import samples into a dataset by passing some prepared files. Please see the README of the backend code for the expected format.
+      tags:
+        - Active Learning
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                sample_type:
+                  type: string
+                  enum:
+                    - table
+                    - text
+                    - image
+                content:
+                  type: string
+                  format: binary
+                features:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Import successful
+        400:
+          description: Bad files.
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+
+    parameters:
+      - name: dataset_id
+        in: path
+        description: ID of the dataset to request labels for
+        required: true
+        schema:
+          type: integer
+
+
+
   '/api/sample/{sample_id}':
     post:
       description: 'Add a label to a sample. Returns the next sample that should be labeled'
