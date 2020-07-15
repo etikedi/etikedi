@@ -70,6 +70,6 @@ def convert_dwtc(data_path: Path):
     import_dataset(
         dataset=get_or_create_dataset('DWTC'),
         sample_class=Table,
-        feature_path=target_csv_path,
-        content_path=target_zip_path
+        features=target_csv_path,
+        content=target_zip_path
     )
