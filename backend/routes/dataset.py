@@ -1,8 +1,9 @@
 from flask_praetorian import auth_required
 from flask_restful import abort, Resource
+from flask import request
 
 from ..active_learning_process import get_next_sample
-from ..config import app, api
+from ..config import app, api, db
 from ..models import DatasetSchema, Dataset, SampleSchema
 
 
@@ -20,8 +21,13 @@ class DatasetList(Resource):
         return DatasetSchema(many=True).dump(datasets)
 
     def post(self):
-        """ TODO: Create a new dataset """
-        pass
+        try:
+            new_dataset = Dataset(name=request.form['name'])
+            db.session.add(new_dataset)
+            db.session.commit()
+            return DatasetSchema().dump(new_dataset)
+        except KeyError:
+            abort(400)
 
 
 class DatasetDetail(Resource):
