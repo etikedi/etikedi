@@ -44,7 +44,7 @@
                                     <a class="button is-info">
                                         <strong>Sign up</strong>
                                     </a>
-                                    <a class="button is-light">
+                                    <a class="button is-light" @click="dummyLogin">
                                         Log in
                                     </a>
                                 </div>
@@ -119,6 +119,7 @@
 <script lang="ts">
 import {mapState, mapActions, mapGetters} from "vuex";
 import store from "@/store";
+import axios from "axios";
 
 export default {
     name: "Header",
@@ -131,7 +132,26 @@ export default {
         ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
     },
     methods: {
-		...mapActions(["nextSample", "prevSample", "labelSample"])
+		...mapActions(["nextSample", "prevSample", "labelSample"]),
+		// temporary dummy login. Someone else, please create a login page!
+		dummyLogin: function() {
+			const tempApi = axios.create({
+				baseURL: "http://127.0.0.1:5000/",
+				withCredentials: false,
+				headers: {
+					Accept: "application/json",
+					"Content-Type": "application/json"
+				}
+			});
+			tempApi.post("/login", {
+				username: "mario_nette",
+				password: "very_secret"
+			}).then(function(result){
+				console.log(result.data);
+				localStorage.setItem('jwtToken', result.data.access_token)
+				alert("Obtained JWT: "+localStorage.getItem('jwtToken'))
+			});
+		},
     },
     created(): void {
         this.$store.dispatch("loadAllDatasets");

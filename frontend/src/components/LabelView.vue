@@ -3,7 +3,7 @@
 		<!-- here go datasetType views -->
 			<CV v-if="datasetType == 'cv'"/>
 			<DWTC v-if="datasetType == 'dwtc'"/>
-			<PlainText v-if="datasetType == 'religious'"/>
+			<PlainText v-if="datasetType == 'plaintext'"/>
 			<CIFAR v-if="datasetType == 'cifar'"/>
 			
 			<!-- fallback for dataset type "none" -->

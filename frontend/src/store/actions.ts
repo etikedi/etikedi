@@ -1,4 +1,4 @@
-import api from "@/api/DummyAergiaDefaultApiService"
+import api from "@/api/AergiaDefaultApiService"
 
 function delegateAction(actionName) {
     return ({dispatch, commit, state, getters}) => {
@@ -38,8 +38,8 @@ export const setActiveDatasetId = function({dispatch, commit, state}, datasetId)
 
 export const loadAllDatasets = function({dispatch, commit, state}) {
 	commit("startLoading")
-	api.getAllDatasets().then(function(data) {
-		commit("setDatasets", {datasets: data.datasets});
+	api.getAllDatasets().then(function({data}) {
+		commit("setDatasets", {datasets: data});
 		dispatch("updateActiveDataset");
 	})
 }
