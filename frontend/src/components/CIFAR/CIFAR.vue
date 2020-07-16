@@ -8,35 +8,10 @@
                     <div class="card-content">
                         <img
                             class="image is-128x128 is-horizontal-center"
-                            src="https://picsum.photos/200"
+                            v-bind:src="
+                                'data:image/png;base64,' + currentSample
+                            "
                         />
-                    </div>
-                    Sample-ID: {{ currentSample }}
-                    <div class="labeling">
-                        <b-field label="Label:">
-                            <b-autocomplete
-                                class="is-fullwidth"
-                                v-model="labelName"
-                                :data="labelData"
-                                placeholder="Label"
-                                clearable
-                                @typing="filteredDataArray"
-                                @select="option => (selectedLabel = option)"
-                            >
-                                <template slot="empty"
-                                    >No results found</template
-                                >
-                            </b-autocomplete>
-                        </b-field>
-                    </div>
-                    <div class="field">
-                        <button
-                            :disabled="selectedLabel == null"
-                            v-on:click="sendLabel()"
-                            class="button is-info is-fullwidth"
-                        >
-                            Send
-                        </button>
                     </div>
                 </div>
             </div>
@@ -46,67 +21,13 @@
 
 <script lang="ts">
 import Vue from "vue";
-import {mapActions, mapGetters, mapState} from "vuex";
+import {mapState} from "vuex";
 
 export default Vue.extend({
     name: "CIFAR",
     props: {},
-    data: () => {
-        return {
-            labelName: "",
-            labelData: [],
-            selectedLabel: null
-        };
-    },
     computed: {
-        ...mapState("api_default", ["currentSample"]),
-        ...mapState("api_default", ["currentSampleId"]),
-        ...mapState([
-            "datasets",
-            "activeDatasetId",
-            "activeDataset",
-            "loading",
-            "labels"
-        ]),
-        ...mapGetters([
-            "datasetType",
-            "sampleShortTitle",
-            "prevButtonDisabled",
-            "nextButtonDisabled"
-        ])
-    },
-    methods: {
-        ...mapActions(["nextSample", "prevSample", "labelSample"]),
-
-        filteredDataArray() {
-            const filteredLabels: Array<string> = [];
-
-            for (let i = 0; i < this.labels.length; i++) {
-                filteredLabels.push(this.labels[i].name);
-            }
-
-            this.labelData = filteredLabels.filter(option => {
-                return (
-                    option
-                        .toString()
-                        .toLowerCase()
-                        .indexOf(this.labelName.toLowerCase()) >= 0
-                );
-            });
-        },
-
-        sendLabel: function() {
-            console.log(this.selectedLabel);
-            const found = this.labels.find(el => el.name == this.selectedLabel);
-            const association = {
-                sampleId: this.currentSampleId,
-                labelId: found.id,
-                userId: "dummy"
-            };
-            console.log(association);
-            this.labelSample(association);
-            this.labelName = "";
-        }
+        ...mapState("api_default", ["currentSample"])
     }
 });
 </script>
@@ -128,10 +49,6 @@ export default Vue.extend({
     .title,
     .subtitle {
         text-align: center;
-    }
-
-    .labeling {
-        margin: 1em 0 1em 0;
     }
 }
 </style>
