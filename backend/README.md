@@ -8,6 +8,7 @@ The backend features a REST API, built using the following technologies
 - [Marshmallow](https://realpython.com/flask-connexion-rest-api-part-2/)
 - Sqlite for storing the data in `test.db`
 
+You can the latest api spec under `localhost:5000/api-spec`.
 
 ## ✈️ Installation and setup 
 

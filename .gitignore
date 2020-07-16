@@ -9,3 +9,4 @@ backend/data
 *.sln
 *.sw?
 
+log.txt

@@ -11,12 +11,11 @@ RUN pip install pipenv
 
 # Install runtime and development dependencies
 COPY Pipfile* ./
-RUN pipenv lock
-RUN pipenv install --dev --system
+RUN pipenv install
 
 # Copy the project files
 COPY . .
 
-CMD ["flask", "run", "--host", "0.0.0.0"]
+CMD ["pipenv", "run", "flask", "run", "--host", "0.0.0.0"]
 
 
