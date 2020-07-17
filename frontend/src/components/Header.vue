@@ -145,7 +145,12 @@ export default {
     },
     methods: {
 		...mapActions(["nextSample", "prevSample", "labelSample"]),
-		// temporary dummy login. Someone else, please create a login page!
+        route(toPath) {
+            if (this.$route.path !== toPath) {
+                this.$router.push(toPath);
+            }
+        },
+        // temporary dummy login. Someone else, please create a login page!
 		dummyLogin: function() {
 			const tempApi = axios.create({
 				baseURL: "http://127.0.0.1:5000/",
