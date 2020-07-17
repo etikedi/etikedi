@@ -1,14 +1,11 @@
 export interface State {
     cifarId: number;
-    cifarSampleID: any;
-    cifarSample: any;
-    cifarLabels: any;
+    cifar: any;
 }
-
-export interface CifarSample {
-    sampleID: any;
-    data: any;
-    association: any;
+export interface LabelPayload {
+    startId: number;
+    endId: number;
+    label: string;
 }
 
 export interface Association {
