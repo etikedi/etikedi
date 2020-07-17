@@ -40,10 +40,15 @@ export const datasetType = function(state) {
 	if(!ds){
 		return "none";
 	}
-	if(ds.type){
+	if(ds.datasetType){
 		// the backend told us the DatasetType to display. Use this.
-		return ds.type;
+		return ds.datasetType;
 	}
 	// guess the dataset type (dumb approach)
-	return ds.name.toLowerCase()
+	if(ds.name == "CIFAR")
+		return "cifar";
+	if(ds.name == "DWTC")
+		return "dwtc";
+	
+	return "plaintext";
 }

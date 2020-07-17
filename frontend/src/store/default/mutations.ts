@@ -16,7 +16,7 @@ export const prevSampleIndex = (state) => {
 
 // used when loading from sample history
 export const setSample = (state, {sampleData, sampleIndex}) => {
-    const sample = sampleData.datasample;
+    const sample = sampleData;
     
     state.currentSampleIndex = sampleIndex;
     
@@ -26,17 +26,17 @@ export const setSample = (state, {sampleData, sampleIndex}) => {
 	}
     
     state.currentSampleId = sample.id;
-    state.currentSample = sample.data;
+    state.currentSample = sample.content;
 };
 
 // appends this sample to end of samples history, and sets index there
 export const appendSample = (state, {sampleData}) => {
-    const sample = sampleData.datasample;
+    const sample = sampleData;
     
     const historyLen = state.samples.length
     
     state.samples.push(sample.id)
     state.currentSampleIndex = historyLen
     state.currentSampleId = sample.id;
-    state.currentSample = sample.data;
+    state.currentSample = sample.content;
 };
