@@ -1,4 +1,4 @@
-import ApiService from "@/api/DummyAergiaDefaultApiService";
+import ApiService from "@/api/AergiaDefaultApiService";
 
 export const nextSample = ({dispatch, commit}: any) => {
     commit("nextSampleIndex");
@@ -21,14 +21,14 @@ export const loadSample = ({commit, state, rootState}: any) => {
     if(index >= historyLen){
 		// fetch by suggestion
 		return ApiService.getNextSample({datasetId: rootState.activeDatasetId})
-			.then((data) => {
+			.then(({data}) => {
 				commit("appendSample", {sampleData: data});
 				commit("endLoading", null, {root: true});
 			});
 	}else{
 		// fetch by ID
 		return ApiService.getSampleById({sampleId: state.samples[index]})
-			.then((data) => {
+			.then(({data}) => {
 				commit("setSample", {sampleData: data, sampleIndex: index});
 				commit("endLoading", null, {root: true});
 			});
@@ -43,8 +43,8 @@ export const labelSample = ({commit, state, dispatch}: any, labelId) => {
 			labelId: labelId,
 			userId: "dummy",
 		})
-			.then((data) => {
-				commit("appendSample", {sampleData: data});
+			.then(({data}) => {
+			//	commit("appendSample", {sampleData: data});
 				commit("endLoading", null, {root: true});
 			});
 };
