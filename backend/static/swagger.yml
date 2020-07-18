@@ -50,12 +50,17 @@ paths:
 
   '/api/datasets/{dataset_id}':
     get:
-      description: Get information about a single dataset
+      description: Returns the next sample for the given dataset
       tags:
         - Active Learning
       responses:
-        '200':
-          description: OK
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sample'
+
         401:
           description: Missing authorisation
     parameters:
@@ -105,6 +110,49 @@ paths:
         required: true
         schema:
           type: integer
+
+  '/api/datasets/{dataset_id}/import':
+    post:
+      description: Import samples into a dataset by passing some prepared files. Please see the README of the backend code for the expected format.
+      tags:
+        - Active Learning
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                sample_type:
+                  type: string
+                  enum:
+                    - table
+                    - text
+                    - image
+                content:
+                  type: string
+                  format: binary
+                features:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Import successful
+        400:
+          description: Bad files.
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+
+    parameters:
+      - name: dataset_id
+        in: path
+        description: ID of the dataset to request labels for
+        required: true
+        schema:
+          type: integer
+
+
 
   '/api/sample/{sample_id}':
     post:
@@ -272,6 +320,7 @@ components:
           format: int64
         data:
           type: string
+          description: If the sample contains binary data (e.g. an image), the content is included as base64 encoded.
         type:
           type: string
           enum:

@@ -7,9 +7,7 @@ const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
     cifarId: 2,
-    cifarSampleID: "",
-    cifarSample: undefined,
-    cifarLabels: []
+    cifar: {}
 };
 
 export const cifarStore = {

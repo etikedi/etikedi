@@ -52,7 +52,6 @@ class Image(Sample):
     __tablename__ = 'image'
 
     id = db.Column(db.Integer, db.ForeignKey('sample.id'), primary_key=True)
-    name = db.Column(db.String, nullable=True)
     content = db.Column(db.BLOB)
 
     __mapper_args__ = {

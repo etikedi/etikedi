@@ -1,8 +1,10 @@
 from flask_praetorian import auth_required
 from flask_restful import abort, Resource
+from flask import request
 
-from ..config import app, api
-from ..models import DatasetSchema, Dataset
+from ..active_learning_process import get_next_sample
+from ..config import app, api, db
+from ..models import DatasetSchema, Dataset, SampleSchema
 
 
 class DatasetList(Resource):
@@ -19,14 +21,18 @@ class DatasetList(Resource):
         return DatasetSchema(many=True).dump(datasets)
 
     def post(self):
-        """ TODO: Create a new dataset """
-        pass
+        try:
+            new_dataset = Dataset(name=request.form['name'])
+            db.session.add(new_dataset)
+            db.session.commit()
+            return DatasetSchema().dump(new_dataset)
+        except KeyError:
+            abort(400)
 
 
 class DatasetDetail(Resource):
     method_decorators = [auth_required]
 
-    # TODO: this function does not still return the next sample, it must be integrated with aL code!
     def get(self, dataset_id):
         """
         This function responds to a request for /api/int:dataset_id
@@ -35,13 +41,16 @@ class DatasetDetail(Resource):
         :param dataset_id:   ID of data set to find
         :return:            data set matching ID
         """
-        # Get the dataset requested
         dataset = Dataset.query.filter_by(id=dataset_id).first()
 
         if dataset is None:
             abort(404)
 
-        return DatasetSchema().dump(dataset)
+        next_sample = get_next_sample(dataset, app)
+        if not next_sample:
+            abort(400)
+        next_sample.ensure_string_content()
+        return SampleSchema().dump(next_sample), 200
 
     def post(self):
         """ TODO: Update name of dataset. """

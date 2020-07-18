@@ -23,6 +23,7 @@ flask-swagger-ui = "*"
 pillow = "*"
 requests = "*"
 dataclasses = "*"
+marshmallow-dataclass = "*"
 
 [dev-packages]
 pylint = "*"

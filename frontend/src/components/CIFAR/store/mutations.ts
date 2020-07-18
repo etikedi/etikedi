@@ -1,9 +1,19 @@
-import {CifarSample, State} from "./models";
+import {LabelPayload, State} from "./models";
 
-export const setCifarSample = (state: State, sample: CifarSample) => {
-    state.cifarSample = sample;
+export const setCifarSample = (state: State, data: any) => {
+    state.cifar = data;
 };
 
-export const setCifarLabels = (state: State, labels: any) => {
-    state.cifarLabels = labels;
+export const nextCifarSample = (state: State) => {
+    state.cifarId++;
+};
+
+export const prevCifarSample = (state: State) => {
+    state.cifarId--;
+};
+
+export const changeLabel = (state: State, payload: LabelPayload) => {
+    for (let i = payload.startId; i <= payload.endId; i++) {
+        state.cifar.features[i][1]["label"] = payload.label;
+    }
 };

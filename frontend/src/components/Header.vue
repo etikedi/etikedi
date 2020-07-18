@@ -9,16 +9,17 @@
                 <div class="container">
                     <b-navbar>
                         <template slot="start">
-                            <b-navbar-item href="#">
-                                <router-link to="/home">Home</router-link>
+                            <b-navbar-item @click="route('/home')">
+                                Home
                             </b-navbar-item>
                             <b-navbar-dropdown label="Label">
                                 <b-navbar-item
-										v-for="(dataset, datasetId) in datasets"
-										:key="datasetId"
-										href="#"
-										style="color: #000000;">
-									<router-link :to="'/label/'+datasetId">{{ dataset.name }}</router-link>
+                                    v-for="(dataset, datasetId) in datasets"
+                                    :key="datasetId"
+                                    @click="route('/label/' + datasetId)"
+                                    style="color: #000000;"
+                                >
+                                    {{ dataset.name }}
                                 </b-navbar-item>
                             </b-navbar-dropdown>
                             <b-navbar-item href="#">
@@ -63,57 +64,57 @@
                     </p>
                 </div>
             </div>
-            
+
             <!-- header component of LabelView, only shown when activeDatasetId set (see labelView) -->
             <div class="hero-foot" v-if="activeDatasetId != null">
-					<div class="container">
-						<div id="navbarMenuHeroA" class="navbar-menu">
-							<div class="navbar-start">
-								<b-button
-									class="navbar-item"
-									tag="a"
-									type="is-link"
-									icon-left="chevron-left"
-									@click="prevSample"
-									:disabled="prevButtonDisabled"
-									inverted
-									outlined
-								>
-									Prev
-								</b-button>
-								<h2 class="title" style="padding: 0 1rem 0 1rem">
-									{{ $store.getters.sampleShortTitle }}
-								</h2>
-								<b-button
-									class="navbar-item"
-									tag="a"
-									type="is-link"
-									icon-right="chevron-right"
-									@click="nextSample"
-									:disabled="nextButtonDisabled"
-									inverted
-									outlined
-								>
-									Next
-								</b-button>
-							</div>
-							<div class="navbar-end">
-								<b-button
-									v-for="(label, index) in labels"
-									:key="index"
-									class="navbar-item"
-									tag="a"
-									type="is-link"
-									@click="labelSample(label.id)"
-									inverted
-									outlined
-								>
-									{{ label.name }}
-								</b-button>
-							</div>
-						</div>
-					</div>
-				</div>
+                <div class="container">
+                    <div id="navbarMenuHeroA" class="navbar-menu">
+                        <div class="navbar-start">
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-left="chevron-left"
+                                @click="prevSample"
+                                :disabled="prevButtonDisabled"
+                                inverted
+                                outlined
+                            >
+                                Prev
+                            </b-button>
+                            <h2 class="title" style="padding: 0 1rem 0 1rem">
+                                {{ $store.getters.sampleShortTitle }}
+                            </h2>
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-right="chevron-right"
+                                @click="nextSample"
+                                :disabled="nextButtonDisabled"
+                                inverted
+                                outlined
+                            >
+                                Next
+                            </b-button>
+                        </div>
+                        <div class="navbar-end">
+                            <b-button
+                                v-for="(label, index) in labels"
+                                :key="index"
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                @click="labelSample(label.id)"
+                                inverted
+                                outlined
+                            >
+                                {{ label.name }}
+                            </b-button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </nav>
     </header>
 </template>
@@ -121,6 +122,7 @@
 <script lang="ts">
 import {mapState, mapActions, mapGetters} from "vuex";
 import store from "@/store";
+import axios from "axios";
 
 export default {
     name: "Header",
@@ -129,15 +131,52 @@ export default {
         subtitle: String
     },
     computed: {
-		...mapState(["datasets", "activeDatasetId", "activeDataset", "loading", "labels"]),
-        ...mapGetters(["datasetType", "sampleShortTitle", "prevButtonDisabled", "nextButtonDisabled"]),
+        ...mapState([
+            "datasets",
+            "activeDatasetId",
+            "activeDataset",
+            "loading",
+            "labels"
+        ]),
+        ...mapGetters([
+            "datasetType",
+            "sampleShortTitle",
+            "prevButtonDisabled",
+            "nextButtonDisabled"
+        ])
     },
     methods: {
-		...mapActions(["nextSample", "prevSample", "labelSample"])
+        ...mapActions(["nextSample", "prevSample", "labelSample"]),
+        route(toPath) {
+            if (this.$route.path !== toPath) {
+                this.$router.push(toPath);
+            }
+        },
+        // temporary dummy login. Someone else, please create a login page!
+        dummyLogin: function() {
+            const tempApi = axios.create({
+                baseURL: "http://127.0.0.1:5000/",
+                withCredentials: false,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+            tempApi
+                .post("/login", {
+                    username: "mario_nette",
+                    password: "very_secret"
+                })
+                .then(function(result) {
+                    console.log(result.data);
+                    localStorage.setItem("jwtToken", result.data.access_token);
+                    alert("Obtained JWT: " + localStorage.getItem("jwtToken"));
+                });
+        }
     },
     created(): void {
         this.$store.dispatch("loadAllDatasets");
-    },
+    }
 };
 </script>
 
