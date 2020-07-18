@@ -1,10 +1,9 @@
 from sqlalchemy import func as db_functions
 
-from .al_config import ALConfig, config
 from .al_oracle import ParallelOracle
 from .al_process import ALProcess
 from .process_management import manager
-from ..models import Dataset, Association, Sample, SampleSchema
+from ..models import Dataset, Association, Sample
 
 
 def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) -> bool:
@@ -24,7 +23,7 @@ def get_next_sample(dataset: Dataset, app) -> Sample:
     if should_label_random_sample(dataset=dataset):
         return get_random_unlabelled_sample(dataset)
 
-    process_resources = manager.get_or_else_load(dataset.id)
+    process_resources = manager.get_or_else_load(dataset)
     pipe_endpoint = process_resources["pipe"]
 
     if pipe_endpoint.poll(60):

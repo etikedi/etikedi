@@ -1,31 +1,27 @@
+import dataclasses
+import json
+
+from flask import request
 from flask_praetorian import auth_required
 from flask_restful import Resource
-from werkzeug.exceptions import BadRequest
+from marshmallow import ValidationError
 
-from .utils import convert_dataclass_to_parser
-from ..config import api
+from ..active_learning_process.process_management import manager
+from ..config import api, db, ALConfigSchema
 from ..models import Dataset
-from ..active_learning_process.al_config import config, ALConfig
-
-
-config_parser = convert_dataclass_to_parser(ALConfig)
 
 
 class ConfigAPI(Resource):
     method_decorators = [auth_required]
 
     def get(self, dataset_id):
-        """
-        Return the current configuration for the given dataset.
-
-        TODO: When AL merged, store one saved configuration per dataset in database.
-        """
+        """ Return the current configuration for the given dataset. """
         dataset = Dataset.query.get(dataset_id)
 
         if not dataset:
             return None, 404
 
-        return config.__dict__
+        return json.loads(dataset.config), 200
 
     def post(self, dataset_id):
         """ Update the configuration for the given dataset. Implies a restart of the AL process. """
@@ -35,10 +31,17 @@ class ConfigAPI(Resource):
             return None, 404
 
         try:
-            args = config_parser.parse_args()
-        except BadRequest as e:
-            e.data = e.data['message']  # Prevent nesting the error messages more than actually needed
-            raise e
+            new_config = ALConfigSchema().load(
+                {k.upper(): v for k, v in request.form.items()}
+            )
+        except ValidationError as e:
+            return e.messages, 400
+
+        dataset.config = json.dumps(dataclasses.asdict(new_config))
+        db.session.commit()
+
+        manager.restart_with_config(dataset, json.loads(dataset.config))
+
         return None, 204
 
 
