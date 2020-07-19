@@ -44,7 +44,7 @@
 
 <script lang="ts">
 import ALPAramsService from '@/api/ALParams-Service';
-import ALParamsService from '@/api/ALParams-Service';
+import AergiaDefaultApiService from '@/api/AergiaDefaultApiService';
 import AppVue from '../../App.vue';
 
 	const paramsTypes = {
@@ -157,7 +157,7 @@ import AppVue from '../../App.vue';
             this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
         },
         beforeMount() {
-            ALPAramsService.getAllDatasets().then((data) => {       //retrieve all Datasets and find the id for this component
+            AergiaDefaultApiService.getAllDatasets().then((data) => {       //retrieve all Datasets and find the id for this component
                 let id : number;
                 const parsedData = JSON.parse(data);
                 const datasets = parsedData.datasets;
