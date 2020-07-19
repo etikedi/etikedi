@@ -1,7 +1,7 @@
 import api from "@/api/AergiaDefaultApiService"
 
 function delegateAction(actionName) {
-    return ({dispatch, commit, state, getters}) => {
+    return ({dispatch, commit, state, getters}, parameter) => {
 		const apiType = getters.apiType
 		if(apiType == "none"){
 			console.log(
@@ -18,7 +18,7 @@ function delegateAction(actionName) {
                 apiType +
                 "'"
         );
-        dispatch("api_" + apiType + "/" + actionName);
+        dispatch("api_" + apiType + "/" + actionName, parameter);
     };
 }
 
@@ -74,6 +74,6 @@ export const loadLabels = function({dispatch, commit, state}) {
 		commit("setLabels", []);
 	}
 	api.getLabels({datasetId: state.activeDatasetId}).then(function(data) {
-		commit("setLabels", data.labels);
+		commit("setLabels", data.data);
 	})
 }

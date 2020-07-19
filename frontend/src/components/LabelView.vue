@@ -102,9 +102,7 @@ export default {
         filteredDataArray() {
             const filteredLabels: Array<string> = [];
 
-            for (let i = 0; i < this.labels.length; i++) {
-                filteredLabels.push(this.labels[i].name);
-            }
+            this.labels?.forEach(label => filteredLabels.push(label.name));
 
             this.labelData = filteredLabels.filter(option => {
                 return (
