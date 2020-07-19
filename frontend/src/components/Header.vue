@@ -9,54 +9,37 @@
                 <div class="container">
                     <b-navbar>
                         <template slot="start">
-                            <b-navbar-item @click="route('/home')">
-                                Home
-                            </b-navbar-item>
+                            <b-navbar-item @click="route('/home')">Home</b-navbar-item>
                             <b-navbar-dropdown label="Label">
                                 <b-navbar-item
                                     v-for="(dataset, datasetId) in datasets"
                                     :key="datasetId"
                                     @click="route('/label/' + datasetId)"
                                     style="color: #000000;"
-                                >
-                                    {{ dataset.name }}
-                                </b-navbar-item>
+                                >{{ dataset.name }}</b-navbar-item>
                             </b-navbar-dropdown>
-                            <b-navbar-item href="#">
-                                Upload
-                            </b-navbar-item>
-                            <b-navbar-item href="#">
-                                Browse
-                            </b-navbar-item>
+                            <b-navbar-item href="#">Upload</b-navbar-item>
+                            <b-navbar-item href="#">Browse</b-navbar-item>
 
                             <b-navbar-dropdown label="Info">
                                 <b-navbar-item
                                     @click="route('/about')"
                                     style="color: #000000;"
-                                >
-                                    About
-                                </b-navbar-item>
+                                >About</b-navbar-item>
                                 <b-navbar-item
                                     @click="route('/contact')"
                                     style="color: #000000;"
-                                >
-                                    Contact
-                                </b-navbar-item>
+                                >Contact</b-navbar-item>
                             </b-navbar-dropdown>
                         </template>
 
                         <template slot="end" class="ml-auto">
-                            <b-navbar-item tag="div">
+                            <b-navbar-item tag="div" @click="route('/signup')">
                                 <div class="buttons">
                                     <a class="button is-info">
                                         <strong>Sign up</strong>
                                     </a>
-                                    <a
-                                        class="button is-light"
-                                        @click="dummyLogin"
-                                    >
-                                        Log in
-                                    </a>
+                                    <a class="button is-light" @click="dummyLogin">Log in</a>
                                 </div>
                             </b-navbar-item>
                         </template>
@@ -66,9 +49,7 @@
             <div class="hero-body">
                 <div class="container">
                     <h1 class="title">{{ title }}</h1>
-                    <p class="subtitle">
-                        {{ subtitle }}
-                    </p>
+                    <p class="subtitle">{{ subtitle }}</p>
                 </div>
             </div>
 
@@ -86,12 +67,11 @@
                                 :disabled="prevButtonDisabled"
                                 inverted
                                 outlined
-                            >
-                                Prev
-                            </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">
-                                {{ $store.getters.sampleShortTitle }}
-                            </h2>
+                            >Prev</b-button>
+                            <h2
+                                class="title"
+                                style="padding: 0 1rem 0 1rem"
+                            >{{ $store.getters.sampleShortTitle }}</h2>
                             <b-button
                                 class="navbar-item"
                                 tag="a"
@@ -101,9 +81,7 @@
                                 :disabled="nextButtonDisabled"
                                 inverted
                                 outlined
-                            >
-                                Next
-                            </b-button>
+                            >Next</b-button>
                         </div>
                         <div class="navbar-end">
                             <b-button
@@ -115,9 +93,7 @@
                                 @click="labelSample(label.id)"
                                 inverted
                                 outlined
-                            >
-                                {{ label.name }}
-                            </b-button>
+                            >{{ label.name }}</b-button>
                         </div>
                     </div>
                 </div>

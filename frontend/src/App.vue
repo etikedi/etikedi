@@ -1,9 +1,6 @@
 <template>
     <div id="app">
-        <Header
-            title="AERGIA"
-            subtitle="Creating labeled datasets like a true lazy greek god."
-        />
+        <Header title="AERGIA" subtitle="Creating labeled datasets like a true lazy greek god." />
         <router-view></router-view>
         <Footer
             title="AERGIA"
@@ -23,6 +20,7 @@ import Footer from "./components/Footer.vue";
 import HomePage from "./components/home-page/HomePage.vue";
 import AboutPage from "./components/about-page/AboutPage.vue";
 import ContactPage from "./components/contact-page/ContactPage.vue";
+import SignupPage from "./components/signup-page/SignupPage.vue";
 import LabelView from "@/components/LabelView.vue";
 
 Vue.use(VueRouter);
@@ -48,6 +46,11 @@ const routes = [
         path: "/contact",
         name: "contact",
         component: ContactPage
+    },
+    {
+        path: "/signup",
+        name: "signup",
+        component: SignupPage
     },
     {
         path: "/label/:datasetId",
