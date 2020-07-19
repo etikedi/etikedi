@@ -21,6 +21,8 @@ import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import HomePage from "./components/home-page/HomePage.vue";
+import AboutPage from "./components/about-page/AboutPage.vue";
+import ContactPage from "./components/contact-page/ContactPage.vue";
 import LabelView from "@/components/LabelView.vue";
 
 Vue.use(VueRouter);
@@ -38,6 +40,16 @@ const routes = [
         component: HomePage
     },
     {
+        path: "/about",
+        name: "about",
+        component: AboutPage
+    },
+    {
+        path: "/contact",
+        name: "contact",
+        component: ContactPage
+    },
+    {
         path: "/label/:datasetId",
         name: "label",
         component: LabelView
@@ -52,8 +64,7 @@ const router = new VueRouter({
 export default Vue.extend({
     router,
     name: "app",
-    computed: {
-    },
+    computed: {},
     components: {
         Header,
         Footer

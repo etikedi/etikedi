@@ -30,10 +30,16 @@
                             </b-navbar-item>
 
                             <b-navbar-dropdown label="Info">
-                                <b-navbar-item href="#" style="color: #000000;">
+                                <b-navbar-item
+                                    @click="route('/about')"
+                                    style="color: #000000;"
+                                >
                                     About
                                 </b-navbar-item>
-                                <b-navbar-item href="#" style="color: #000000;">
+                                <b-navbar-item
+                                    @click="route('/contact')"
+                                    style="color: #000000;"
+                                >
                                     Contact
                                 </b-navbar-item>
                             </b-navbar-dropdown>
@@ -45,7 +51,10 @@
                                     <a class="button is-info">
                                         <strong>Sign up</strong>
                                     </a>
-                                    <a class="button is-light" @click="dummyLogin">
+                                    <a
+                                        class="button is-light"
+                                        @click="dummyLogin"
+                                    >
                                         Log in
                                     </a>
                                 </div>
@@ -144,31 +153,33 @@ export default {
         ])
     },
     methods: {
-		...mapActions(["nextSample", "prevSample", "labelSample"]),
+        ...mapActions(["nextSample", "prevSample", "labelSample"]),
         route(toPath) {
             if (this.$route.path !== toPath) {
                 this.$router.push(toPath);
             }
         },
         // temporary dummy login. Someone else, please create a login page!
-		dummyLogin: function() {
-			const tempApi = axios.create({
-				baseURL: "http://127.0.0.1:5000/",
-				withCredentials: false,
-				headers: {
-					Accept: "application/json",
-					"Content-Type": "application/json"
-				}
-			});
-			tempApi.post("/login", {
-				username: "mario_nette",
-				password: "very_secret"
-			}).then(function(result){
-				console.log(result.data);
-				localStorage.setItem('jwtToken', result.data.access_token)
-				alert("Obtained JWT: "+localStorage.getItem('jwtToken'))
-			});
-		},
+        dummyLogin: function() {
+            const tempApi = axios.create({
+                baseURL: "http://127.0.0.1:5000/",
+                withCredentials: false,
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                }
+            });
+            tempApi
+                .post("/login", {
+                    username: "mario_nette",
+                    password: "very_secret"
+                })
+                .then(function(result) {
+                    console.log(result.data);
+                    localStorage.setItem("jwtToken", result.data.access_token);
+                    alert("Obtained JWT: " + localStorage.getItem("jwtToken"));
+                });
+        }
     },
     created(): void {
         this.$store.dispatch("loadAllDatasets");
@@ -178,9 +189,6 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-#navbarMenuHeroA {
-}
-
 .sticky {
     position: fixed;
     top: 0;
