@@ -21,13 +21,10 @@ import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import HomePage from "./components/home-page/HomePage.vue";
-<<<<<<< HEAD
 import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 import LOGIN from "@/components/login/LOGIN.vue";
-=======
 import LabelView from "@/components/LabelView.vue";
->>>>>>> origin/master
 
 Vue.use(VueRouter);
 
@@ -62,12 +59,11 @@ const router = new VueRouter({
 
 router.beforeEach((to, from, next) => {
     // redirect to login page if not logged in and trying to access a restricted page
-
     if (
         ["/login", "/register"].includes(to.path) &&
-        localStorage.getItem("user")
+        localStorage.getItem("jwtToken")
     ) {
-        return next("/login");
+        return next("/home");
     }
 
     next();
@@ -76,8 +72,7 @@ router.beforeEach((to, from, next) => {
 export default Vue.extend({
     router,
     name: "app",
-    computed: {
-    },
+    computed: {},
     components: {
         Header,
         Footer

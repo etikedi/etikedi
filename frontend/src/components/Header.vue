@@ -42,12 +42,27 @@
                         <template slot="end" class="ml-auto">
                             <b-navbar-item tag="div">
                                 <div class="buttons">
-                                    <a class="button is-info">
+                                    <a
+                                        class="button is-info"
+                                        v-if="!isAuthenticated"
+                                    >
                                         <strong>Sign up</strong>
                                     </a>
-                                    <a class="button is-light">
+                                    <a
+                                        class="button is-light"
+                                        v-if="!isAuthenticated"
+                                    >
                                         <router-link to="/login"
                                             >Log in</router-link
+                                        >
+                                    </a>
+                                    <a
+                                        class="button is-light"
+                                        @click="logout()"
+                                        v-if="isAuthenticated"
+                                    >
+                                        <router-link to="/home"
+                                            >Logout</router-link
                                         >
                                     </a>
                                 </div>
@@ -122,13 +137,16 @@
 <script lang="ts">
 import {mapState, mapActions, mapGetters} from "vuex";
 import store from "@/store";
-import axios from "axios";
 
 export default {
     name: "Header",
     props: {
         title: String,
         subtitle: String
+    },
+    data: () => {
+        const isAuthenticated = !!localStorage.getItem("jwtToken");
+        return {isAuthenticated};
     },
     computed: {
         ...mapState([
@@ -147,31 +165,14 @@ export default {
     },
     methods: {
         ...mapActions(["nextSample", "prevSample", "labelSample"]),
+        logout() {
+            localStorage.removeItem("jwtToken");
+            location.reload(true);
+        },
         route(toPath) {
             if (this.$route.path !== toPath) {
                 this.$router.push(toPath);
             }
-        },
-        // temporary dummy login. Someone else, please create a login page!
-        dummyLogin: function() {
-            const tempApi = axios.create({
-                baseURL: "http://127.0.0.1:5000/",
-                withCredentials: false,
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                }
-            });
-            tempApi
-                .post("/login", {
-                    username: "mario_nette",
-                    password: "very_secret"
-                })
-                .then(function(result) {
-                    console.log(result.data);
-                    localStorage.setItem("jwtToken", result.data.access_token);
-                    alert("Obtained JWT: " + localStorage.getItem("jwtToken"));
-                });
         }
     },
     created(): void {

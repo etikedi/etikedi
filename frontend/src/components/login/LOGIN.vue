@@ -65,10 +65,7 @@
                             </div>
                             <div class="field">
                                 <div class="control">
-                                    <button
-                                        :disabled="status.loggingIn"
-                                        class="button is-link"
-                                    >
+                                    <button class="button is-link">
                                         Submit
                                     </button>
                                 </div>
@@ -108,7 +105,8 @@ export default Vue.extend({
             this.submitted = true;
             const {username, password} = this;
             if (username && password) {
-                this.login({username, password});
+                const router = this.$router;
+                this.login({username, password, router});
             }
         }
     }

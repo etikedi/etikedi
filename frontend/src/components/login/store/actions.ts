@@ -1,22 +1,17 @@
-import {userService} from "@/api/LoginService";
-import VueRouter from "vue-router";
+import {authService} from "@/api/AuthService";
 
-export const login = ({dispatch, commit}, {username, password}) => {
+export const login = ({dispatch, commit}, {username, password, router}) => {
     commit("loginRequest", {username});
-
-    userService.login(username, password).then(
-        user => {
-            commit("loginSuccess", user);
-            const router = new VueRouter();
-            router.push("/");
+    authService.login(username, password).then(
+        data => {
+            commit("loginSuccess", data);
+            router.push("/home");
+            location.reload(true);
         },
-        error => {
-            commit("loginFailure", error);
-            // dispatch("alert/error", error, {root: true});
-        }
+        error => commit("loginFailure", error)
     );
 };
 export const logout = ({commit}) => {
-    userService.logout();
+    authService.logout();
     commit("logout");
 };

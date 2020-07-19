@@ -8,29 +8,26 @@ import * as actions from "./actions";
 import * as mutations from "./mutations";
 import {State} from "./models";
 
-<<<<<<< HEAD
 import {cvStore} from "@/components/CV/store/module";
 import {dwtcStore} from "@/components/dwtc/store/module";
-import {religiousStore} from "@/components/religious/store/module";
+// import {religiousStore} from "@/components/religious/store/module";
 import {cifarStore} from "@/components/CIFAR/store/module";
-import {loginStore} from "@/components/login/store/module";
-=======
+import {authStore} from "@/components/login/store/module";
 import {defaultApiStore} from "./default/module";
->>>>>>> origin/master
 
 Vue.use(Vuex);
 
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-	// Note: datasetType is no longer set in State, as only the LabelView needs to know about it
-	
+    // Note: datasetType is no longer set in State, as only the LabelView needs to know about it
+
     // Which API to use to perform requests.
     // Actions from header buttons are delegated to the active
     // apiType. For most datasets in AERGIA, the 'default' apiType
     // will be used, which calls the AergiaDefaultApiService
     // -!- apiType has moved to a getter, which retrieves it from activeDataset
-    
+
     // Available datasets (retrieved from server)
     // datasetId: {name:"bla"}
     datasets: {},
@@ -41,23 +38,20 @@ const state: State = {
     // labels for the active dataset
     labels: [],
 
-    loading: false,
+    loading: false
 };
 
 const store = new Vuex.Store({
     state,
     modules: {
-<<<<<<< HEAD
         cv: cvStore,
         dwtc: dwtcStore,
-        religious: religiousStore,
+        // religious: religiousStore,
         cifar: cifarStore,
-        login: loginStore
+        login: authStore,
         // add imported dataset type modules here!
-=======
-		//api_<apiType>
-        api_default: defaultApiStore,
->>>>>>> origin/master
+        //api_<apiType>
+        api_default: defaultApiStore
     },
     getters,
     actions,
