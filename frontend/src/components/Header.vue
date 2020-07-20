@@ -161,12 +161,14 @@ export default {
             "sampleShortTitle",
             "prevButtonDisabled",
             "nextButtonDisabled"
-        ])
+        ]),
+        ...mapActions(["logout"])
     },
     methods: {
         ...mapActions(["nextSample", "prevSample", "labelSample"]),
         logout() {
-            localStorage.removeItem("jwtToken");
+            this.$store.dispatch("logout");
+            // localStorage.removeItem("jwtToken");
             location.reload(true);
         },
         route(toPath) {
