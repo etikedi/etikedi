@@ -24,6 +24,9 @@ import HomePage from "./components/home-page/HomePage.vue";
 import Religious from "@/components/religious/Religious.vue";
 import CIFAR from "@/components/CIFAR/CIFAR.vue";
 import LOGIN from "@/components/login/LOGIN.vue";
+import AboutPage from "./components/about-page/AboutPage.vue";
+import ContactPage from "./components/contact-page/ContactPage.vue";
+import SignupPage from "./components/signup-page/SignupPage.vue";
 import LabelView from "@/components/LabelView.vue";
 
 Vue.use(VueRouter);
@@ -44,6 +47,21 @@ const routes = [
         path: "/home",
         name: "home",
         component: HomePage
+    },
+    {
+        path: "/about",
+        name: "about",
+        component: AboutPage
+    },
+    {
+        path: "/contact",
+        name: "contact",
+        component: ContactPage
+    },
+    {
+        path: "/signup",
+        name: "signup",
+        component: SignupPage
     },
     {
         path: "/label/:datasetId",

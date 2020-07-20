@@ -2,38 +2,23 @@
     <section class="section">
         <div class="container">
             <div style="position: relative;">
-                <table class="table" v-html="dwtc"></table>
-                <b-loading
-                    :is-full-page="false"
-                    :active.sync="loading"
-                    :can-cancel="false"
-                >
-                </b-loading>
+                <table class="table" v-html="currentSample"></table>
             </div>
         </div>
     </section>
 </template>
 
 <script lang="ts">
+import Vue from "vue";
 import {mapState} from "vuex";
-import store from "@/store";
 
-export default {
+export default Vue.extend( {
     name: "DWTC",
     props: {},
-    components: {},
     computed: {
-        ...mapState(["loading"]),
-        isHomePage: {
-            get(): boolean {
-                return store.state.isHomePage;
-            }
-        }
-    },
-    methods: {},
-    //mounted(): void {
-    //}
-};
+        ...mapState("api_default", ["currentSample"]),
+    }
+});
 </script>
 
 <style scoped lang="scss">
