@@ -39,13 +39,15 @@
                         </template>
 
                         <template slot="end" class="ml-auto">
-                            <b-navbar-item tag="div" @click="route('/signup')">
+                            <b-navbar-item tag="div">
                                 <div class="buttons">
                                     <a
-                                        class="button is-info"
+                                        class="button is-light"
                                         v-if="!isAuthenticated"
                                     >
-                                        <strong>Sign up</strong>
+                                        <router-link to="/signup"
+                                            >Sign up</router-link
+                                        >
                                     </a>
                                     <a
                                         class="button is-light"
@@ -155,14 +157,12 @@ export default {
             "sampleShortTitle",
             "prevButtonDisabled",
             "nextButtonDisabled"
-        ]),
-        ...mapActions(["logout"])
+        ])
     },
     methods: {
         ...mapActions(["nextSample", "prevSample", "labelSample"]),
         logout() {
-            this.$store.dispatch("logout");
-            // localStorage.removeItem("jwtToken");
+            localStorage.removeItem("jwtToken");
             location.reload(true);
         },
         route(toPath) {

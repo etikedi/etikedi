@@ -78,13 +78,13 @@ const router = new VueRouter({
 router.beforeEach((to, from, next) => {
     // redirect to login page if not logged in and trying to access a restricted page
     if (
-        ["/login", "/register"].includes(to.path) &&
-        localStorage.getItem("jwtToken")
+        !["/login", "/signup"].includes(to.path) &&
+        !localStorage.getItem("jwtToken")
     ) {
-        return next("/home");
+        next("/login");
+    } else {
+        next();
     }
-
-    next();
 });
 
 export default Vue.extend({

@@ -9,7 +9,7 @@ import * as mutations from "./mutations";
 import {State} from "./models";
 
 import {cvStore} from "@/components/CV/store/module";
-import {dwtcStore} from "@/components/dwtc/store/module";
+// import {dwtcStore} from "@/components/dwtc/store/module";
 // import {religiousStore} from "@/components/religious/store/module";
 import {cifarStore} from "@/components/CIFAR/store/module";
 import {authStore} from "@/components/login/store/module";
@@ -45,7 +45,7 @@ const store = new Vuex.Store({
     state,
     modules: {
         cv: cvStore,
-        dwtc: dwtcStore,
+        // dwtc: dwtcStore,
         // religious: religiousStore,
         cifar: cifarStore,
         login: authStore,
