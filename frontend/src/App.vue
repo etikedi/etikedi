@@ -1,6 +1,9 @@
 <template>
     <div id="app">
-        <Header title="AERGIA" subtitle="Creating labeled datasets like a true lazy greek god." />
+        <Header
+            title="AERGIA"
+            subtitle="Creating labeled datasets like a true lazy greek god."
+        />
         <router-view></router-view>
         <Footer
             title="AERGIA"
@@ -18,6 +21,9 @@ import {mapState} from "vuex";
 import Header from "./components/Header.vue";
 import Footer from "./components/Footer.vue";
 import HomePage from "./components/home-page/HomePage.vue";
+import Religious from "@/components/religious/Religious.vue";
+import CIFAR from "@/components/CIFAR/CIFAR.vue";
+import LOGIN from "@/components/login/LOGIN.vue";
 import AboutPage from "./components/about-page/AboutPage.vue";
 import ContactPage from "./components/contact-page/ContactPage.vue";
 import SignupPage from "./components/signup-page/SignupPage.vue";
@@ -31,6 +37,11 @@ const routes = [
     {
         path: "/",
         redirect: "/home"
+    },
+    {
+        path: "/login",
+        name: "login",
+        component: LOGIN
     },
     {
         path: "/home",
@@ -64,6 +75,18 @@ const router = new VueRouter({
     routes
 });
 
+router.beforeEach((to, from, next) => {
+    // redirect to login page if not logged in and trying to access a restricted page
+    if (
+        !["/login", "/signup"].includes(to.path) &&
+        !localStorage.getItem("jwtToken")
+    ) {
+        next("/login");
+    } else {
+        next();
+    }
+});
+
 export default Vue.extend({
     router,
     name: "app",
@@ -79,7 +102,6 @@ export default Vue.extend({
 #app {
     padding-top: 18.25rem;
 }
-
 .foot {
     margin-top: 20px;
     margin-left: 20%;
