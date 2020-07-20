@@ -60,9 +60,7 @@
 <script scoped lang="ts">
 export default {
     name: "HomePage",
-    components: {},
-    //mounted(): void {
-    //}
+    components: {}
 };
 </script>
 
@@ -104,16 +102,12 @@ export default {
     margin-left: 30%;
     margin-right: 30%;
     margin-top: 10px;
+    position: relative;
 }
 
 .tit {
     text-align: center;
     font-size: xxx-large;
-}
-
-.intro {
-    position: relative;
-    text-align: center;
 }
 
 .btn {
