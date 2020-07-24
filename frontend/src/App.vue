@@ -70,7 +70,7 @@ const routes = [
         component: LabelView
     },
     {
-        path: "/params",
+        path: "/params/:datasetID",
         name: "params",
         component: ALParams
     },

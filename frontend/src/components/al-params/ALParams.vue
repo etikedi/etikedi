@@ -152,22 +152,8 @@ import AppVue from '../../App.vue';
             }
         },
         mounted(): void {
-            this.$store.commit('setDatasetType', "none")
-            this.$store.commit('toggleIsHomePage', true)
-            this.$store.commit('toggleShowFeatureTooltipsSwitch', false)
-        },
-        beforeMount() {
-            AergiaDefaultApiService.getAllDatasets().then((data) => {       //retrieve all Datasets and find the id for this component
-                let id : number;
-                const parsedData = JSON.parse(data);
-                const datasets = parsedData.datasets;
-                datasets.forEach(element => {
-                    if (element.name == "ALParams") {
-                        id = element.id;
-                    }
-                });
-                this.setDatasetID(id);
-            });
+
+            this.setDatasetID(this.$route.params.datasetID);
             ALPAramsService.loadALParams(this.datasetID).then((newData) => {
                 this.setParams(JSON.parse(newData));
             });
