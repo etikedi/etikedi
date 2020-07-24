@@ -65,27 +65,15 @@ const routes = [
         component: SignupPage
     },
     {
-<<<<<<< HEAD
         path: "/label/:datasetId",
         name: "label",
         component: LabelView
-    }
-=======
-        path: "/religious-texts",
-        name: "religious-texts",
-        component: Religious
-    },
-    {
-        path: "/cv",
-        name: "cv",
-        component: CV
     },
     {
         path: "/params",
         name: "params",
         component: ALParams
     },
->>>>>>> Implement view for AL params form
 ];
 
 const router = new VueRouter({
