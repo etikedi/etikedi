@@ -7,25 +7,25 @@
 						<td> {{ name }} </td>
 						<td v-if='control.type == "enum"'>
                             <div class="select">
-                                <b-select v-model="params[name]">
+                                <b-select v-model="alParams[name]">
                                     <option v-for='(value) in control.values' :key="value" v-value="value"> {{value}} </option>
                                 </b-select>
                             </div>
 						</td>
 						<td v-if='control.type == "intGZ"'>
-                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="1" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
+                            <b-numberinput type="is-info" v-model="alParams[name]" v-id="name" v-name="name" min="1" step="1" controls-position="compact"/>     <!-- Std color is purple, change with type. "is-info" is the blue from the banner-->
 						</td>
                         <td v-if='control.type == "intGreaterMinusOne"'>
-                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="-1" step="1" controls-position="compact"/>   
+                            <b-numberinput type="is-info" v-model="alParams[name]" v-id="name" v-name="name" min="-1" step="1" controls-position="compact"/>   
 						</td>
 						<td v-if='control.type == "prob"'>
-                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
+                            <b-numberinput type="is-info" v-model="alParams[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
 						</td>
 						<td v-if='control.type == "half-to-one"'>
-                            <b-numberinput type="is-info" v-model="params[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
+                            <b-numberinput type="is-info" v-model="alParams[name]" v-id="name" v-name="name" min="0.0" max="1.0" step="0.01" controls-position="compact"/>
 						</td>
 						<td v-if='control.type == "bool"'>
-							<b-checkbox type="is-info" v-model="params[name]">{{name}}</b-checkbox>
+							<b-checkbox type="is-info" v-model="alParams[name]">{{name}}</b-checkbox>
 						</td>
 					</tr>
                 </table>
@@ -135,20 +135,20 @@ import AppVue from '../../App.vue';
         name: "ALParams",
 		data: function() { return {
 			paramsTypes: paramsTypes,
-            params: alParams,
+            alParams: alParams,
+            datasetID: null,
 		}},
         components: {},
         computed: {},
         methods: { 
             setParams: function(newParams) {
-                this.params = newParams;
+                this.alParams = newParams;
             },
             submitParams: function() {
-                const paramString : string = JSON.stringify(this.params);
-                ALPAramsService.submitALParams({datasetID, paramString});
+                ALPAramsService.submitALParams({datasetID: this.datasetID, alParams: this.alParams});
             },
             setDatasetID: function(id: number) {
-                datasetID = id;
+                this.datasetID = id;
             }
         },
         mounted(): void {

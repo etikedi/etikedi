@@ -7,11 +7,9 @@ export default {
 
     submitALParams(params: {
         datasetID: number, 
-        paramString: string
+        alParams: any
     }): Promise<any> {
-        return Api().post("/datasets/" + params.datasetID + "/config", {
-            string: params.paramString,
-        });
+        return Api().post("/datasets/" + params.datasetID + "/config", params.alParams);
     },
 
 };
