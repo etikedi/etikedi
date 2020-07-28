@@ -89,6 +89,7 @@ import AppVue from '../../App.vue';
 		SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				{type:"prob"},
 	}
 
+/*
 	const alParams = {
 		CLASSIFIER: 			"RF",	// ["RF", "DT", "SVM", "ANN"],
 		RANDOM_SEED: 			-1,		// [-1, 0,1, … nach oben offen],
@@ -128,21 +129,21 @@ import AppVue from '../../App.vue';
 		WITH_SNUBA_LITE:									false,
 		SNUBA_LITE_MINIMUM_HEURISTIC_ACCURACY:				0.5,	// [zwischen 0.0 und 1.0],
     }
+*/
     
     let datasetID: number;
     
     export default {
         name: "ALParams",
 		data: function() { return {
-			paramsTypes: paramsTypes,
-            alParams: alParams,
+            alParams: {},
             datasetID: null,
 		}},
         components: {},
         computed: {},
         methods: { 
             setParams: function(newParams) {
-                this.alParams = newParams;
+				this.alParams = newParams;
             },
             submitParams: function() {
                 ALPAramsService.submitALParams({datasetID: this.datasetID, alParams: this.alParams});
@@ -151,11 +152,21 @@ import AppVue from '../../App.vue';
                 this.datasetID = id;
             }
         },
+        watch: {
+			$route: function(to, from) {
+				this.setDatasetID(this.$route.params.datasetID);
+				ALPAramsService.loadALParams(this.datasetID).then((newData) => {
+					this.setParams(newData.data);
+				});
+			}
+		},
+        created(): void {
+			this.paramsTypes = paramsTypes
+		},
         mounted(): void {
-
             this.setDatasetID(this.$route.params.datasetID);
             ALPAramsService.loadALParams(this.datasetID).then((newData) => {
-                this.setParams(JSON.parse(newData));
+				this.setParams(newData.data);
             });
         },
     };
