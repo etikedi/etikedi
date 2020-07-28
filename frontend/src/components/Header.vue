@@ -36,6 +36,16 @@
                                     >Contact</b-navbar-item
                                 >
                             </b-navbar-dropdown>
+                            
+                            <b-navbar-dropdown label="ALParams">
+                                <b-navbar-item
+                                    v-for="(dataset, datasetId) in datasets"
+                                    :key="datasetId"
+                                    @click="route('/params/' + datasetId)"
+                                    style="color: #000000;"
+                                    >{{ dataset.name }}</b-navbar-item
+                                >
+                            </b-navbar-dropdown>
                         </template>
 
                         <template slot="end" class="ml-auto">

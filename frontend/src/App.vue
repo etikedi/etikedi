@@ -28,6 +28,7 @@ import AboutPage from "./components/about-page/AboutPage.vue";
 import ContactPage from "./components/contact-page/ContactPage.vue";
 import SignupPage from "./components/signup-page/SignupPage.vue";
 import LabelView from "@/components/LabelView.vue";
+import ALParams from "./components/al-params/ALParams.vue";
 
 Vue.use(VueRouter);
 
@@ -67,7 +68,12 @@ const routes = [
         path: "/label/:datasetId",
         name: "label",
         component: LabelView
-    }
+    },
+    {
+        path: "/params/:datasetID",
+        name: "params",
+        component: ALParams
+    },
 ];
 
 const router = new VueRouter({
