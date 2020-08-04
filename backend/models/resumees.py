@@ -1,14 +1,9 @@
-import collections
-import re
-from datetime import datetime
 from pprint import pprint
-from spellchecker import SpellChecker
+
 import nltk
-import sqlalchemy
-from flask_restful import Resource, reqparse
-from nltk.corpus import stopwords
+from flask_restful import Resource
 from nltk.tokenize import RegexpTokenizer
-from sqlalchemy.orm import class_mapper
+from spellchecker import SpellChecker
 
 from models import db
 

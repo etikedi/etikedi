@@ -1,9 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask
+from flask_cors import CORS
 from flask_restful import Api
 
-from flask_cors import CORS
 from models import db
-from models.resumees import Resumees, ResumeesApi, ResumeesListApi
+from models.resumees import ResumeesApi, ResumeesListApi
 
 app = Flask(__name__)
 app.config.from_object("config.Config")
