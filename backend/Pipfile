@@ -21,7 +21,6 @@ sklearn = "*"
 matplotlib = "*"
 pandas = "*"
 peewee = "*"
-psycopg2 = "*"
 tabulate = "*"
 
 [requires]
