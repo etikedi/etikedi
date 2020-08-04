@@ -6,7 +6,7 @@ from active_learning.BaseOracle import BaseOracle
 
 
 class AergiaOracle(BaseOracle):
-    def get_labels(self, query_indices, data_storage):
+    def get_labeled_samples(self, query_indices, data_storage):
         labels = pd.DataFrame(columns=[0], dtype=int)
         for indice in query_indices:
             # note that the result should contain the index - label relation
