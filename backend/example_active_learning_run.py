@@ -41,7 +41,7 @@ df = pd.DataFrame(
 )
 df.rename({"target": "label"}, axis="columns", inplace=True)
 
-df.loc[~df.index.isin([0, 10, 60, 70, 100, 130]), "label"] = None
+#  df.loc[~df.index.isin([0, 10, 60, 70, 100, 130]), "label"] = None
 
 df.label.replace({0: "a", 1: "b", 2: "d"}, inplace=True)
 
