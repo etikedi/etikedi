@@ -41,13 +41,11 @@ df = pd.DataFrame(
 )
 df.rename({"target": "label"}, axis="columns", inplace=True)
 
-#  df.loc[~df.index.isin([0, 10, 60, 70, 100, 130]), "label"] = None
+df.loc[~df.index.isin([0, 10, 60, 70, 100, 130]), "label"] = None
 
 df.label.replace({0: "a", 1: "b", 2: "d"}, inplace=True)
 
 print(df)
-# artifically delete some labels and make it a labeled and unlabeled dataset
-# then change dataStorage, so that the split in labeled and unlabeled is based on None in the labeled/unlabeled column
 
 (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
     hyper_parameters=config,
