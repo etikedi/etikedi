@@ -21,22 +21,22 @@ class ParallelOracle(BaseOracle):
         self,
         sample_ids: Dict[int, int],
         pipe_endpoint: Connection,
-        label_encoder: LabelEncoder,
+        #  label_encoder: LabelEncoder,
     ):
         self.sample_ids = sample_ids
         self.pipe_endpoint = pipe_endpoint
-        self.label_encoder = label_encoder
+        #  self.label_encoder = label_encoder
 
-    def label_to_internal_representation(self, label) -> int:
+    def label_to_internal_representation(self, label, data_storage) -> int:
         """
         Returns the internal representation of the given raw label.
 
         This is needed because the labels have to be converted to integers
         and normalised to start with zero.
         """
-        return self.label_encoder.transform([label])[0]
+        return data_storage.label_encoder.transform([label])[0]
 
-    def get_labels(self, requested_sample_ids, data_storage):
+    def get_labeled_samples(self, requested_sample_ids, data_storage):
         """
         As this function is the only interface between backend and active-learning code, two tasks have to be done:
             1)  Resolving the query indices into queried sample_ids and send them to backend
@@ -73,7 +73,7 @@ class ParallelOracle(BaseOracle):
 
                 position = np.where(requested_sample_ids == data["id"])[0][0]
                 labels_by_query_index[position] = self.label_to_internal_representation(
-                    data["label"]
+                    data["label"], data_storage
                 )
 
                 position = np.where(remaining_sample_ids == data["id"])[0][0]

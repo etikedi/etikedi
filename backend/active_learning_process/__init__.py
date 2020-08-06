@@ -12,6 +12,7 @@ def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) 
         .filter(Sample.dataset == dataset)
         .count()
     )
+    print("number_of_labeled_samples:" + str(number_of_labeled_samples))
     return number_of_labeled_samples % random_sample_every == 0
 
 
@@ -26,6 +27,7 @@ def get_random_unlabelled_sample(dataset: Dataset) -> Sample:
 def get_next_sample(dataset: Dataset, app) -> Sample:
     # Retrieve pipe endpoint from process manager
     if should_label_random_sample(dataset=dataset):
+        app.logger.info("Label random sample")
         return get_random_unlabelled_sample(dataset)
 
     process_resources = manager.get_or_else_load(dataset)
