@@ -12,22 +12,20 @@ class Sample(db.Model):
     concrete samples of a specific data table. Documentation about how
     this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
     """
-    __tablename__ = 'sample'
+
+    __tablename__ = "sample"
 
     id = db.Column(db.Integer, primary_key=True)
 
-    dataset_id = db.Column(db.Integer, ForeignKey('dataset.id'), nullable=False)
-    dataset = db.relationship(
-        'Dataset',
-        backref=db.backref('items', lazy=True)
-    )
+    dataset_id = db.Column(db.Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset = db.relationship("Dataset", backref=db.backref("items", lazy=True))
 
     labels = db.relationship(
-        'Label',
-        secondary='association',
-        lazy='subquery',
+        "Label",
+        secondary="association",
+        lazy="subquery",
         # TODO: Figure out the difference to `back_populates`
-        backref=db.backref('samples', lazy=True)
+        backref=db.backref("samples", lazy=True),
     )
 
     # Saves concrete type of data in this sample
@@ -35,17 +33,14 @@ class Sample(db.Model):
 
     content: Union[str, bytes]
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'sample',
-        'polymorphic_on': 'type'
-    }
+    __mapper_args__ = {"polymorphic_identity": "sample", "polymorphic_on": "type"}
 
     def ensure_string_content(self) -> None:
         """ Converts the content to a base64 encoded string if it is binary """
         self.content = base64.b64encode(self.content).decode()
 
     def __str__(self):
-        return 'Sample {} in {}'.format(self.id, self.dataset)
+        return "Sample {} in {}".format(self.id, self.dataset)
 
     def __repr__(self):
         return str(self)

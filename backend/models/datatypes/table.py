@@ -48,14 +48,13 @@ class Table(Sample):
         >>> db.session.query(Sample).all()
         [Table 1 in dataset "Lorem"]
     """
-    __tablename__ = 'table'
 
-    id = db.Column(db.Integer, db.ForeignKey('sample.id'), primary_key=True)
+    __tablename__ = "table"
+
+    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
     content = db.Column(db.Text())
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'table'
-    }
+    __mapper_args__ = {"polymorphic_identity": "table"}
 
     def __str__(self):
         return 'Table {} in dataset "{}"'.format(self.id, self.dataset)

@@ -8,12 +8,13 @@ class User(db.Model):
     Taken from the [basic example](https://github.com/dusktreader/flask-praetorian/blob/master/example/basic.py) of
     [flask-praetorian](https://github.com/dusktreader/flask-praetorian/).
     """
+
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.VARCHAR(255))
     roles = db.Column(db.Text)
     password = db.Column(db.Text)
 
-    is_active = db.Column(db.Boolean, default=True, server_default='true')
+    is_active = db.Column(db.Boolean, default=True, server_default="true")
 
     def __str__(self):
         return 'User "{}" with roles {}'.format(self.username, self.roles)
@@ -25,7 +26,7 @@ class User(db.Model):
     @property
     def rolenames(self):
         try:
-            return self.roles.split(',')
+            return self.roles.split(",")
         except Exception:
             return []
 

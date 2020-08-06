@@ -10,26 +10,24 @@ guard.init_app(app, User)
 
 
 def create_dummy_users():
-    app.logger.info('Creating dummy users')
+    app.logger.info("Creating dummy users")
     User.query.delete()
     admin = User(
-        username='ernst_haft',
-        password=guard.hash_password('adminadmin'),
-        roles='admin'
+        username="ernst_haft", password=guard.hash_password("adminadmin"), roles="admin"
     )
     db.session.add(admin)
 
     worker1 = User(
-        username='anna_lühse',
-        password=guard.hash_password('very_secret'),
-        roles='worker'
+        username="anna_lühse",
+        password=guard.hash_password("very_secret"),
+        roles="worker",
     )
     db.session.add(worker1)
 
     worker2 = User(
-        username='mario_nette',
-        password=guard.hash_password('very_secret'),
-        roles='worker'
+        username="mario_nette",
+        password=guard.hash_password("very_secret"),
+        roles="worker",
     )
     db.session.add(worker2)
 
@@ -48,5 +46,4 @@ with app.app_context():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
-
+    app.run(host="0.0.0.0", debug=True)

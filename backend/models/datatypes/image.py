@@ -49,14 +49,13 @@ class Image(Sample):
         >>> db.session.query(Sample).all()
         [Image 1 in dataset "Lorem"]
     """
-    __tablename__ = 'image'
 
-    id = db.Column(db.Integer, db.ForeignKey('sample.id'), primary_key=True)
+    __tablename__ = "image"
+
+    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
     content = db.Column(db.BLOB)
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'image'
-    }
+    __mapper_args__ = {"polymorphic_identity": "image"}
 
     def __str__(self):
         return 'Image {} in dataset "{}"'.format(self.id, self.dataset)

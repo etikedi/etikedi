@@ -10,6 +10,7 @@ class ProcessManager:
     """
     Class for management of active-learning process for different data sets.
     """
+
     def __init__(self):
         self.process_resources_by_dataset_id = {}
 
@@ -31,9 +32,14 @@ class ProcessManager:
         else:
             app.logger.debug("Starting new process for dataset {}".format(dataset))
             backend_endpoint, process_endpoint = Pipe()
-            new_process = ALProcess(json.loads(dataset.config), dataset.id, process_endpoint)
+            new_process = ALProcess(
+                json.loads(dataset.config), dataset.id, process_endpoint
+            )
             new_process.start()
-            self.process_resources_by_dataset_id[dataset.id] = {"process": new_process, "pipe": backend_endpoint}
+            self.process_resources_by_dataset_id[dataset.id] = {
+                "process": new_process,
+                "pipe": backend_endpoint,
+            }
             return self.process_resources_by_dataset_id[dataset.id]
 
     def restart_with_config(self, dataset: Dataset, config: dict):
@@ -53,19 +59,27 @@ class ProcessManager:
         if dataset.id in self.process_resources_by_dataset_id:
             old_process = self.process_resources_by_dataset_id[dataset.id]["process"]
             old_process.terminate()
-            app.logger.debug("Restarting process for dataset {} with new configuration".format(dataset.id))
+            app.logger.debug(
+                "Restarting process for dataset {} with new configuration".format(
+                    dataset.id
+                )
+            )
             new_process.start()
             self.process_resources_by_dataset_id[dataset.id] = {
                 "process": new_process,
-                "pipe": backend_endpoint
+                "pipe": backend_endpoint,
             }
             return self.process_resources_by_dataset_id[dataset.id]
         else:
-            app.logger.debug("Starting process for dataset {} with new configuration".format(dataset.id))
+            app.logger.debug(
+                "Starting process for dataset {} with new configuration".format(
+                    dataset.id
+                )
+            )
             new_process.start()
             self.process_resources_by_dataset_id[dataset.id] = {
                 "process": new_process,
-                "pipe": backend_endpoint
+                "pipe": backend_endpoint,
             }
             return self.process_resources_by_dataset_id[dataset.id]
 

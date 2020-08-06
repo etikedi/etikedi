@@ -20,38 +20,37 @@ class Config(object):
     CSRF_ENABLED = False
 
     JWT_EXPIRATION_EDLAT = timedelta(days=10)
-    JWT_ACCESS_LIFESPAN = {'hours': 24}
-    JWT_REFRESH_LIFESPAN = {'days': 30}
+    JWT_ACCESS_LIFESPAN = {"hours": 24}
+    JWT_REFRESH_LIFESPAN = {"days": 30}
 
 
-dictConfig({
-    'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
     }
-})
+)
 
 app = Flask(__name__)
 app.config.from_object(Config())
 
 ### swagger specific ###
-SWAGGER_URL = '/api-spec'
-API_URL = '/static/swagger.yml'
+SWAGGER_URL = "/api-spec"
+API_URL = "/static/swagger.yml"
 SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "Aergia"
-    }
+    SWAGGER_URL, API_URL, config={"app_name": "Aergia"}
 )
 app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 
@@ -73,38 +72,66 @@ cors = CORS(app, resources={r"/api/*": {"origins": "*"}, r"/login": {"origins": 
 
 @dataclass
 class ALConfig:
-    SAMPLING: str = field(metadata={'validate': validate.OneOf([
-        "random",
-        "uncertainty_lc",
-        "uncertainty_max_margin",
-        "uncertainty_entropy"
-    ])})
-    CLUSTER: str = field(metadata={'validate': validate.OneOf([
-        "dummy",
-        "random",
-        "MostUncertain_lc",
-        "MostUncertain_max_margin",
-        "MostUncertain_entropy"
-    ])})
-    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD: float = field(metadata={'validate': validate.Range(min=0.5, max=1)})
-    UNCERTAINTY_RECOMMENDATION_RATIO: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    STOPPING_CRITERIA_UNCERTAINTY: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    STOPPING_CRITERIA_ACC: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    STOPPING_CRITERIA_STD: float = field(metadata={'validate': validate.Range(min=0, max=1)})
-    USER_QUERY_BUDGET_LIMIT: float = field(metadata={'validate': validate.Range(min=0)})
-    RANDOM_SEED: float = field(metadata={'validate': validate.Range(min=-1)})
-    NR_QUERIES_PER_ITERATION: int = field(metadata={'validate': validate.Range(min=0)})
-    N_JOBS: int = field(metadata={'validate': validate.Range(min=-1)})
-    NR_LEARNING_ITERATIONS: int = field(metadata={'validate': validate.Range(min=0)})
+    SAMPLING: str = field(
+        metadata={
+            "validate": validate.OneOf(
+                [
+                    "random",
+                    "uncertainty_lc",
+                    "uncertainty_max_margin",
+                    "uncertainty_entropy",
+                ]
+            )
+        }
+    )
+    CLUSTER: str = field(
+        metadata={
+            "validate": validate.OneOf(
+                [
+                    "dummy",
+                    "random",
+                    "MostUncertain_lc",
+                    "MostUncertain_max_margin",
+                    "MostUncertain_entropy",
+                ]
+            )
+        }
+    )
+    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD: float = field(
+        metadata={"validate": validate.Range(min=0.5, max=1)}
+    )
+    UNCERTAINTY_RECOMMENDATION_RATIO: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    STOPPING_CRITERIA_UNCERTAINTY: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    STOPPING_CRITERIA_ACC: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    STOPPING_CRITERIA_STD: float = field(
+        metadata={"validate": validate.Range(min=0, max=1)}
+    )
+    USER_QUERY_BUDGET_LIMIT: float = field(metadata={"validate": validate.Range(min=0)})
+    RANDOM_SEED: float = field(metadata={"validate": validate.Range(min=-1)})
+    NR_QUERIES_PER_ITERATION: int = field(metadata={"validate": validate.Range(min=0)})
+    N_JOBS: int = field(metadata={"validate": validate.Range(min=-1)})
+    NR_LEARNING_ITERATIONS: int = field(metadata={"validate": validate.Range(min=0)})
     ALLOW_RECOMMENDATIONS_AFTER_STOP: bool
     WITH_UNCERTAINTY_RECOMMENDATION: bool
     WITH_CLUSTER_RECOMMENDATION: bool
     WITH_SNUBA_LITE: bool
 
-    RANDOM_SAMPLE_EVERY: int = field(metadata={'validate': validate.Range(min=5)})
+    RANDOM_SAMPLE_EVERY: int = field(metadata={"validate": validate.Range(min=5)})
 
 
 ALConfigSchema = class_schema(ALConfig)
@@ -129,7 +156,5 @@ default_al_config = ALConfig(
     RANDOM_SEED=-1,
     N_JOBS=-1,
     NR_LEARNING_ITERATIONS=200000,
-    RANDOM_SAMPLE_EVERY=10
+    RANDOM_SAMPLE_EVERY=10,
 )
-
-

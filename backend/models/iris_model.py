@@ -8,4 +8,3 @@ class Flower(db.Model):
     petal_length = db.Column(db.Float)
     petal_width = db.Column(db.Float)
     label = db.Column(db.Integer)
-

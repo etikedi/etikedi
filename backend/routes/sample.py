@@ -29,7 +29,7 @@ class SampleAPI(Resource):
         user = current_user()
         label_id = None
         try:
-            label_id = request.json['label_id']
+            label_id = request.json["label_id"]
         except KeyError:
             abort(400)
 
@@ -38,9 +38,7 @@ class SampleAPI(Resource):
 
         try:
             new_association = Association(
-                sample_id=sample_id,
-                label_id=label_id,
-                user_id=user.id
+                sample_id=sample_id, label_id=label_id, user_id=user.id
             )
             db.session.add(new_association)
             db.session.commit()
@@ -51,10 +49,7 @@ class SampleAPI(Resource):
         dataset = Sample.query.get(sample_id).dataset
 
         notify_about_new_sample(
-            dataset=dataset,
-            user_id=user.id,
-            sample_id=sample_id,
-            label_id=label_id
+            dataset=dataset, user_id=user.id, sample_id=sample_id, label_id=label_id
         )
 
         next_sample = get_next_sample(dataset, app)
@@ -64,12 +59,14 @@ class SampleAPI(Resource):
         return SampleSchema().dump(next_sample), 201
 
     def can_assign(self, sample_id, label_id):
-        return bool(db.session.query(Dataset, Sample, Label)
-                    .filter(Dataset.id == Sample.dataset_id)
-                    .filter(Dataset.id == Label.dataset_id)
-                    .filter(Sample.id == sample_id)
-                    .filter(Label.id == label_id)
-                    .count())
+        return bool(
+            db.session.query(Dataset, Sample, Label)
+            .filter(Dataset.id == Sample.dataset_id)
+            .filter(Dataset.id == Label.dataset_id)
+            .filter(Sample.id == sample_id)
+            .filter(Label.id == label_id)
+            .count()
+        )
 
 
-api.add_resource(SampleAPI, '/api/sample/<int:sample_id>')
+api.add_resource(SampleAPI, "/api/sample/<int:sample_id>")

@@ -45,4 +45,4 @@ class ConfigAPI(Resource):
         return None, 204
 
 
-api.add_resource(ConfigAPI, '/api/datasets/<int:dataset_id>/config')
+api.add_resource(ConfigAPI, "/api/datasets/<int:dataset_id>/config")

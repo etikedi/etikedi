@@ -48,14 +48,13 @@ class Text(Sample):
         >>> db.session.query(Sample).all()
         [Text 1 in dataset "Lorem"]
     """
-    __tablename__ = 'text'
 
-    id = db.Column(db.Integer, db.ForeignKey('sample.id'), primary_key=True)
+    __tablename__ = "text"
+
+    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
     content = db.Column(db.Text())
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'text'
-    }
+    __mapper_args__ = {"polymorphic_identity": "text"}
 
     def __str__(self):
         return 'Text {} in dataset "{}"'.format(self.id, self.dataset)

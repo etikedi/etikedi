@@ -12,23 +12,22 @@ class ImportAPI(Resource):
 
     def post(self, dataset_id: int):
         dataset = Dataset.query.get(dataset_id)
-        sample_type = request.form['sample_type'].lower()
-        sample_class = {
-            'table': Table,
-            'image': Image,
-            'text': Text
-        }[sample_type]
+        sample_type = request.form["sample_type"].lower()
+        sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
 
         import_dataset(
             dataset=dataset,
             sample_class=sample_class,
-            features=request.files['features'],
-            content=request.files['content'],
+            features=request.files["features"],
+            content=request.files["content"],
             user=current_user(),
-            ensure_incomplete=True
+            ensure_incomplete=True,
         )
 
-        return db.session.query(Sample.id).filter(Sample.dataset == dataset).count(), 200
+        return (
+            db.session.query(Sample.id).filter(Sample.dataset == dataset).count(),
+            200,
+        )
 
 
-api.add_resource(ImportAPI, '/api/datasets/<int:dataset_id>/import')
+api.add_resource(ImportAPI, "/api/datasets/<int:dataset_id>/import")

@@ -22,7 +22,7 @@ class DatasetList(Resource):
 
     def post(self):
         try:
-            new_dataset = Dataset(name=request.form['name'])
+            new_dataset = Dataset(name=request.form["name"])
             db.session.add(new_dataset)
             db.session.commit()
             return DatasetSchema().dump(new_dataset)
@@ -57,8 +57,8 @@ class DatasetDetail(Resource):
         pass
 
 
-api.add_resource(DatasetList, '/api/datasets/')
-api.add_resource(DatasetDetail, '/api/datasets/<int:dataset_id>/')
+api.add_resource(DatasetList, "/api/datasets/")
+api.add_resource(DatasetDetail, "/api/datasets/<int:dataset_id>/")
 
 
 @app.errorhandler(404)

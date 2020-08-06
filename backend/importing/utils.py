@@ -20,7 +20,7 @@ def get_or_create_dataset(name):
 
 
 def download_archive(url: str, download_path: Path, target_path: Path):
-    with download_path.open('wb') as f:
+    with download_path.open("wb") as f:
         f.write(requests.get(url).content)
 
     shutil.unpack_archive(download_path, target_path)

@@ -5,7 +5,7 @@ from .cifar import convert_cifar
 from .generic import import_dataset
 
 
-DATA_PATH = (Path(__file__).absolute() / '../../data').resolve()
+DATA_PATH = (Path(__file__).absolute() / "../../data").resolve()
 
 
 def import_test_datasets():
@@ -15,5 +15,5 @@ def import_test_datasets():
     import_religions_texts(DATA_PATH)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import_test_datasets()
