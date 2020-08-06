@@ -1,0 +1,359 @@
+openapi: 3.0.0
+info:
+  description: Aergia Server API Specification
+  version: 0.1.0
+  title: Aergia API
+  license:
+    name: GNU Affero General Public License v3.0.
+    url: 'https://choosealicense.com/licenses/agpl-3.0/'
+servers:
+  - url: http://localhost:5000
+
+paths:
+  /api/datasets:
+    get:
+      description: 'Retrieve all available datasets currently defined, with corresponding ids.'
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/datasets'
+        401:
+          description: Missing authorisation
+
+  '/api/datasets/{dataset_id}/labels':
+    get:
+      description: Retrieve all labels available for a dataset.
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/labels'
+        401:
+          description: Missing authorisation
+
+    parameters:
+      - name: dataset_id
+        in: path
+        description: ID of the dataset to request labels for
+        required: true
+        schema:
+          type: integer
+
+  '/api/datasets/{dataset_id}':
+    get:
+      description: Returns the next sample for the given dataset
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sample'
+
+        401:
+          description: Missing authorisation
+    parameters:
+      - name: dataset_id
+        in: path
+        description: 'Id of the dataset to request a sample for'
+        required: true
+        schema:
+          type: integer
+
+  '/api/datasets/{dataset_id}/config':
+    get:
+      description: Get the current parameters for the active learning process of this dataset
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/al_config'
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+    post:
+      description: Update the parameters for the active learning process of this dataset. Implies a restart of the active learning process which might take some time.
+      tags:
+        - Active Learning
+      requestBody:
+        $ref: '#/components/requestBodies/ALConfig'
+      responses:
+        204:
+          description: Change successful
+        400:
+          description: Missing or invalid argument. See body for description.
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+
+    parameters:
+      - name: dataset_id
+        in: path
+        description: 'Id of the dataset to request a sample for'
+        required: true
+        schema:
+          type: integer
+
+  '/api/datasets/{dataset_id}/import':
+    post:
+      description: Import samples into a dataset by passing some prepared files. Please see the README of the backend code for the expected format.
+      tags:
+        - Active Learning
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                sample_type:
+                  type: string
+                  enum:
+                    - table
+                    - text
+                    - image
+                content:
+                  type: string
+                  format: binary
+                features:
+                  type: string
+                  format: binary
+      responses:
+        201:
+          description: Import successful
+        400:
+          description: Bad files.
+        401:
+          description: Missing authentication
+        404:
+          description: The dataset with the given id does not exist
+
+    parameters:
+      - name: dataset_id
+        in: path
+        description: ID of the dataset to request labels for
+        required: true
+        schema:
+          type: integer
+
+
+
+  '/api/sample/{sample_id}':
+    post:
+      description: 'Add a label to a sample. Returns the next sample that should be labeled'
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sample'
+        400:
+          description: 'Bad Request, malformed request body'
+        404:
+          description: 'Resource described in {sample_id} not found'
+        409:
+          description: 'Conflict. Returned when label was already assigned to the sample by the currently logged in user'
+      requestBody:
+        $ref: '#/components/requestBodies/Association'
+    get:
+      description: Request a specific sample by id
+      tags:
+        - Active Learning
+      responses:
+        200:
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/sample'
+        401:
+          description: Missing authorisation
+    parameters:
+      - name: sample_id
+        in: path
+        description: Id of requested sample
+        required: true
+        schema:
+          type: integer
+
+  /login:
+    post:
+      description: Login a user. Issues a JWT Token
+      tags:
+        - User
+      responses:
+        200:
+          description: 'Successful'
+      requestBody:
+        $ref: '#/components/requestBodies/UserCredentials'
+
+  /refresh:
+    get:
+      description: Refreshes an existing JWT
+      tags:
+        - User
+      responses:
+        200:
+          description: OK
+
+
+components:
+  schemas:
+    labels:
+      type: array
+      items:
+        $ref: '#/components/schemas/label'
+      example:
+        - name: CAT
+          id: 21829
+        - name: DOG
+          id: 21827
+        - name: PROGRAMMER
+          id: 21828
+
+    label:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    datasets:
+      type: array
+      items:
+        $ref: '#/components/schemas/dataset'
+      example:
+        - id: 27138
+          name: DWTC
+        - id: 45632
+          name: CIFAR
+
+    dataset:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    al_config:
+      type: object
+      properties:
+        sampling:
+          type: string
+        cluster:
+          type: string
+        nr_queries_per_iteration:
+          type: integer
+        with_uncertainty_recommendation:
+          type: boolean
+        with_cluster_recommendation:
+          type: boolean
+        with_snuba_lite:
+          type: boolean
+        minimum_test_accuracy_before_recommendations:
+          type: number
+        uncertainty_recommendation_certainty_threshold:
+          type: number
+        uncertainty_recommendation_ratio:
+          type: number
+        cluster_recommendation_ratio_labeled_unlabeled:
+          type: number
+        cluster_recommendation_minimum_cluster_unity_size:
+          type: number
+        allow_recommendations_after_stop:
+          type: boolean
+        stopping_criteria_uncertainty:
+          type: number
+        stopping_criteria_acc:
+          type: number
+        stopping_criteria_std:
+          type: number
+        user_query_budget_limit:
+          type: number
+        random_seed:
+          type: number
+        n_jobs:
+          type: integer
+        nr_learning_iterations:
+          type: integer
+
+    sample:
+      type: object
+      required:
+        - id
+        - data
+      properties:
+        id:
+          type: integer
+          format: int64
+        dataset_id:
+          type: integer
+          format: int64
+        data:
+          type: string
+          description: If the sample contains binary data (e.g. an image), the content is included as base64 encoded.
+        type:
+          type: string
+          enum:
+            - table
+            - text
+            - image
+
+      example:
+        id: 420
+        dataset_id: 1
+        data: '<table><thead></thead>...</table>'
+        type: table
+
+  requestBodies:
+    Association:
+      content:
+        application/json:
+          schema: {}
+          example:
+            label_id: 17248
+
+    ALConfig:
+      description: Optional description in *Markdown*
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/al_config'
+
+    UserCredentials:
+      content:
+        application/json:
+          schema: {}
+          example:
+            username: vinniboi
+            password: likesmeatyumyum

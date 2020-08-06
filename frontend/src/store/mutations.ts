@@ -1,22 +1,4 @@
-import {LabelPayload, State} from "@/store/models";
-
-export const setCv = (state: State, data: any) => {
-    state.cv = data;
-};
-
-export const nextCv = (state: State) => {
-    if (state.cvId == 1) state.prevButtonDisabled = false;
-    state.cvId++;
-};
-
-export const prevCv = (state: State) => {
-    if (state.cvId == 2) {
-        state.prevButtonDisabled = true;
-        state.cvId--;
-    } else {
-        state.cvId--;
-    }
-};
+import {State} from "@/store/models";
 
 export const startLoading = (state: State) => {
     state.loading = true;
@@ -26,12 +8,26 @@ export const endLoading = (state: State) => {
     state.loading = false;
 };
 
-export const changeLabel = (state: State, payload: LabelPayload) => {
-    for (let i = payload.startId; i <= payload.endId; i++) {
-        state.cv.features[i][1]["label"] = payload.label;
-    }
-};
 
-export const toggleShowFeatureTooltips = (state: State, newValue: boolean) => {
-    state.displayFeatureTooltips = newValue;
-};
+export const setDatasets = function(state, {datasets}) {
+	// translate array-based format into key-value store used by view
+	const newDatasets = {};
+	for (const dataset of datasets) {
+		newDatasets[dataset.id] = dataset;
+	}
+	console.log("Received available datasets from server:");
+	console.log(newDatasets);
+	state.datasets = newDatasets;
+}
+
+export const setActiveDatasetId = function(state, datasetId) {
+	state.activeDatasetId = datasetId;
+}
+
+export const setActiveDataset = function(state, dataset) {
+	state.activeDataset = dataset;
+}
+
+export const setLabels = function(state, labels) {
+	state.labels = labels;
+}

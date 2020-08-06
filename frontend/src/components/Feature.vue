@@ -1,26 +1,23 @@
 <template>
-    <span
-            v-html="text"
-            style="border: 1px darkgrey dashed;"
-            :class="label"/>
+    <span v-html="text" style="border: 1px darkgrey dashed;" :class="label" />
 </template>
 
 <script lang="ts">
-    export default {
-        name: "Feature",
-        props: {
-            text: String,
-            label: String
-        },
-    };
+export default {
+    name: "Feature",
+    props: {
+        text: String,
+        label: String
+    }
+};
 </script>
 
 <style scoped lang="scss">
-    .skill {
-        color: red;
-    }
+.skill {
+    color: red;
+}
 
-    .noskill {
-        color: blue;
-    }
+.noskill {
+    color: blue;
+}
 </style>

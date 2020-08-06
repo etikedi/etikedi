@@ -1,65 +1,137 @@
 <template>
     <header>
-        <nav class="navbar is-fixed-top hero is-info is-bold" role="navigation" aria-label="main navigation">
+        <nav
+            class="navbar is-fixed-top hero is-info is-bold"
+            role="navigation"
+            aria-label="main navigation"
+        >
             <div class="hero-head">
                 <div class="container">
-                    <div class="navbar-menu">
-                        <div class="navbar-end">
-                            <a class="navbar-item is-active" @click="nextCv">
-                                Home
-                            </a>
-                            <a class="navbar-item">
-                                Examples
-                            </a>
-                            <a class="navbar-item">
-                                Documentation
-                            </a>
+                    <b-navbar>
+                        <template slot="start">
+                            <b-navbar-item @click="route('/home')"
+                                >Home</b-navbar-item
+                            >
+                            <b-navbar-dropdown label="Label">
+                                <b-navbar-item
+                                    v-for="(dataset, datasetId) in datasets"
+                                    :key="datasetId"
+                                    @click="route('/label/' + datasetId)"
+                                    style="color: #000000;"
+                                    >{{ dataset.name }}</b-navbar-item
+                                >
+                            </b-navbar-dropdown>
+                            <b-navbar-item href="#">Upload</b-navbar-item>
+                            <b-navbar-item href="#">Browse</b-navbar-item>
 
-                        </div>
-                    </div>
+                            <b-navbar-dropdown label="Info">
+                                <b-navbar-item
+                                    @click="route('/about')"
+                                    style="color: #000000;"
+                                    >About</b-navbar-item
+                                >
+                                <b-navbar-item
+                                    @click="route('/contact')"
+                                    style="color: #000000;"
+                                    >Contact</b-navbar-item
+                                >
+                            </b-navbar-dropdown>
+                            
+                            <b-navbar-dropdown label="ALParams">
+                                <b-navbar-item
+                                    v-for="(dataset, datasetId) in datasets"
+                                    :key="datasetId"
+                                    @click="route('/params/' + datasetId)"
+                                    style="color: #000000;"
+                                    >{{ dataset.name }}</b-navbar-item
+                                >
+                            </b-navbar-dropdown>
+                        </template>
+
+                        <template slot="end" class="ml-auto">
+                            <b-navbar-item tag="div">
+                                <div class="buttons">
+                                    <a
+                                        class="button is-light"
+                                        v-if="!isAuthenticated"
+                                    >
+                                        <router-link to="/signup"
+                                            >Sign up</router-link
+                                        >
+                                    </a>
+                                    <a
+                                        class="button is-light"
+                                        v-if="!isAuthenticated"
+                                    >
+                                        <router-link to="/login"
+                                            >Log in</router-link
+                                        >
+                                    </a>
+                                    <a
+                                        class="button is-light"
+                                        @click="logout()"
+                                        v-if="isAuthenticated"
+                                    >
+                                        <router-link to="/home"
+                                            >Logout</router-link
+                                        >
+                                    </a>
+                                </div>
+                            </b-navbar-item>
+                        </template>
+                    </b-navbar>
                 </div>
             </div>
             <div class="hero-body">
                 <div class="container">
                     <h1 class="title">{{ title }}</h1>
-                    <p class="subtitle">
-                        {{ subtitle }}
-                    </p>
+                    <p class="subtitle">{{ subtitle }}</p>
                 </div>
             </div>
 
-            <div class="hero-foot">
+            <!-- header component of LabelView, only shown when activeDatasetId set (see labelView) -->
+            <div class="hero-foot" v-if="activeDatasetId != null">
                 <div class="container">
                     <div id="navbarMenuHeroA" class="navbar-menu">
                         <div class="navbar-start">
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-left="chevron-left"
-                                      @click="prevCv" :disabled=prevButtonDisabled inverted outlined>
-                                Prev
-                            </b-button>
-                            <h2 class="title" style="padding: 0 1rem 0 1rem">{{ cvId }}</h2>
-                            <b-button class="navbar-item" tag="a" type="is-link" icon-right="chevron-right"
-                                      @click="nextCv" :disabled=nextButtonDisabled inverted outlined>
-                                Next
-                            </b-button>
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-left="chevron-left"
+                                @click="prevSample"
+                                :disabled="prevButtonDisabled"
+                                inverted
+                                outlined
+                                >Prev</b-button
+                            >
+                            <h2 class="title" style="padding: 0 1rem 0 1rem">
+                                {{ $store.getters.sampleShortTitle }}
+                            </h2>
+                            <b-button
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                icon-right="chevron-right"
+                                @click="nextSample"
+                                :disabled="nextButtonDisabled"
+                                inverted
+                                outlined
+                                >Next</b-button
+                            >
                         </div>
-                        <b-select v-model="objectType" placeholder="Objekttyp auswählen">
-                            <option value="1">CIFAR</option>
-                            <option value="2">DWTC</option>
-                            <option value="3">Equations</option>
-                            <option value="4">Religious Texts</option>
-                            <option value="5">Resumees</option>
-                        </b-select>
-
                         <div class="navbar-end">
-                            <b-switch
-                                    class="navbar-item"
-                                    v-model="localDisplayFeatureTooltips"
-                                    type="is-warning"> Tooltips
-                            </b-switch>
-                            <b-button v-for="(label,index) in labels" :key="index" class="navbar-item" tag="a"
-                                      type="is-link" @click="labelThis(label)" inverted outlined>
-                                {{ label }}
-                            </b-button>
+                            <b-button
+                                v-for="(label, index) in labels"
+                                :key="index"
+                                class="navbar-item"
+                                tag="a"
+                                type="is-link"
+                                @click="labelSample(label.id)"
+                                inverted
+                                outlined
+                                >{{ label.name }}</b-button
+                            >
                         </div>
                     </div>
                 </div>
@@ -69,71 +141,61 @@
 </template>
 
 <script lang="ts">
-    import {mapState, mapActions, mapGetters} from 'vuex';
-    import store from "@/store";
+import {mapState, mapActions, mapGetters} from "vuex";
+import store from "@/store";
 
-    export default {
-        name: "Header",
-        props: {
-            title: String,
-            subtitle: String
+export default {
+    name: "Header",
+    props: {
+        title: String,
+        subtitle: String
+    },
+    data: () => {
+        const isAuthenticated = !!localStorage.getItem("jwtToken");
+        return {isAuthenticated};
+    },
+    computed: {
+        ...mapState([
+            "datasets",
+            "activeDatasetId",
+            "activeDataset",
+            "loading",
+            "labels"
+        ]),
+        ...mapGetters([
+            "datasetType",
+            "sampleShortTitle",
+            "prevButtonDisabled",
+            "nextButtonDisabled"
+        ])
+    },
+    methods: {
+        ...mapActions(["nextSample", "prevSample", "labelSample"]),
+        logout() {
+            localStorage.removeItem("jwtToken");
+            location.reload(true);
         },
-        data: function () {
-            return {
-                objectType: "",
-                labels: ['skill', 'noskill']
-            }
-        },
-        computed: {
-            ...mapState(['cvId', 'prevButtonDisabled', 'nextButtonDisabled']),
-            localDisplayFeatureTooltips: {
-                get(): boolean {
-
-                    return store.state.displayFeatureTooltips;
-                },
-                set(newValue: boolean) {
-                    store.commit("toggleShowFeatureTooltips", newValue);
-                }
-            }
-        },
-        methods:{
-            ...mapActions(['nextCv', 'prevCv', 'labelThis'])
-            
-        },
-        handleHeaderScroll(event: Event) {
-                window.console.log("oh oh");
-                // don't know where function 'error(string)' is declared, neither what it's supposed to do so replaced it with 'alert("ui")'
-                // error("ui")
-                alert("ui")
-        },
-        created() {
-                window.addEventListener('scroll', this.handleHeaderScroll);
-        },
-        destroyed() {
-                window.removeEventListener('scroll', this.handleHeaderScroll);
-        },
-        watch:{
-            objectType: function(value: any){
-                return this.$emit("updateObjectType", value);
+        route(toPath) {
+            if (this.$route.path !== toPath) {
+                this.$router.push(toPath);
             }
         }
-    };
+    },
+    created(): void {
+        this.$store.dispatch("loadAllDatasets");
+    }
+};
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
+.sticky {
+    position: fixed;
+    top: 0;
+    width: 100%;
+}
 
-    #navbarMenuHeroA {
-    }
-
-    .sticky {
-        position: fixed;
-        top: 0;
-        width: 100%;
-    }
-
-    .sticky + .section {
-        padding-top: 3rem;
-    }
-
+.sticky + .section {
+    padding-top: 3rem;
+}
 </style>

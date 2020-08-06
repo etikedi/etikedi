@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from sklearn import datasets
 from sklearn.preprocessing import LabelEncoder
-
+from sklearn.metrics import accuracy_score
 from active_learning.al_cycle_wrapper import train_al
 from active_learning.experiment_setup_lib import init_logger
 from aergia_oracle import AergiaOracle
@@ -29,11 +29,13 @@ config = {
     "NR_LEARNING_ITERATIONS": 200000,
 }
 
-init_logger("log.txt")
+init_logger("log_example.txt")
 
 iris = datasets.load_iris()
 
-# X and Y need to be both of the same dataframe in order to have consistent indexing!
+Y_true = iris["target"]
+
+# fewer comments, but with better API
 df = pd.DataFrame(
     data=np.c_[iris["data"], iris["target"]],
     columns=iris["feature_names"] + ["target"],
@@ -58,3 +60,9 @@ print(
         sum(metrics_per_al_cycle["query_length"])
     )
 )
+
+print(data_storage.train_labeled_Y["label"].to_list())
+print(Y_true)
+
+# random sampling -> expected accuracy should be ~0.3333
+print(accuracy_score(Y_true, data_storage.train_labeled_Y["label"].to_list()))

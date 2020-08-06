@@ -3,16 +3,10 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[dev-packages]
-pylint = "*"
-pydocstyle = "*"
-rope = "*"
-black = "==19.10b0"
-jedi = "*"
-
 [packages]
 flask-restful = "*"
 flask-cors = "*"
+flask-praetorian = "*"
 flask-sqlalchemy = "*"
 pyspellchecker = "*"
 nltk = "*"
@@ -34,7 +28,20 @@ statsmodels = "*"
 tensorflow-ranking = "*"
 scikeras = "*"
 dill = "*"
+flask-marshmallow = "*"
+marshmallow-sqlalchemy = "*"
+flask-swagger-ui = "*"
+pillow = "*"
+requests = "*"
+dataclasses = "*"
+marshmallow-dataclass = "*"
 
+[dev-packages]
+pylint = "*"
+pydocstyle = "*"
+rope = "*"
+black = "==19.10b0"
+jedi = "*"
 
 [requires]
 python_version = "3"

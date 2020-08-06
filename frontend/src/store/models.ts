@@ -1,14 +1,17 @@
 export interface State {
-    cvId: number,
+	datasets: any,
+    // currently active dataset ID
+    activeDatasetId: string,
+    // currently active dataset, updated by 'updateActiveDataset' action!
+    activeDataset: any,
+    // labels for the active dataset
+    labels: any,
+
     loading: boolean,
-    cv: any,
-    prevButtonDisabled: boolean,
-    nextButtonDisabled: boolean,
-    displayFeatureTooltips: boolean,
 }
 
 export interface LabelPayload {
-    startId: number,
-    endId: number,
-    label: string
+    startId: number;
+    endId: number;
+    label: string;
 }

@@ -1,45 +1,72 @@
-import Vue from "vue"
-import Vuex from "vuex"
-// Enable again if there is something in getters.ts
-// import * as getters from "./getters"
-import * as actions from "./actions"
-import * as mutations from "./mutations"
-import {State} from "@/store/models";
+/* eslint-disable camelcase */
+/* eslint-disable @typescript-eslint/camelcase */
+
+import Vue from "vue";
+import Vuex from "vuex";
+import * as getters from "./getters";
+import * as actions from "./actions";
+import * as mutations from "./mutations";
+import {State} from "./models";
+
+import {cvStore} from "@/components/CV/store/module";
+// import {dwtcStore} from "@/components/dwtc/store/module";
+// import {religiousStore} from "@/components/religious/store/module";
+import {cifarStore} from "@/components/CIFAR/store/module";
+import {authStore} from "@/components/login/store/module";
+import {defaultApiStore} from "./default/module";
 
 Vue.use(Vuex);
 
 const debug = process.env.NODE_ENV !== "production";
 
 const state: State = {
-    cvId: 3,
-    loading: false,
-    cv: {},
-    prevButtonDisabled: false,
-    nextButtonDisabled: false,
-    displayFeatureTooltips: true,
+    // Note: datasetType is no longer set in State, as only the LabelView needs to know about it
+
+    // Which API to use to perform requests.
+    // Actions from header buttons are delegated to the active
+    // apiType. For most datasets in AERGIA, the 'default' apiType
+    // will be used, which calls the AergiaDefaultApiService
+    // -!- apiType has moved to a getter, which retrieves it from activeDataset
+
+    // Available datasets (retrieved from server)
+    // datasetId: {name:"bla"}
+    datasets: {},
+    // currently active dataset ID
+    activeDatasetId: null,
+    // currently active dataset, updated by 'updateActiveDataset' action!
+    activeDataset: null,
+    // labels for the active dataset
+    labels: [],
+
+    loading: false
 };
 
 const store = new Vuex.Store({
     state,
-    getters: {},
+    modules: {
+        cv: cvStore,
+        // dwtc: dwtcStore,
+        // religious: religiousStore,
+        cifar: cifarStore,
+        login: authStore,
+        // add imported dataset type modules here!
+        //api_<apiType>
+        api_default: defaultApiStore
+    },
+    getters,
     actions,
     mutations,
-    modules: {},
     strict: debug
 });
 
 if (module.hot) {
-    module.hot.accept([
-        "./getters",
-        "./actions",
-        "./mutations"
-    ], () => {
+    module.hot.accept(["./getters", "./actions", "./mutations"], () => {
         store.hotUpdate({
             getters: require("./getters"),
             actions: require("./actions"),
             mutations: require("./mutations")
-        })
-    })
+        });
+    });
 }
 
-export default store
+export default store;

@@ -2,9 +2,11 @@
 .vim
 .idea
 .vscode
+backend/data
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
+log.txt
