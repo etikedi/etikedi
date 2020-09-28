@@ -16,9 +16,9 @@ AERGIA ist eine Software, ähnlich zu kommerziellen Produkten wie https://labelb
         (b) n Benutzer\*innen labeln diesselben Datenpunkte -> Label wird am Ende per majority-vote entschieden (oder von einem Admin in einem extra Interface)
 - das ALM kann auch optional automatisch Label für Datenpunkte vergeben. Eine UI welche die Benutzer\*innen darüber informiert, wenn dies geschieht, mit der Möglichkeit, zu intervenieren wenn Daten falsch gelabelt wurden (sowas wie "diese 10 Bilder sehen für das ALM alle nach einer Giraffe aus, stimmt das?")
 - einfache Visualisierung von Metriken aus dem ALM
-- Bildausschnitte (mit der Maus Regionen markieren) als Datentyp
 - neue Datensätze per GUI hochladbar
 - gelabelte Daten per GUI herunterladbar
+- Bildausschnitte (mit der Maus Regionen markieren) als Datentyp
 ## Won't have Features (this time)
 - Skalierbarkeit ist nicht wichtig (siehe "Einsatz")
 
