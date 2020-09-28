@@ -9,6 +9,7 @@ AERGIA ist eine Software, ähnlich zu kommerziellen Produkten wie https://labelb
 - "Grid" Darstellung gelabelter Datenpunkte (gelabelte sowohl als auch ungelabelte Datenpunkte)
 - Label wieder zurücknehmbar ("Undo" Button)
 - Bedienung des Label Interfaces per Tastatur (eine Taste pro Label) um schnell viele Samples labeln zu können
+- es sollte einfach sein, eine neue Visualisierung für einen neuen unterstützten Datentype hinzuzufügen, der Frontendcode sollte also wenn möglich aus vielen wiederwendbaren modularen Blöcken bestehen
 ## Could have Features (Priorität in dieser Reihenfolge)
 - Konfigurierung der Parameter vom ALM in der GUI
 - Verschiedene Label Modi: 
