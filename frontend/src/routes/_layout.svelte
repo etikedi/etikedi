@@ -2,9 +2,8 @@
   import { onMount } from 'svelte'
   import 'chota/dist/chota.min.css'
 
-  import Login from '../components/Login.svelte'
-
-  import { auth, login } from '../store/auth'
+  import Nav from '../components/Nav.svelte'
+  import { login } from '../store/auth'
 
   onMount(async () => {
     login()
@@ -22,12 +21,7 @@
   }
 </style>
 
-{#if $auth.token !== null}
-  <main>
-    {#if $auth.token}
-      <slot />
-    {:else}
-      <Login />
-    {/if}
-  </main>
-{/if}
+<Nav />
+<main>
+  <slot />
+</main>
