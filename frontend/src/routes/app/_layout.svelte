@@ -1,12 +1,13 @@
 <script>
   import Login from '../../components/Login.svelte'
 
-  import { auth } from '../../store/auth'
+  import { auth } from '../../store'
+
+  const { token } = auth
 </script>
 
-<div>{$auth.token}</div>
-{#if $auth.token !== null}
-  {#if $auth.token}
+{#if $token !== null}
+  {#if $token}
     <slot />
   {:else}
     <Login />

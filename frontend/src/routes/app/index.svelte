@@ -1,7 +1,9 @@
 <script>
   import { onMount } from 'svelte'
 
-  import { datasets, load } from '../../store/datasets'
+  import { datasets } from '../../store'
+
+  const { data, load } = datasets
 
   onMount(() => {
     load()
@@ -10,6 +12,6 @@
 
 <h1>App</h1>
 
-{#each $datasets as dataset}
+{#each $data as dataset}
   <div>{JSON.stringify(dataset)}</div>
 {/each}

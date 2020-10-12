@@ -1,12 +1,14 @@
 <script>
   import { onMount } from 'svelte'
-  import 'chota/dist/chota.min.css'
+  import 'spectre.css/dist/spectre.css'
 
   import Nav from '../components/Nav.svelte'
-  import { login } from '../store/auth'
+  import { auth } from '../store'
+
+  export let segment
 
   onMount(() => {
-    login()
+    auth.login()
   })
 </script>
 
@@ -21,7 +23,7 @@
   }
 </style>
 
-<Nav />
+<Nav {segment} />
 <main>
   <slot />
 </main>

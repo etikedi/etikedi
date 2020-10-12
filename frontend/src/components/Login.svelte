@@ -1,7 +1,5 @@
 <script>
-  import { Input, Field, Button } from 'svelte-chota'
-
-  import { login } from '../store/auth'
+  import { auth } from '../store'
 
   let loading = false
   let error = ''
@@ -14,7 +12,7 @@
     try {
       loading = true
       error = ''
-      await login(form)
+      await auth.login(form)
     } catch {
       error = 'Nope'
       form.password = ''
@@ -24,15 +22,29 @@
   }
 </script>
 
-<form on:submit|preventDefault={submit}>
-  <Field label="Username">
-    <Input type="text" bind:value={form.username} disabled={loading} />
-  </Field>
-  <Field label="Password">
-    <Input type="password" bind:value={form.password} disabled={loading} />
-  </Field>
+<style>
+  form {
+    margin: 4em auto;
+    max-width: 20em;
+  }
+</style>
 
-  <Button submit primary {loading}>Login</Button>
+<form on:submit|preventDefault={submit}>
+  <div class="form-group">
+    <label class="form-label">
+      Name
+      <input class="form-input" type="text" bind:value={form.username} disabled={loading} />
+    </label>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">
+      Password
+      <input class="form-input" type="password" bind:value={form.password} disabled={loading} />
+    </label>
+  </div>
+
+  <button type="submit" class="btn btn-primary" disabled={loading} class:loading>Login</button>
 
   {#if error}
     <p class="text-error">{error}</p>

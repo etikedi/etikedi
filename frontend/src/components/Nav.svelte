@@ -1,35 +1,48 @@
 <script>
-  import { Nav } from 'svelte-chota'
+  import { logout, token } from '../store/auth'
 
-  import { auth } from '../store/auth'
+  export let segment
 </script>
 
 <style>
-  div :global(.nav) {
+  div header {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     z-index: 10;
-    height: 3em;
-    border-bottom: 1px solid black;
-    background-color: #fffffff5;
+    background-color: #009fff;
+    padding: 0.5rem 1rem;
+    color: white;
   }
 
   div {
     margin-bottom: 3em;
   }
+
+  h3 {
+    margin: 0;
+  }
+
+  a {
+    color: inherit;
+    font-size: 1.15em;
+  }
 </style>
 
 <div>
-  <Nav class="nav">
-    <a slot="left" class="active" href="/about">About</a>
-
-    <a slot="center" href="/" class="brand">Aergia</a>
-
-    <!-- <a slot="right" href={$auth.token ? '/logout' : '/app'}>
-      {#if $auth.token}Logout{:else}Login{/if}
-		</a> -->
-    <a slot="right" href="/app">App</a>
-  </Nav>
+  <header class="navbar">
+    <section class="navbar-section">
+      <a href="/" class="btn btn-link"> Home</a>
+      <a href="/about" class="btn btn-link">About</a>
+    </section>
+    <section class="navbar-center">
+      <h3>Aergia</h3>
+    </section>
+    <section class="navbar-section">
+      {#if segment === 'app' && $token === null}
+        <a href="/app" class="btn btn-link">App</a>
+      {:else}<a on:click={logout} class="btn btn-link">Logout</a>{/if}
+    </section>
+  </header>
 </div>

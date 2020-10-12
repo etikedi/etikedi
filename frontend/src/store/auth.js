@@ -9,14 +9,12 @@ axios.defaults.withCredentials = false
 
 const STORAGE_KEY = 'aergia:token'
 
-export const auth = writable({
-  token: null,
-})
+export const token = writable(null)
 
-function save(token, persist = true) {
-  auth.update((auth) => ({ ...auth, token }))
-  axios.defaults.headers['Authorization'] = `Bearer ${token}`
-  if (persist) window.localStorage.setItem(STORAGE_KEY, token)
+function save(tkn, persist = true) {
+  token.set(tkn)
+  axios.defaults.headers['Authorization'] = `Bearer ${tkn}`
+  if (persist) window.localStorage.setItem(STORAGE_KEY, tkn)
 }
 
 function load() {
@@ -45,4 +43,9 @@ export async function login(form) {
     data: form,
   })
   save(data.access_token)
+}
+
+export function logout(){
+  window.localStorage.removeItem(STORAGE_KEY)
+  token.set(null)
 }

@@ -160,11 +160,6 @@ chalk@^2.0.0:
     escape-string-regexp "^1.0.5"
     supports-color "^5.3.0"
 
-chota@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/chota/-/chota-0.8.0.tgz#46a2d87c9eea7e811017e5b410745b839a9f343a"
-  integrity sha512-6Y6MrULPNVup+9i+bFF5mXvifw4/N0AqcTO6VkhRcmRqY0XD2/EKq2kD8y7dX/PJnDq9ruHl2NURlPtGkMSNsg==
-
 clean-css@^4.2.1:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/clean-css/-/clean-css-4.2.3.tgz#507b5de7d97b48ee53d84adb0160ff6216380f78"
@@ -588,6 +583,11 @@ sourcemap-codec@^1.4.4, sourcemap-codec@^1.4.6, sourcemap-codec@^1.4.8:
   resolved "https://registry.yarnpkg.com/sourcemap-codec/-/sourcemap-codec-1.4.8.tgz#ea804bd94857402e6992d05a38ef1ae35a9ab4c4"
   integrity sha512-9NykojV5Uih4lgo5So5dtw+f0JgJX30KCNI8gwhz2J9A15wD0Ml6tjHKwf6fTSa6fAdVBdZeNOs9eJ71qCk8vA==
 
+spectre.css@^0.5.9:
+  version "0.5.9"
+  resolved "https://registry.yarnpkg.com/spectre.css/-/spectre.css-0.5.9.tgz#86c732d093036d9fdc0a2ba570f005e4023ae6ca"
+  integrity sha512-9jUqwZmCnvflrxFGcK+ize43TvjwDjqMwZPVubEtSIHzvinH0TBUESm1LcOJx3Ur7bdPaeOHQIjOqBl1Y5kLFw==
+
 string-hash@^1.1.3:
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/string-hash/-/string-hash-1.1.3.tgz#e8aafc0ac1855b4666929ed7dd1275df5d6c811b"
@@ -606,11 +606,6 @@ supports-color@^7.0.0:
   integrity sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==
   dependencies:
     has-flag "^4.0.0"
-
-svelte-chota@^1.7.1:
-  version "1.7.1"
-  resolved "https://registry.yarnpkg.com/svelte-chota/-/svelte-chota-1.7.1.tgz#6bbab28fb19da1494c98be7950850dafeaa9a9e7"
-  integrity sha512-/4u8FArxwMNgpIhwppNuxQNKtRmV5yP3sbt9QREbUKMgdKwfum3wRWSuOh8s5T45Joe6PGNQkkWESo4EQi+34A==
 
 svelte@^3.17.3:
   version "3.29.0"
