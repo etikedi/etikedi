@@ -4,6 +4,7 @@
   import { auth } from '../../store/auth'
 </script>
 
+<div>{$auth.token}</div>
 {#if $auth.token !== null}
   {#if $auth.token}
     <slot />

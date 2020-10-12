@@ -23,8 +23,12 @@ function load() {
   const saved = window.localStorage.getItem(STORAGE_KEY)
   if (saved) {
     const decoded = JWTDecode(saved)
-    if (decoded.exp > ((Date.now() / 1000) | 0)) save(saved, false)
-  } else save('', false)
+    if (decoded.exp > ((Date.now() / 1000) | 0)) {
+      save(saved, false)
+      return
+    }
+  }
+  save('', false)
 }
 
 export async function login(form) {

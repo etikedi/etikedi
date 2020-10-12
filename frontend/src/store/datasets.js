@@ -3,16 +3,20 @@ import axios from 'axios'
 
 export const datasets = writable([])
 
-export async function fetch() {
+export async function load() {
+  console.log('test')
+  // await fetch('http://localhost:5000/api/datasets', {
+  //   method: 'GET', // *GET, POST, PUT, DELETE, etc.
+  //   redirect: 'follow', // manual, *follow, error
+  //   headers: {
+  //     Authorization: window.localStorage.getItem('aergia:token'),
+  //   },
+  // })
+  // console.log('done')
   const { data } = await axios({
+    method: 'get',
     url: '/api/datasets',
-    withCredentials: false,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      // Authorization: "Bearer " + localStorage.getItem("jwtToken")
-    },
   })
-  console.log(data)
+  // console.log(data)
   // todos.set(data)
 }

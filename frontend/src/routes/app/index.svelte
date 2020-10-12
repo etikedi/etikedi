@@ -1,10 +1,10 @@
 <script>
   import { onMount } from 'svelte'
 
-  import { datasets, fetch } from '../../store/datasets'
+  import { datasets, load } from '../../store/datasets'
 
   onMount(() => {
-    fetch()
+    load()
   })
 </script>
 

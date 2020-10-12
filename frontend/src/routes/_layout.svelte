@@ -5,7 +5,7 @@
   import Nav from '../components/Nav.svelte'
   import { login } from '../store/auth'
 
-  onMount(async () => {
+  onMount(() => {
     login()
   })
 </script>
