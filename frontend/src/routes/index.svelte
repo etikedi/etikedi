@@ -40,14 +40,14 @@
 {#each actions as action, i}
     <div class="wrapper">
         {#if i % 2 !== 0}
-            <img src={action.img}>
+            <img src={action.img} alt="Landing">
         {/if}
         <div class="text">
             <h2>{action.header}</h2>
             <span>{action.text}</span>
         </div>
         {#if i % 2 === 0}
-            <img src={action.img}>
+            <img src={action.img} alt="Landing">
         {/if}
     </div>
 {/each}

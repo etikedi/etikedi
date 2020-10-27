@@ -7,9 +7,12 @@
 </script>
 
 {#if $token !== null}
+  <!--
   {#if $token}
     <slot />
   {:else}
     <Login />
   {/if}
+  -->
+  <slot />
 {/if}

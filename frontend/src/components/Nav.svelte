@@ -42,7 +42,7 @@
     <section class="navbar-section">
       {#if segment === 'app' && $token === null}
         <a href="/app" class="btn btn-link">App</a>
-      {:else}<a on:click={logout} class="btn btn-link">Logout</a>{/if}
+      {:else}<a href="/" on:click={logout} class="btn btn-link">Logout</a>{/if}
     </section>
   </header>
 </div>
