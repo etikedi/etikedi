@@ -11,6 +11,11 @@
         border: 2px solid #DEF1F7;
         border-radius: 15px;
     }
+
+    .button {
+        align-self: center;
+        /* cursor: pointer; */
+    }
 </style>
 <div class="card mb-2 container">
     <div class="card-body columns">
@@ -35,8 +40,10 @@
             <div>{dataset.labels}</div>
         </div>
         <div class="col-2 h2">{Math.round(dataset.labeled / dataset.size * 100)}%</div>
-        <div class="col-1">
-            <i class="icon icon-3x icon-arrow-right"></i>
+        <div class="col-1 button">
+            <a href="app/dataset{dataset.id}">
+                <i class="icon icon-2x icon-arrow-right"></i>
+            </a>
         </div>
     </div>
 </div>
