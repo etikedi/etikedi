@@ -1,19 +1,17 @@
+from datetime import datetime, timedelta
+from typing import Optional
+
 from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
-from typing import Optional
-from datetime import datetime, timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from models.schemas import UserInDB, TokenData, User, Token, DatasetBase
+from models.models import Dataset
+
 
 # to get a string like this run:
 # openssl rand -hex 32
-
-SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
-SQLALCHEMY_TRACK_MODIFICATIONS = False
 SECRET_KEY = "3fb64e315cf5256245416b77fcf0a3853f60a271680a5b9a6a7f8064594c195d"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 300
@@ -43,32 +41,7 @@ fake_users_db = {
 }
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-class User(BaseModel):
-    username: str
-    email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
-
-
-class UserInDB(User):
-    hashed_password: str
-
-
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URI, connect_args={"check_same_thread": False}
-)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-Base = declarative_base()
+# models.Base.metadata.create_all(bind=engine)
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -76,14 +49,21 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app = FastAPI()
 
+origins = [
+    "http://localhost.tiangolo.com",
+    "https://localhost.tiangolo.com",
+    "http://localhost",
+    "http://localhost:8080",
+]
 
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 ##############################################################################################################
 #                                               Users                                                        #
@@ -171,31 +151,33 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@app.get("/users/me/items/")
-async def read_own_items(current_user: User = Depends(get_current_active_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
-
-
 ##############################################################################################################
 #                                               Dataset                                                      #
 ##############################################################################################################
 
-@app.get("/api/datasets")
+@app.get("/api/datasets", response_model=DatasetBase)
 async def get_dataset_list():
-    return "TODO"
+    """
+            This function responds to a request for /api/datasets
+            with the complete lists of data sets
+
+            :return:        list of datasets (e.g. dwtc, religious_texts...)
+            """
+    datasets = Dataset.query.all()
+    return DatasetBase(many=True).dump(datasets)
 
 
-@app.post("/api/datasets")
+@app.post("/api/datasets", response_model=DatasetBase)
 async def post_dataset_list():
     return "TODO"
 
 
-@app.get("/api/datasets/{dataset_id}")
+@app.get("/api/datasets/{dataset_id}", response_model=DatasetBase)
 async def get_dataset_details(dataset_id: int):
     return "TODO"
 
 
-@app.post("/api/datasets/{dataset_id}")
+@app.post("/api/datasets/{dataset_id}", response_model=DatasetBase)
 async def post_dataset_details(dataset_id: int):
     return "TODO"
 
