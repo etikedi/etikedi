@@ -47,7 +47,7 @@
     })
 </script>
 
-<h1>App</h1>
+<h1>Datasets</h1>
 
 {#each mock as dataset}
     <DatasetPreview {dataset}/>
