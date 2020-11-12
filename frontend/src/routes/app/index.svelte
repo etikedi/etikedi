@@ -47,7 +47,28 @@
     })
 </script>
 
-<h1>Datasets</h1>
+<style>
+    .header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1em;
+    }
+
+    h1 {
+        margin: 0;
+    }
+</style>
+
+<div class="header">
+    <h1>Datasets</h1>
+    <a href="/app/upload">
+        <button class="btn btn-lg">
+            Add one
+        </button>
+    </a>
+</div>
 
 {#each mock as dataset}
     <DatasetPreview {dataset}/>
