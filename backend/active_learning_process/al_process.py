@@ -3,11 +3,14 @@ from io import StringIO
 
 import numpy as np
 import pandas as pd
+from fastapi import Depends
 from sklearn.preprocessing import LabelEncoder
+from sqlalchemy.orm import Session
 
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
-from ..config import app, db
+from ..aergia import logger
+from ..database import get_db
 from ..models import Association, Sample, Dataset
 from .al_oracle import ParallelOracle
 
@@ -24,7 +27,7 @@ class ALProcess(multiprocessing.Process):
         self.config = config
         self.pipe_endpoint = pipe_endpoint
 
-    def run(self):
+    def run(self, db: Session = Depends(get_db)):
         """
         This methods represents the entry point to the active-learning code.
         Before it can be started, data has to get retrieved from database.
@@ -34,14 +37,14 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
         dataset = Dataset.query.get(self.dataset_id)
-        app.logger.info("Starting for dataset {}".format(self.dataset_id))
+        logger.info("Starting for dataset {}".format(self.dataset_id))
 
         buffer = StringIO(dataset.features)
         sample_df = pd.read_csv(buffer).set_index("ID")
         sample_ids = dict(enumerate(sample_df.index))
 
         associated_labels = (
-            db.session.query(Association.sample_id, Association.label_id)
+            db.query(Association.sample_id, Association.label_id)
             .join(Association.sample)
             .filter(Sample.dataset == dataset)
             .all()
@@ -54,7 +57,7 @@ class ALProcess(multiprocessing.Process):
         ids_of_labeled_samples = np.array(associated_labels)[:, 0]
 
         all_sample_ids = (
-            db.session.query(Sample.id)
+            db.query(Sample.id)
             .filter(Sample.dataset_id == self.dataset_id)
             .all()
         )

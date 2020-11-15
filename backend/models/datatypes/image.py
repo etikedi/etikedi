@@ -1,5 +1,6 @@
+from sqlalchemy import Column, Integer, ForeignKey, BLOB
+
 from .sample import Sample
-from ...config import db
 
 
 class Image(Sample):
@@ -52,8 +53,8 @@ class Image(Sample):
 
     __tablename__ = "image"
 
-    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
-    content = db.Column(db.BLOB)
+    id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
+    content = Column(BLOB)
 
     __mapper_args__ = {"polymorphic_identity": "image"}
 

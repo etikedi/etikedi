@@ -2,7 +2,7 @@ import json
 from multiprocessing import Pipe
 
 from .al_process import ALProcess
-from ..config import app
+from ..aergia import logger
 from ..models import Dataset
 
 
@@ -27,10 +27,10 @@ class ProcessManager:
         :return:            Process resources as a dictionary with the fields: 'process' and 'pipe'
         """
         if dataset.id in self.process_resources_by_dataset_id:
-            app.logger.debug("Process for dataset {} already running".format(dataset))
+            logger.debug("Process for dataset {} already running".format(dataset))
             return self.process_resources_by_dataset_id[dataset.id]
         else:
-            app.logger.debug("Starting new process for dataset {}".format(dataset))
+            logger.debug("Starting new process for dataset {}".format(dataset))
             backend_endpoint, process_endpoint = Pipe()
             new_process = ALProcess(
                 json.loads(dataset.config), dataset.id, process_endpoint
@@ -59,7 +59,7 @@ class ProcessManager:
         if dataset.id in self.process_resources_by_dataset_id:
             old_process = self.process_resources_by_dataset_id[dataset.id]["process"]
             old_process.terminate()
-            app.logger.debug(
+            logger.debug(
                 "Restarting process for dataset {} with new configuration".format(
                     dataset.id
                 )
@@ -71,7 +71,7 @@ class ProcessManager:
             }
             return self.process_resources_by_dataset_id[dataset.id]
         else:
-            app.logger.debug(
+            logger.debug(
                 "Starting process for dataset {} with new configuration".format(
                     dataset.id
                 )

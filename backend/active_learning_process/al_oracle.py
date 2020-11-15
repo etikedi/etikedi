@@ -4,8 +4,8 @@ from multiprocessing.connection import Connection
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
-from ..active_learning.BaseOracle import BaseOracle
-from ..config import app
+from active_learning.BaseOracle import BaseOracle
+from backend.aergia import logger
 
 
 class ParallelOracle(BaseOracle):
@@ -55,16 +55,13 @@ class ParallelOracle(BaseOracle):
         for sample_id in requested_sample_ids:
             self.pipe_endpoint.send(int(sample_id))
 
-        app.logger.debug(
-            "ALProcess.Oracle:\tRequesting labels for sample ids: "
-            + str(requested_sample_ids)
-        )
+        logger.debug("ALProcess.Oracle:\tRequesting labels for sample ids: " + str(requested_sample_ids))
         remaining_sample_ids = requested_sample_ids.copy()
         labels_by_query_index = {}
         while len(requested_sample_ids) is not len(labels_by_query_index):
             if self.pipe_endpoint.poll():
                 data = self.pipe_endpoint.recv()
-                app.logger.debug(
+                logger.debug(
                     "ALProcess.Oracle:\tFound label "
                     + str(data["label"])
                     + " for sample with id "
@@ -79,11 +76,11 @@ class ParallelOracle(BaseOracle):
                 position = np.where(remaining_sample_ids == data["id"])[0][0]
                 remaining_sample_ids = np.delete(remaining_sample_ids, position)
                 if len(remaining_sample_ids) != 0:
-                    app.logger.debug(
+                    logger.debug(
                         "ALProcess.Oracle:\tWaiting for remaining labels of samples "
                         + str(remaining_sample_ids)
                     )
-        app.logger.debug(
+        logger.debug(
             "ALProcess.Oracle:\tRequested labels complete. Current iteration successfully terminated"
         )
         labels = [labels_by_query_index[i] for i in range(len(requested_sample_ids))]

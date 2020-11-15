@@ -1,7 +1,8 @@
 import dataclasses
 import json
 
-from database import Base
+from backend.config import default_al_config
+from backend.database import Base
 from sqlalchemy import Column, Integer, VARCHAR, Text, Boolean
 from sqlalchemy import Float
 from sqlalchemy import ForeignKey, String
@@ -9,6 +10,7 @@ from sqlalchemy.orm import relationship, backref
 
 
 class Association(Base):
+    __tablename__ = "association"
     """ The decision of a user to assign a label to a sample. """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
@@ -23,6 +25,7 @@ class Association(Base):
 
 class Dataset(Base):
     """ Represents a complete dataset. """
+    __tablename__ = "dataset"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(), unique=True, nullable=False)
@@ -31,17 +34,19 @@ class Dataset(Base):
     config = Column(
         Text(),
         nullable=True,
-        # default=json.dumps(dataclasses.asdict(default_al_config)),
+        default=json.dumps(dataclasses.asdict(default_al_config)),
     )
 
-    def __repr__(self):
-        return 'Dataset "{}" ({})'.format(self.name, self.id)
-
-    def __str__(self):
-        return self.name
+    # def __repr__(self):
+    #     return 'Dataset "{}" ({})'.format(self.name, self.id)
+    #
+    # def __str__(self):
+    #     return self.name
 
 
 class Flower(Base):
+    __tablename__ = "flower"
+
     id = Column(Integer, primary_key=True)
     sepal_length = Column(Float)
     sepal_width = Column(Float)
@@ -51,6 +56,7 @@ class Flower(Base):
 
 
 class Label(Base):
+    __tablename__ = "label"
     id = Column(Integer, primary_key=True)
     name = Column(String(), nullable=False)
 
@@ -59,6 +65,7 @@ class Label(Base):
 
 
 class User(Base):
+    __tablename__ = "user"
     """
     Simple user model.
 
@@ -73,8 +80,8 @@ class User(Base):
 
     is_active = Column(Boolean, default=True, server_default="true")
 
-    def __str__(self):
-        return 'User "{}" with roles {}'.format(self.username, self.roles)
+    # def __str__(self):
+    #     return 'User "{}" with roles {}'.format(self.username, self.roles)
 
     # # The following methods are required by flask_praetorian
     # def is_valid(self):

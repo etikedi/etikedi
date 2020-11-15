@@ -16,6 +16,6 @@ RUN pipenv install
 # Copy the project files
 COPY . .
 
-CMD ["pipenv", "run", "flask", "run", "--host", "0.0.0.0"]
+CMD ["pipenv", "run", "uvicorn", "config:app", "--host", "0.0.0.0", "--port", "5000"]
 
 

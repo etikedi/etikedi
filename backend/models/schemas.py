@@ -19,14 +19,14 @@ class LabelSchema(BaseModel):
     name: str
 
 
-class User(BaseModel):
+class UserSchema(BaseModel):
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
 
 
-class UserInDB(User):
+class UserInDB(UserSchema):
     hashed_password: str
 
 

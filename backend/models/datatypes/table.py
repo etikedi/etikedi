@@ -1,5 +1,6 @@
+from sqlalchemy import Column, Integer, ForeignKey, Text
+
 from .sample import Sample
-from ...config import db
 
 
 class Table(Sample):
@@ -51,8 +52,8 @@ class Table(Sample):
 
     __tablename__ = "table"
 
-    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
-    content = db.Column(db.Text())
+    id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
+    content = Column(Text())
 
     __mapper_args__ = {"polymorphic_identity": "table"}
 
