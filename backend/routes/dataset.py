@@ -5,8 +5,29 @@
 # from ..active_learning_process import get_next_sample
 # from ..config import app, api, db
 # from ..models import DatasetSchema, Dataset, SampleSchema
-#
-#
+
+from ..config import app, ApiTags
+
+
+@app.get("/api/datasets", tags=["datasets"])
+async def get_dataset_list():
+    return "TODO"
+
+
+@app.post("/api/datasets", tags=["datasets"])
+async def post_dataset_list():
+    return "TODO"
+
+
+@app.get("/api/datasets/{dataset_id}", tags=["datasets"])
+async def get_dataset_details(dataset_id: int):
+    return "TODO"
+
+
+@app.post("/api/datasets/{dataset_id}", tags=["datasets"])
+async def post_dataset_details(dataset_id: int):
+    return "TODO"
+
 # class DatasetList(Resource):
 #     method_decorators = [auth_required]
 #
