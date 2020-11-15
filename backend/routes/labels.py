@@ -4,6 +4,17 @@
 # from ..config import app, api
 # from ..models import Label, LabelSchema
 #
+from ..config import app
+
+
+@app.get("/api/datasets/{dataset_id}/labels", tags=['labels'])
+async def get_labels(dataset_id: int):
+    return "TODO"
+
+
+@app.post("/api/datasets/{dataset_id}/labels", tags=['labels'])
+async def post_labels(dataset_id: int):
+    return "TODO"
 #
 # class LabelAPI(Resource):
 #     method_decorators = {"get": [auth_required], "post": [roles_required("admin")]}

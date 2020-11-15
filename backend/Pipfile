@@ -24,6 +24,10 @@ pillow = "*"
 requests = "*"
 dataclasses = "*"
 marshmallow-dataclass = "*"
+fastapi = {version = "*", extras = ["all"]}
+python-jose = "*"
+uvicorn = "*"
+passlib = "*"
 
 [dev-packages]
 pylint = "*"

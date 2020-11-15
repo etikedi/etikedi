@@ -9,6 +9,18 @@
 # from ..active_learning_process.process_management import manager
 # from ..config import api, db, ALConfigSchema
 # from ..models import Dataset
+from ..config import app
+
+
+@app.get("/api/datasets/{dataset_id}/config", tags=['config'])
+async def get_dataset_config(dataset_id: int):
+    return "TODO"
+
+
+@app.post("/api/datasets/{dataset_id}/config", tags=['config'])
+async def post_dataset_config(dataset_id: int):
+    return "TODO"
+
 #
 #
 # class ConfigAPI(Resource):

@@ -6,6 +6,12 @@
 # from ..config import db, api
 # from ..models import Dataset, Table, Text, Image, Sample
 #
+from ..config import app
+
+
+@app.post("/api/datasets/{dataset_id}/import", tags=['datasets'])
+async def post_import(dataset_id: int):
+    return "TODO"
 #
 # class ImportAPI(Resource):
 #     method_decorators = [auth_required]

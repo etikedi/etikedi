@@ -7,6 +7,17 @@
 # from ..models import Sample, Association, SampleSchema, Label, Dataset
 # from ..active_learning_process import notify_about_new_sample, get_next_sample
 #
+from ..config import app
+
+
+@app.get("/api/sample/{sample_id}", tags=['samples'])
+async def get_sample(sample_id: int):
+    return "TODO"
+
+
+@app.post("/api/sample/{sample_id}", tags=['samples'])
+async def post_sample(sample_id: int):
+    return "TODO"
 #
 # class SampleAPI(Resource):
 #     method_decorators = [auth_required]
