@@ -31,9 +31,9 @@ def get_next_sample(dataset: Dataset, app) -> Sample:
         return get_random_unlabelled_sample(dataset)
 
     process_resources = manager.get_or_else_load(dataset)
-    pipe_endpoint = process_resources["pipe"]
+    pipe_endpoint = process_resources.pipe
 
-    if pipe_endpoint.poll(60):
+    if pipe_endpoint.poll(120):
         app.logger.info("Found new datapoints")
         next_sample_id = pipe_endpoint.recv()
         return Sample.query.get(next_sample_id)

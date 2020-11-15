@@ -35,6 +35,7 @@ pillow = "*"
 requests = "*"
 dataclasses = "*"
 marshmallow-dataclass = "*"
+pytest = "*"
 
 [dev-packages]
 pylint = "*"

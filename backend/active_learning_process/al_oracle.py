@@ -1,7 +1,6 @@
 from typing import Dict
 
 from multiprocessing.connection import Connection
-from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
 from ..active_learning.BaseOracle import BaseOracle
@@ -17,15 +16,8 @@ class ParallelOracle(BaseOracle):
     one is a member of this class.
     """
 
-    def __init__(
-        self,
-        sample_ids: Dict[int, int],
-        pipe_endpoint: Connection,
-        #  label_encoder: LabelEncoder,
-    ):
-        self.sample_ids = sample_ids
+    def __init__(self, pipe_endpoint: Connection):
         self.pipe_endpoint = pipe_endpoint
-        #  self.label_encoder = label_encoder
 
     def label_to_internal_representation(self, label, data_storage) -> int:
         """
