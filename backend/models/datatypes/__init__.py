@@ -1,4 +1,4 @@
-from .image import Image
-from .sample import Sample, SampleSchema, Sample
-from .table import Table
-from .text import Text
+from .image import *
+from .sample import *
+from .table import *
+from .text import *

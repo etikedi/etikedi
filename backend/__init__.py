@@ -1,6 +1,17 @@
 from .config import app, Base, engine
-from .routes import dataset_router, user_router, sample_router, label_router
+from .routes import dataset_router, user_router, sample_router, label_router, config_router
 
+dataset_router.include_router(
+    label_router,
+    prefix='/{dataset_id}/labels',
+    tags=['Labels']
+)
+
+dataset_router.include_router(
+    config_router,
+    prefix='/{dataset_id}/config',
+    tags=['Configs']
+)
 
 app.include_router(
     dataset_router,
@@ -20,7 +31,3 @@ app.include_router(
     tags=['Samples']
 )
 
-app.include_router(
-    label_router,
-    tags=['Labels']
-)

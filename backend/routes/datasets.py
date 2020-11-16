@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from ..config import get_db
 from ..importing import import_dataset
-from ..models import Dataset, DatasetDTO, User, Table, Image, Text, Sample
+from ..models import Dataset, DatasetDTO, User, Table, Image, Text
 from ..utils import get_current_active_user
 
 dataset_router = APIRouter()
@@ -13,10 +13,11 @@ dataset_router = APIRouter()
 
 @dataset_router.get("", response_model=List[DatasetDTO])
 def get_datasets(db: Session = Depends(get_db)):
-    return db.query(Dataset).all()
+    datasets = db.query(Dataset).all()
+    return datasets
 
 
-@dataset_router.post("")
+@dataset_router.post("", response_model=DatasetDTO)
 def create_dataset(
         name: str = Form(...),
         sample_type: str = Form(...),
@@ -29,16 +30,14 @@ def create_dataset(
     if not sample_class:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
 
-    import_dataset(
+    dataset, number_of_samples = import_dataset(
         name=name,
         sample_class=sample_class,
         features=features.file,
         content=contents.file,
         user=current_user,
         ensure_incomplete=True,
+        db=db
     )
 
-    return (
-        db.query(Sample.id).filter(Sample.dataset == dataset).count(),
-        200,
-    )
+    return dataset

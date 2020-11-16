@@ -5,15 +5,14 @@ from sqlalchemy.orm import Session
 
 from ..active_learning_process import get_next_sample, notify_about_new_sample
 from ..config import get_db
-from ..models import Dataset, Label, Association, Sample
-from ..models.datatypes import SampleSchema
-from ..utils import get_current_active_user
+from ..models import Association, Sample, SampleDTO
+from ..utils import get_current_active_user, can_assign
 
 sample_router = APIRouter()
 
 
-@sample_router.get("/{sample_id}")
-async def get_sample(sample_id: int, db: Session = Depends(get_db)):
+@sample_router.get("/{sample_id}", response_model=SampleDTO)
+def get_sample(sample_id: int, db: Session = Depends(get_db)):
     sample = db.query(Sample).filter_by(id=sample_id).first()
     if sample is None:
         raise HTTPException(
@@ -21,14 +20,13 @@ async def get_sample(sample_id: int, db: Session = Depends(get_db)):
             detail="Sample not found for id: {}.".format(sample_id)
         )
 
-    return SampleSchema().dump(sample)
+    return sample
 
 
-@sample_router.post("/{sample_id}")
-async def post_sample(sample_id: int, label_id: int, db: Session = Depends(get_db)):
+@sample_router.post("/{sample_id}", response_model=SampleDTO)
+def post_sample(sample_id: int, label_id: int, db: Session = Depends(get_db)):
     """
-    This function responds to a request for /api/sample/int:data_sample_id
-    with the next data sample of data set that should get labeled
+    Associate a sample with a label and return the next label.
 
     :param sample_id:   ID of data sample to find
     :param label_id:    ID of the label
@@ -53,7 +51,7 @@ async def post_sample(sample_id: int, label_id: int, db: Session = Depends(get_d
         raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
     # Retrieve pipe endpoint for process with corresponding dataset_id and send new label
-    dataset = Sample.query.get(sample_id).dataset
+    dataset = db.query(Sample).get(sample_id).dataset
 
     notify_about_new_sample(
         dataset=dataset, user_id=user.id, sample_id=sample_id, label_id=label_id
@@ -66,15 +64,4 @@ async def post_sample(sample_id: int, label_id: int, db: Session = Depends(get_d
             detail="There was an error retrieving the next sample."
         )
     next_sample.ensure_string_content()
-    return SampleSchema().dump(next_sample), 201
-
-
-def can_assign(sample_id: int, label_id: int, db: Session = Depends(get_db)):
-    return bool(
-        db.query(Dataset, Sample, Label)
-            .filter(Dataset.id == Sample.dataset_id)
-            .filter(Dataset.id == Label.dataset_id)
-            .filter(Sample.id == sample_id)
-            .filter(Label.id == label_id)
-            .count()
-    )
+    return next_sample

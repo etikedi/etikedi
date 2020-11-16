@@ -1,6 +1,8 @@
+from typing import List
 from pydantic import BaseModel as Schema
 from sqlalchemy import Column, Text, String, Integer
 
+from .label import LabelDTO
 from ..config import Base
 
 
@@ -36,6 +38,7 @@ class BaseDatasetSchema(Schema):
 
 class DatasetDTO(BaseDatasetSchema):
     id: int
+    labels: List[LabelDTO]
 
     class Config:
         orm_mode = True

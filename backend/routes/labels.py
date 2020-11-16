@@ -1,14 +1,16 @@
+from typing import List
+
 from fastapi import HTTPException, APIRouter, Depends
 from sqlalchemy.orm import Session
 from starlette import status
 
 from ..config import get_db
-from ..models import Label
+from ..models import Label, CreateLabelDTO, LabelDTO
 
 label_router = APIRouter()
 
 
-@label_router.get("/datasets/{dataset_id}/labels")
+@label_router.get("/", response_model=List[LabelDTO])
 async def get_labels(dataset_id: int, db: Session = Depends(get_db)):
     """
     This function responds to a request for /api/int:dataset_id/labels
@@ -24,11 +26,17 @@ async def get_labels(dataset_id: int, db: Session = Depends(get_db)):
             detail="Labels not found for data set: {}".format(dataset_id)
         )
 
-    return labels
-    # return LabelSchema(many=True).dump(labels)
+    return list(labels)
 
 
-@label_router.post("/datasets/{dataset_id}/labels")
-async def post_labels(dataset_id: int):
-    """ TODO: Allow adding labels for admins """
-    pass
+@label_router.post("/", response_model=LabelDTO)
+async def post_labels(dataset_id: int, label: CreateLabelDTO, db: Session = Depends(get_db)):
+    """ Create a new label for the given dataset. """
+    new_label = Label(
+        name=label.name,
+        dataset_id=dataset_id
+    )
+    db.add(new_label)
+    db.commit()
+
+    return new_label

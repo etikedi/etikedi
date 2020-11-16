@@ -13,10 +13,10 @@ from ..models import Dataset, ALConfigSchema
 config_router = APIRouter()
 
 
-@config_router.get("/api/datasets/{dataset_id}/config")
-async def get_dataset_config(dataset_id: int):
+@config_router.get("/")
+async def get_dataset_config(dataset_id: int, db: Session = Depends(get_db)):
     """ Return the current configuration for the given dataset. """
-    dataset = Dataset.query.get(dataset_id)
+    dataset = db.query(Dataset).get(dataset_id)
 
     if not dataset:
         raise HTTPException(
@@ -27,10 +27,10 @@ async def get_dataset_config(dataset_id: int):
     return json.loads(dataset.config)
 
 
-@config_router.post("/api/datasets/{dataset_id}/config")
-async def post_dataset_config(dataset_id: int, items, db: Session = Depends(get_db)):
-    """ Update the configuration for the given dataset. Implies a restart of the AL process. """
-    dataset = Dataset.query.get(dataset_id)
+@config_router.post("/")
+async def change_dataset_config(dataset_id: int, items, db: Session = Depends(get_db)):
+    """ Update the configuration for the given dataset. Implies a restart of the AL process. Currently not working. """
+    dataset = db.query(Dataset).get(dataset_id)
 
     if not dataset:
         raise HTTPException(
