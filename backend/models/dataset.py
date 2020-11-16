@@ -1,14 +1,15 @@
+import json
 from typing import List
 from pydantic import BaseModel as Schema
 from sqlalchemy import Column, Text, String, Integer
 
+from . import default_al_config
 from .label import LabelDTO
 from ..config import Base
 
 
 class Dataset(Base):
     """ Represents a complete dataset. """
-
     __tablename__ = 'dataset'
 
     id = Column(Integer, primary_key=True)
@@ -18,7 +19,7 @@ class Dataset(Base):
     config = Column(
         Text(),
         nullable=True,
-        # default=json.dumps(dataclasses.asdict(default_al_config)),
+        default=json.dumps(default_al_config.dict()),
     )
 
     def __repr__(self):
