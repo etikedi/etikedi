@@ -3,6 +3,7 @@ from sqlalchemy import func as db_functions
 from .al_oracle import ParallelOracle
 from .al_process import ALProcess
 from .process_management import manager
+from ..config import logger
 from ..models import Dataset, Association, Sample
 
 
@@ -23,7 +24,7 @@ def get_random_unlabelled_sample(dataset: Dataset) -> Sample:
     )
 
 
-def get_next_sample(dataset: Dataset, app) -> Sample:
+def get_next_sample(dataset: Dataset) -> Sample:
     # Retrieve pipe endpoint from process manager
     if should_label_random_sample(dataset=dataset):
         return get_random_unlabelled_sample(dataset)
@@ -32,14 +33,12 @@ def get_next_sample(dataset: Dataset, app) -> Sample:
     pipe_endpoint = process_resources["pipe"]
 
     if pipe_endpoint.poll(60):
-        app.logger.info("Found new datapoints")
+        logger.info("Found new datapoints")
         next_sample_id = pipe_endpoint.recv()
         return Sample.query.get(next_sample_id)
     else:
         # Send back a random label anyway for testing purposes
-        app.logger.info(
-            "No samples available from AL, send back a random sample instead"
-        )
+        logger.info("No samples available from AL, send back a random sample instead")
         return get_random_unlabelled_sample(dataset)
 
 

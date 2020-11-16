@@ -1,10 +1,14 @@
 import base64
 from typing import Union
-from sqlalchemy import ForeignKey
-from ...config import db, ma
+
+from pydantic import BaseModel
+from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
+from sqlalchemy.orm import backref, relationship
+
+from ...config import Base
 
 
-class Sample(db.Model):
+class Sample(Base):
     """
     Base class for samples.
 
@@ -15,21 +19,21 @@ class Sample(db.Model):
 
     __tablename__ = "sample"
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-    dataset_id = db.Column(db.Integer, ForeignKey("dataset.id"), nullable=False)
-    dataset = db.relationship("Dataset", backref=db.backref("items", lazy=True))
+    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset = relationship("Dataset", backref=backref("items", lazy=True))
 
-    labels = db.relationship(
+    labels = relationship(
         "Label",
         secondary="association",
         lazy="subquery",
         # TODO: Figure out the difference to `back_populates`
-        backref=db.backref("samples", lazy=True),
+        backref=backref("samples", lazy=True),
     )
 
     # Saves concrete type of data in this sample
-    type = db.Column(db.VARCHAR(10))
+    type = Column(VARCHAR(10))
 
     content: Union[str, bytes]
 
@@ -46,6 +50,6 @@ class Sample(db.Model):
         return str(self)
 
 
-class SampleSchema(ma.Schema):
+class SampleDTO(BaseModel):
     class Meta:
         fields = ("id", "dataset_id", "type", "content")

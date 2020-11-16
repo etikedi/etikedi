@@ -1,5 +1,6 @@
+from sqlalchemy import Column, Integer, ForeignKey, Text
+
 from .sample import Sample
-from ...config import db
 
 
 class Text(Sample):
@@ -18,14 +19,14 @@ class Text(Sample):
         The constructor takes all keyword arguments of `Sample` in addition to `content`.
 
         >>> import json
-        >>> from backend.models import Dataset
+        >>> from .models import Dataset
         >>> table = Text(
         ...     features=json.dumps({'length': 100, 'error_free': False}),
-        ...     dataset=db.session.query(Dataset).first()
+        ...     dataset=db.query(Dataset).first()
         ...     content = 'Lorem ipsum dolor amet sunt...'
         ... )
-        >>> db.session.add(table)
-        >>> db.session.commit()
+        >>> db.add(table)
+        >>> db.commit()
 
         After running the example, the database will look like this:
 
@@ -45,14 +46,14 @@ class Text(Sample):
 
         After that, querying `Sample` will return objects of of this class.
 
-        >>> db.session.query(Sample).all()
+        >>> db.query(Sample).all()
         [Text 1 in dataset "Lorem"]
     """
 
     __tablename__ = "text"
 
-    id = db.Column(db.Integer, db.ForeignKey("sample.id"), primary_key=True)
-    content = db.Column(db.Text())
+    id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
+    content = Column(Text())
 
     __mapper_args__ = {"polymorphic_identity": "text"}
 

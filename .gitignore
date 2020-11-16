@@ -8,5 +8,6 @@ backend/data
 *.njsproj
 *.sln
 *.sw?
+*.db
 
 log.txt

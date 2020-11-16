@@ -1,17 +1,16 @@
 import csv
 from pathlib import Path
 
-from .generic import import_dataset
 from .utils import download_archive, get_or_create_dataset
-from ..config import app
-from ..models import Text, Sample
+from ..config import logger, db
+from ..models import Sample
 
 
 def download_religions_texts(data_path):
     if (data_path / "AsianReligionsData").exists():
         return
 
-    app.logger.info("Downloading Religions Texts...")
+    logger.info("Downloading Religions Texts...")
     download_archive(
         url="https://archive.ics.uci.edu/ml/machine-learning-databases/00512/AsianReligionsData.zip",
         download_path=data_path / "AsianReligiousData.zip",
@@ -21,8 +20,8 @@ def download_religions_texts(data_path):
 
 def import_religions_texts(data_path: Path):
     religions_texts = get_or_create_dataset("Religious texts")
-    if Sample.query.filter(Sample.dataset == religions_texts).count():
-        app.logger.info("Skip Religions Texts...")
+    if db.query(Sample).filter(Sample.dataset == religions_texts).count():
+        logger.info("Skip Religions Texts...")
         return
     download_religions_texts(data_path)
 
@@ -30,7 +29,7 @@ def import_religions_texts(data_path: Path):
     text_path = data_path / "AsianReligionsData/Complete_data .txt"
     content_attribute = "data"  # Should not be a feature
 
-    app.logger.info("Importing Religions Texts...")
+    logger.info("Importing Religions Texts...")
     with feature_path.open() as feature_file, text_path.open(
         encoding="latin-1"
     ) as text_file:
@@ -47,4 +46,4 @@ def import_religions_texts(data_path: Path):
             }
             sample[content_attribute] = text
             samples.append(sample)
-    app.logger.info("Done Religions Texts...")
+    logger.info("Done Religions Texts...")

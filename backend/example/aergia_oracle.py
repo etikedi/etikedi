@@ -1,6 +1,6 @@
 import random
 import pandas as pd
-from .active_learning.BaseOracle import BaseOracle
+from ..active_learning.BaseOracle import BaseOracle
 
 
 class AergiaOracle(BaseOracle):

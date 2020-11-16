@@ -4,10 +4,6 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [packages]
-flask-restful = "*"
-flask-cors = "*"
-flask-praetorian = "*"
-flask-sqlalchemy = "*"
 pyspellchecker = "*"
 nltk = "*"
 json-tricks = "*"
@@ -15,15 +11,19 @@ sklearn = "*"
 matplotlib = "*"
 pandas = "*"
 peewee = "*"
-psycopg2-binary = "*"
 tabulate = "*"
-flask-marshmallow = "*"
-marshmallow-sqlalchemy = "*"
-flask-swagger-ui = "*"
 pillow = "*"
+dill = "*"
+
 requests = "*"
+bcrypt = "*"
+marshmallow-sqlalchemy = "*"
 dataclasses = "*"
 marshmallow-dataclass = "*"
+fastapi = {version = "*", extras = ["all"]}
+python-jose = "*"
+uvicorn = "*"
+passlib = "*"
 
 [dev-packages]
 pylint = "*"

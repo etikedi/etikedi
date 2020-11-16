@@ -1,19 +1,26 @@
 import json
-import dataclasses
-from ..config import db, ma, default_al_config
+from typing import List
+from pydantic import BaseModel as Schema
+from sqlalchemy import Column, Text, String, Integer
+
+from . import default_al_config
+from .label import LabelDTO
+from ..config import Base
 
 
-class Dataset(db.Model):
+class Dataset(Base):
     """ Represents a complete dataset. """
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(), unique=True, nullable=False)
-    feature_names = db.Column(db.String(), nullable=True)
-    features = db.Column(db.Text(), nullable=True)
-    config = db.Column(
-        db.Text(),
+    __tablename__ = "dataset"
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(), unique=True, nullable=False)
+    feature_names = Column(String(), nullable=True)
+    features = Column(Text(), nullable=True)
+    config = Column(
+        Text(),
         nullable=True,
-        default=json.dumps(dataclasses.asdict(default_al_config)),
+        default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
 
     def __repr__(self):
@@ -23,6 +30,18 @@ class Dataset(db.Model):
         return self.name
 
 
-class DatasetSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "name")
+class BaseDatasetSchema(Schema):
+    name: str
+
+
+class DatasetDTO(BaseDatasetSchema):
+    id: int
+    labels: List[LabelDTO]
+
+    class Config:
+        orm_mode = True
+
+
+# class DatasetSchema(ma.Schema):
+#     class Meta:
+#         fields = ("id", "name")
