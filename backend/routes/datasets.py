@@ -3,7 +3,7 @@ from typing import List
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 
-from ..config import get_db
+from ..config import db
 from ..importing import import_dataset
 from ..models import Dataset, DatasetDTO, User, Table, Image, Text
 from ..utils import get_current_active_user
@@ -12,7 +12,7 @@ dataset_router = APIRouter()
 
 
 @dataset_router.get("", response_model=List[DatasetDTO])
-def get_datasets(db: Session = Depends(get_db)):
+def get_datasets():
     datasets = db.query(Dataset).all()
     return datasets
 
@@ -23,8 +23,7 @@ def create_dataset(
         sample_type: str = Form(...),
         features: UploadFile = File(...),
         contents: UploadFile = File(...),
-        current_user: User = Depends(get_current_active_user),
-        db: Session = Depends(get_db)
+        current_user: User = Depends(get_current_active_user)
 ):
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
     if not sample_class:
@@ -36,8 +35,7 @@ def create_dataset(
         features=features.file,
         content=contents.file,
         user=current_user,
-        ensure_incomplete=True,
-        db=db
+        ensure_incomplete=True
     )
 
     return dataset

@@ -16,6 +16,7 @@ pillow = "*"
 dill = "*"
 
 requests = "*"
+bcrypt = "*"
 marshmallow-sqlalchemy = "*"
 dataclasses = "*"
 marshmallow-dataclass = "*"

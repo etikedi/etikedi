@@ -19,7 +19,7 @@ class Dataset(Base):
     config = Column(
         Text(),
         nullable=True,
-        default=json.dumps(default_al_config.dict()),
+        default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
 
     def __repr__(self):
@@ -31,10 +31,6 @@ class Dataset(Base):
 
 class BaseDatasetSchema(Schema):
     name: str
-
-
-# class CreateDataset(BaseDatasetSchema):
-#     sample_type: str
 
 
 class DatasetDTO(BaseDatasetSchema):

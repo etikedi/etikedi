@@ -7,14 +7,14 @@ from scipy.io.arff import loadarff
 from sqlalchemy import create_engine
 
 from .generic import import_dataset
-from .utils import get_or_create_dataset, download_archive
-from ..config import app
+from .utils import download_archive
+from ..config import logger
 from ..models import Table
 
 
 def convert_dwtc_features(source: Path, to: Path) -> None:
     """ Convert the .arff feature file to csv """
-    app.logger.info("Converting DWTC features")
+    logger.info("Converting DWTC features")
     with source.open() as arff_file, to.open("w") as csv_file:
         csv_writer = csv.writer(csv_file)
         data, metadata = loadarff(arff_file)
@@ -35,7 +35,7 @@ def convert_dwtc_data(source: Path, to: Path) -> None:
     cursor = dwtc_engine.execute('SELECT * FROM "table"')
 
     with ZipFile(to, "w") as zip_file:
-        app.logger.info("Converting DWTC data")
+        logger.info("Converting DWTC data")
         for entry in cursor.fetchall():
             identifier, content = entry[0], entry[7]
             if not content:
@@ -51,7 +51,7 @@ def convert_dwtc(data_path: Path):
     database_path = dwtc_path / "data.db"
 
     if not (arff_path.exists() and database_path.exists()):
-        app.logger.info("Downloading DWTC")
+        logger.info("Downloading DWTC")
         download_archive(
             url="https://cloudstore.zih.tu-dresden.de/index.php/s/wdX6X3t7AwiFdrY/download",
             download_path=data_path / "dwtc.zip",
@@ -68,7 +68,7 @@ def convert_dwtc(data_path: Path):
         convert_dwtc_data(source=database_path, to=target_zip_path)
 
     import_dataset(
-        dataset=get_or_create_dataset("DWTC"),
+        name='DWTC',
         sample_class=Table,
         features=target_csv_path,
         content=target_zip_path,

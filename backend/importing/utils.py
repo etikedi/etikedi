@@ -1,14 +1,14 @@
 import shutil
 from pathlib import Path
-from sqlalchemy.orm import Session
 
 import requests
 from sqlalchemy.orm.exc import NoResultFound
 
+from ..config import db
 from ..models import Dataset
 
 
-def get_or_create_dataset(name, db: Session):
+def get_or_create_dataset(name):
     try:
         return db.query(Dataset).filter(Dataset.name == name).one()
     except NoResultFound:
@@ -17,7 +17,7 @@ def get_or_create_dataset(name, db: Session):
         db.commit()
 
 
-def download_archive(url: str, download_path: Path, target_path: Path, db: Session):
+def download_archive(url: str, download_path: Path, target_path: Path):
     with download_path.open("wb") as f:
         f.write(requests.get(url).content)
 

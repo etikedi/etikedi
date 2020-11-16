@@ -5,10 +5,9 @@ from zipfile import ZipFile
 
 import numpy as np
 import pandas as pd
-from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
 
-from ..config import app
+from ..config import logger, db
 from ..models import Dataset, Sample, Label, Association, User
 
 
@@ -17,10 +16,11 @@ def import_dataset(
     sample_class: Type[Sample],
     features: IO,
     content: IO,
-    db: Session,
     user: User = None,
     ensure_incomplete=True,
 ) -> Tuple[Dataset, int]:
+
+
     if not user:
         try:
             user = db.query(User).first()
@@ -102,7 +102,7 @@ def import_dataset(
         )
 
         if number_of_samples == number_of_associations:
-            app.logger.info(f"{dataset} is already complete. Thinning it out!")
+            logger.info(f"{dataset} is already complete. Thinning it out!")
             sample_ids = (
                 db.query(Association.sample_id)
                 .join(Association.sample)

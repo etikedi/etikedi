@@ -12,7 +12,7 @@ sample_router = APIRouter()
 
 
 @sample_router.get("/{sample_id}", response_model=SampleDTO)
-def get_sample(sample_id: int, db: Session = Depends(get_db)):
+def get_sample(sample_id: int):
     sample = db.query(Sample).filter_by(id=sample_id).first()
     if sample is None:
         raise HTTPException(
@@ -24,7 +24,7 @@ def get_sample(sample_id: int, db: Session = Depends(get_db)):
 
 
 @sample_router.post("/{sample_id}", response_model=SampleDTO)
-def post_sample(sample_id: int, label_id: int, db: Session = Depends(get_db)):
+def post_sample(sample_id: int, label_id: int):
     """
     Associate a sample with a label and return the next label.
 

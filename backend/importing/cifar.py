@@ -8,9 +8,10 @@ from zipfile import ZipFile
 import numpy as np
 from PIL import Image as PillowImage
 
+from ..config import db
 from .generic import import_dataset
 from .utils import download_archive, get_or_create_dataset
-from ..config import app
+from ..config import logger
 from ..models import Image
 
 CIFAR_FILES = [
@@ -40,7 +41,7 @@ def convert_cifar(data_path: Path):
     cifar_path = data_path / "cifar-10-batches-py"
 
     if not cifar_path.exists():
-        app.logger.info("Downloading CIFAR...")
+        logger.info("Downloading CIFAR...")
         download_archive(
             url="http://www.cs.toronto.edu/~kriz/cifar-10-python.tar.gz",
             download_path=data_path / "cifar-10-python.tar.gz",
@@ -66,7 +67,7 @@ def convert_cifar(data_path: Path):
             csv_writer.writerow(feature_names)
 
             for file_index, file in enumerate(CIFAR_FILES, 1):
-                app.logger.info(f"Converting CIFAR {file_index}/{len(CIFAR_FILES)}")
+                logger.info(f"Converting CIFAR {file_index}/{len(CIFAR_FILES)}")
 
                 with (cifar_path / file).open("rb") as f:
                     data = pickle.load(f, encoding="bytes")
@@ -76,10 +77,10 @@ def convert_cifar(data_path: Path):
                     csv_writer.writerow([identifier] + list(pixels) + [label])
                     identifier += 1
     else:
-        app.logger.info("Skip converting CIFAR as it is already present")
+        logger.info("Skip converting CIFAR as it is already present")
 
     import_dataset(
-        dataset=get_or_create_dataset("CIFAR"),
+        name='CIFAR',
         sample_class=Image,
         features=target_csv_path,
         content=target_zip_path,

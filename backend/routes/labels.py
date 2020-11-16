@@ -1,17 +1,16 @@
 from typing import List
 
-from fastapi import HTTPException, APIRouter, Depends
-from sqlalchemy.orm import Session
+from fastapi import HTTPException, APIRouter
 from starlette import status
 
-from ..config import get_db
+from ..config import db
 from ..models import Label, CreateLabelDTO, LabelDTO
 
 label_router = APIRouter()
 
 
 @label_router.get("/", response_model=List[LabelDTO])
-async def get_labels(dataset_id: int, db: Session = Depends(get_db)):
+async def get_labels(dataset_id: int):
     """
     This function responds to a request for /api/int:dataset_id/labels
     with the complete lists of data sets
@@ -30,7 +29,7 @@ async def get_labels(dataset_id: int, db: Session = Depends(get_db)):
 
 
 @label_router.post("/", response_model=LabelDTO)
-async def post_labels(dataset_id: int, label: CreateLabelDTO, db: Session = Depends(get_db)):
+async def post_labels(dataset_id: int, label: CreateLabelDTO):
     """ Create a new label for the given dataset. """
     new_label = Label(
         name=label.name,

@@ -1,17 +1,17 @@
 import json
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..active_learning_process import manager
-from ..config import get_db
+from ..config import db
 from ..models import Dataset, ActiveLearningConfig
 
 config_router = APIRouter()
 
 
 @config_router.get("/", response_model=ActiveLearningConfig)
-async def get_dataset_config(dataset_id: int, db: Session = Depends(get_db)):
+async def get_dataset_config(dataset_id: int):
     """ Return the current configuration for the given dataset. """
     dataset = db.query(Dataset).get(dataset_id)
 
@@ -25,7 +25,7 @@ async def get_dataset_config(dataset_id: int, db: Session = Depends(get_db)):
 
 
 @config_router.post("/")
-async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig, db: Session = Depends(get_db)):
+async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig):
     """ Update the configuration for the given dataset. Implies a restart of the AL process. Currently not working. """
     dataset = db.query(Dataset).get(dataset_id)
 
