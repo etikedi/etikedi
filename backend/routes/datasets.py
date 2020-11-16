@@ -19,11 +19,11 @@ def get_datasets():
 
 @dataset_router.post("", response_model=DatasetDTO)
 def create_dataset(
-        name: str = Form(...),
-        sample_type: str = Form(...),
-        features: UploadFile = File(...),
-        contents: UploadFile = File(...),
-        current_user: User = Depends(get_current_active_user)
+    name: str = Form(...),
+    sample_type: str = Form(...),
+    features: UploadFile = File(...),
+    contents: UploadFile = File(...),
+    current_user: User = Depends(get_current_active_user),
 ):
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
     if not sample_class:
@@ -35,7 +35,7 @@ def create_dataset(
         features=features.file,
         content=contents.file,
         user=current_user,
-        ensure_incomplete=True
+        ensure_incomplete=True,
     )
 
     return dataset

@@ -56,9 +56,7 @@ class ALProcess(multiprocessing.Process):
         ids_of_labeled_samples = np.array(associated_labels)[:, 0]
 
         all_sample_ids = (
-            db.query(Sample.id)
-            .filter(Sample.dataset_id == self.dataset_id)
-            .all()
+            db.query(Sample.id).filter(Sample.dataset_id == self.dataset_id).all()
         )
         all_sample_ids = np.array(all_sample_ids)[:, 0]
         sample_df.index = pd.Int64Index(all_sample_ids)

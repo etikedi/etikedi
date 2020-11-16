@@ -1,9 +1,11 @@
 from enum import Enum
 
-from pydantic import \
-    confloat as constrained_float, \
-    BaseModel as Schema, \
-    PositiveFloat, PositiveInt
+from pydantic import (
+    confloat as constrained_float,
+    BaseModel as Schema,
+    PositiveFloat,
+    PositiveInt,
+)
 
 
 class SamplingMethod(Enum):
@@ -19,8 +21,8 @@ class ClusterMethod(Enum):
     MostUncertain_lc = "MostUncertain_lc"
     MostUncertain_max_margin = "MostUncertain_max_margin"
     MostUncertain_entropy = "MostUncertain_entropy"
-    
-    
+
+
 ZeroToOne = constrained_float(ge=0, le=1)
 OneHalfToOne = constrained_float(ge=0.5, le=1)
 LargerNegativeOne = constrained_float(ge=-1)

@@ -22,7 +22,7 @@ async def get_labels(dataset_id: int):
     if labels is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Labels not found for data set: {}".format(dataset_id)
+            detail="Labels not found for data set: {}".format(dataset_id),
         )
 
     return list(labels)
@@ -31,10 +31,7 @@ async def get_labels(dataset_id: int):
 @label_router.post("/", response_model=LabelDTO)
 async def post_labels(dataset_id: int, label: CreateLabelDTO):
     """ Create a new label for the given dataset. """
-    new_label = Label(
-        name=label.name,
-        dataset_id=dataset_id
-    )
+    new_label = Label(name=label.name, dataset_id=dataset_id)
     db.add(new_label)
     db.commit()
 

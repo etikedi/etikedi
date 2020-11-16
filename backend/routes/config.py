@@ -16,8 +16,7 @@ async def get_dataset_config(dataset_id: int):
 
     if not dataset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No config found."
+            status_code=status.HTTP_404_NOT_FOUND, detail="No config found."
         )
 
     return ActiveLearningConfig(**json.loads(dataset.config))
@@ -30,8 +29,7 @@ async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig):
 
     if not dataset:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No dataset found."
+            status_code=status.HTTP_404_NOT_FOUND, detail="No dataset found."
         )
 
     dataset.config = json.dumps(config.dict())

@@ -17,7 +17,7 @@ def get_sample(sample_id: int):
     if sample is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Sample not found for id: {}.".format(sample_id)
+            detail="Sample not found for id: {}.".format(sample_id),
         )
 
     return sample
@@ -38,7 +38,7 @@ def post_sample(sample_id: int, label_id: int):
     if not can_assign(sample_id, label_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can't assign label to sample."
+            detail="Can't assign label to sample.",
         )
 
     try:
@@ -61,7 +61,7 @@ def post_sample(sample_id: int, label_id: int):
     if not next_sample:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="There was an error retrieving the next sample."
+            detail="There was an error retrieving the next sample.",
         )
     next_sample.ensure_string_content()
     return next_sample

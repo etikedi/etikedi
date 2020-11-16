@@ -10,7 +10,8 @@ from ..config import Base
 
 class Dataset(Base):
     """ Represents a complete dataset. """
-    __tablename__ = 'dataset'
+
+    __tablename__ = "dataset"
 
     id = Column(Integer, primary_key=True)
     name = Column(String(), unique=True, nullable=False)

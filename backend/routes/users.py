@@ -5,13 +5,17 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app
 from ..models import User, Token, UserInDB
-from ..utils import authenticate_user, fake_users_db, create_access_token, \
-    get_current_active_user
+from ..utils import (
+    authenticate_user,
+    fake_users_db,
+    create_access_token,
+    get_current_active_user,
+)
 
 user_router = APIRouter()
 
 
-@app.post("/token", response_model=Token, tags=['Users & Auth'])
+@app.post("/token", response_model=Token, tags=["Users & Auth"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(fake_users_db, form_data.username, form_data.password)
     if not user:

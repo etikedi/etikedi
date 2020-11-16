@@ -55,7 +55,10 @@ class ParallelOracle(BaseOracle):
         for sample_id in requested_sample_ids:
             self.pipe_endpoint.send(int(sample_id))
 
-        logger.debug("ALProcess.Oracle:\tRequesting labels for sample ids: " + str(requested_sample_ids))
+        logger.debug(
+            "ALProcess.Oracle:\tRequesting labels for sample ids: "
+            + str(requested_sample_ids)
+        )
         remaining_sample_ids = requested_sample_ids.copy()
         labels_by_query_index = {}
         while len(requested_sample_ids) is not len(labels_by_query_index):

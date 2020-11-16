@@ -22,7 +22,5 @@ fake_users_db = {
         "email": "marionette@example.com",
         "hashed_password": "$2b$12$0jILJK2b1vIoQCfWcU4U1.6X9M16F68WAQW4.BqsNJ69iiZFc.HAC",
         "disabled": False,
-    }
+    },
 }
-
-

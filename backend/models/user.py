@@ -67,4 +67,3 @@ class Token(Schema):
 
 class TokenData(Schema):
     username: Optional[str] = None
-

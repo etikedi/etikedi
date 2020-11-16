@@ -80,7 +80,7 @@ def convert_cifar(data_path: Path):
         logger.info("Skip converting CIFAR as it is already present")
 
     import_dataset(
-        name='CIFAR',
+        name="CIFAR",
         sample_class=Image,
         features=target_csv_path,
         content=target_zip_path,

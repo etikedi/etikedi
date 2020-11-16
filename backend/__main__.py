@@ -9,9 +9,7 @@ from .utils import get_password_hash
 def create_dummy_users():
     logger.info("Creating dummy users")
     admin = User(
-        username="ernst_haft",
-        password=get_password_hash("adminadmin"),
-        roles="admin"
+        username="ernst_haft", password=get_password_hash("adminadmin"), roles="admin"
     )
     db.add(admin)
 
@@ -41,4 +39,4 @@ if __name__ == "__main__":
         import_test_datasets()
         db.commit()
 
-    uvicorn.run('backend:app', host="0.0.0.0", reload=True)
+    uvicorn.run("backend:app", host="0.0.0.0", reload=True)

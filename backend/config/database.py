@@ -5,7 +5,10 @@ from sqlalchemy.orm import sessionmaker
 SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-engine = create_engine(SQLALCHEMY_DATABASE_URI, connect_args={"check_same_thread": SQLALCHEMY_TRACK_MODIFICATIONS})
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URI,
+    connect_args={"check_same_thread": SQLALCHEMY_TRACK_MODIFICATIONS},
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
