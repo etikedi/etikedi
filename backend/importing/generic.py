@@ -19,8 +19,6 @@ def import_dataset(
     user: User = None,
     ensure_incomplete=True,
 ) -> Tuple[Dataset, int]:
-
-
     if not user:
         try:
             user = db.query(User).first()
@@ -50,8 +48,6 @@ def import_dataset(
         name=name,
         features=feature_df.to_csv(),
         feature_names=",".join(feature_df.columns),
-        # TODO
-        config=''
     )
 
     all_labels = {

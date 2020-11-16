@@ -1,7 +1,6 @@
 import json
 
 from fastapi import APIRouter, HTTPException, status
-from sqlalchemy.orm import Session
 
 from ..active_learning_process import manager
 from ..config import db
