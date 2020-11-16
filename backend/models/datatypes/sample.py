@@ -2,11 +2,10 @@ import base64
 from typing import Union
 
 from pydantic.main import BaseModel
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
 from sqlalchemy.orm import backref, relationship
 
-from ...database import Base
-from sqlalchemy import Column, Integer, VARCHAR
+from ...config import Base
 
 
 class Sample(Base):

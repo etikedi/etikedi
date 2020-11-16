@@ -1,60 +1,56 @@
-# import dataclasses
-# import json
-#
-# from flask import request
-# from flask_praetorian import auth_required
-# from flask_restful import Resource
-# from marshmallow import ValidationError
-#
-# from ..active_learning_process.process_management import manager
-# from ..config import api, db, ALConfigSchema
-# from ..models import Dataset
-from ..config import app
+import dataclasses
+import json
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from marshmallow import ValidationError
+from pydantic import dataclasses
+from sqlalchemy.orm import Session
+
+from ..active_learning_process import manager
+from ..config import get_db
+from ..models import Dataset, ALConfigSchema
+
+config_router = APIRouter()
 
 
-@app.get("/api/datasets/{dataset_id}/config", tags=['config'])
+@config_router.get("/api/datasets/{dataset_id}/config")
 async def get_dataset_config(dataset_id: int):
-    return "TODO"
+    """ Return the current configuration for the given dataset. """
+    dataset = Dataset.query.get(dataset_id)
+
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No config found."
+        )
+
+    return json.loads(dataset.config)
 
 
-@app.post("/api/datasets/{dataset_id}/config", tags=['config'])
-async def post_dataset_config(dataset_id: int):
-    return "TODO"
+@config_router.post("/api/datasets/{dataset_id}/config")
+async def post_dataset_config(dataset_id: int, items, db: Session = Depends(get_db)):
+    """ Update the configuration for the given dataset. Implies a restart of the AL process. """
+    dataset = Dataset.query.get(dataset_id)
 
-#
-#
-# class ConfigAPI(Resource):
-#     method_decorators = [auth_required]
-#
-#     def get(self, dataset_id):
-#         """ Return the current configuration for the given dataset. """
-#         dataset = Dataset.query.get(dataset_id)
-#
-#         if not dataset:
-#             return None, 404
-#
-#         return json.loads(dataset.config), 200
-#
-#     def post(self, dataset_id):
-#         """ Update the configuration for the given dataset. Implies a restart of the AL process. """
-#         dataset = Dataset.query.get(dataset_id)
-#
-#         if not dataset:
-#             return None, 404
-#
-#         try:
-#             new_config = ALConfigSchema().load(
-#                 {k.upper(): v for k, v in request.form.items()}
-#             )
-#         except ValidationError as e:
-#             return e.messages, 400
-#
-#         dataset.config = json.dumps(dataclasses.asdict(new_config))
-#         db.session.commit()
-#
-#         manager.restart_with_config(dataset, json.loads(dataset.config))
-#
-#         return None, 204
-#
-#
-# api.add_resource(ConfigAPI, "/api/datasets/<int:dataset_id>/config")
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="No dataset found."
+        )
+
+    try:
+        new_config = ALConfigSchema().load(
+            {k.upper(): v for k, v in items}
+        )
+    except ValidationError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=e.messages
+        )
+
+    dataset.config = json.dumps(dataclasses.asdict(new_config))
+    db.commit()
+
+    manager.restart_with_config(dataset, json.loads(dataset.config))
+
+    return None, 204

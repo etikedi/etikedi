@@ -7,12 +7,11 @@ from fastapi import Depends
 from sklearn.preprocessing import LabelEncoder
 from sqlalchemy.orm import Session
 
+from .al_oracle import ParallelOracle
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
-from ..aergia import logger
-from ..database import get_db
+from ..config import logger, get_db
 from ..models import Association, Sample, Dataset
-from .al_oracle import ParallelOracle
 
 
 class ALProcess(multiprocessing.Process):

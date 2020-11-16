@@ -1,10 +1,9 @@
 import csv
 from pathlib import Path
 
-from .generic import import_dataset
 from .utils import download_archive, get_or_create_dataset
 from ..config import app
-from ..models import Text, Sample
+from ..models import Sample
 
 
 def download_religions_texts(data_path):

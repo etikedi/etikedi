@@ -1,9 +1,8 @@
 import csv
 import pickle
 from io import BytesIO
-from pathlib import Path
 from itertools import product
-
+from pathlib import Path
 from zipfile import ZipFile
 
 import numpy as np

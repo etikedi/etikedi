@@ -1,9 +1,9 @@
 from pathlib import Path
-from .dwtc import convert_dwtc
-from .religious_texts import import_religions_texts
-from .cifar import convert_cifar
-from .generic import import_dataset
 
+from .cifar import convert_cifar
+from .dwtc import convert_dwtc
+from .generic import import_dataset
+from .religious_texts import import_religions_texts
 
 DATA_PATH = (Path(__file__).absolute() / "../../data").resolve()
 

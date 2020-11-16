@@ -3,7 +3,7 @@ from sqlalchemy import func as db_functions
 from .al_oracle import ParallelOracle
 from .al_process import ALProcess
 from .process_management import manager
-from ..aergia import logger
+from ..config import logger
 from ..models import Dataset, Association, Sample
 
 

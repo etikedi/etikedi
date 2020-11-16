@@ -4,8 +4,8 @@ from multiprocessing.connection import Connection
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 
-from active_learning.BaseOracle import BaseOracle
-from backend.aergia import logger
+from ..active_learning.BaseOracle import BaseOracle
+from ..config import logger
 
 
 class ParallelOracle(BaseOracle):

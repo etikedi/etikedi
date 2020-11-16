@@ -1,37 +1,40 @@
+from pathlib import Path
+from tempfile import SpooledTemporaryFile
+from typing import IO, Type, Tuple
+from zipfile import ZipFile
+
 import numpy as np
 import pandas as pd
-from zipfile import ZipFile
-from typing import Type, Union
-from pathlib import Path
-
+from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
-from werkzeug.datastructures import FileStorage
 
-from ..config import db, app
-from ..models import Dataset, Sample, Label, User, Association
+from ..config import app
+from ..models import Dataset, Sample, Label, Association, User
 
 
 def import_dataset(
-    dataset: Dataset,
+    name: str,
     sample_class: Type[Sample],
-    features: Union[Path, FileStorage],
-    content: Union[Path, FileStorage],
+    features: IO,
+    content: IO,
+    db: Session,
     user: User = None,
     ensure_incomplete=True,
-):
+) -> Tuple[Dataset, int]:
     if not user:
         try:
-            user = User.query.first()
+            user = db.query(User).first()
         except NoResultFound:
             raise ValueError(
-                "To import a dataset, there must be at least one user in the system (for creating the association between samples and lables)"
+                "To import a dataset, there must be at least one user in the system "
+                "(for creating the association between samples and labels)"
             )
 
     if isinstance(features, Path):
         feature_file = features.open("r")
         df = pd.read_csv(feature_file).set_index("ID")
         feature_file.close()
-    elif isinstance(features, FileStorage):
+    elif isinstance(features, SpooledTemporaryFile):
         df = pd.read_csv(features).set_index("ID")
     else:
         raise ValueError("The features argument must be either a Path or FileStorage")
@@ -43,15 +46,20 @@ def import_dataset(
 
     feature_df = df.drop(["LABEL"], axis=1)
 
-    dataset.features = feature_df.to_csv()
-    dataset.feature_names = ",".join(feature_df.columns)
+    dataset = Dataset(
+        name=name,
+        features=feature_df.to_csv(),
+        feature_names=",".join(feature_df.columns),
+        # TODO
+        config=''
+    )
 
     all_labels = {
         label_name: Label(name=label_name, dataset=dataset)
         for label_name in df["LABEL"].unique()
     }
-    db.session.add_all(all_labels.values())
-    db.session.commit()
+    db.add_all(all_labels.values())
+    db.commit()
 
     total, samples, associations = len(df.index), [], []
     for index, (identifier, label_name) in enumerate(df["LABEL"].iteritems()):
@@ -71,23 +79,23 @@ def import_dataset(
             print(
                 "{:.2f}% imported ({}/{})".format((index / total) * 100, index, total)
             )
-            db.session.add_all(samples)
-            db.session.commit()
-            db.session.add_all(associations)
-            db.session.commit()
+            db.add_all(samples)
+            db.commit()
+            db.add_all(associations)
+            db.commit()
             samples = []
             associations = []
 
     print("Done importing dataset {}".format(dataset))
-    db.session.add_all(samples)
-    db.session.commit()
-    db.session.add_all(associations)
-    db.session.commit()
+    db.add_all(samples)
+    db.commit()
+    db.add_all(associations)
+    db.commit()
 
+    number_of_samples = db.query(Sample).filter(Sample.dataset == dataset).count()
     if ensure_incomplete:
-        number_of_samples = Sample.query.filter(Sample.dataset == dataset).count()
         number_of_associations = (
-            db.session.query(Association.sample_id)
+            db.query(Association.sample_id)
             .join(Association.sample)
             .filter(Sample.dataset == dataset)
             .count()
@@ -96,7 +104,7 @@ def import_dataset(
         if number_of_samples == number_of_associations:
             app.logger.info(f"{dataset} is already complete. Thinning it out!")
             sample_ids = (
-                db.session.query(Association.sample_id)
+                db.query(Association.sample_id)
                 .join(Association.sample)
                 .filter(Sample.dataset == dataset)
                 .all()
@@ -106,7 +114,9 @@ def import_dataset(
 
             # Dirty; Use a raw query because otherwise SQLAlchemy unsuccessfully tries to synchronise the
             # current session
-            db.session.execute(
+            db.execute(
                 f'DELETE FROM association WHERE sample_id IN ({",".join(map(str, to_delete))})'
             )
-            db.session.commit()
+            db.commit()
+
+    return dataset, number_of_samples

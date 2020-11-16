@@ -3,18 +3,6 @@ from dataclasses import dataclass, field
 from marshmallow import validate
 from marshmallow_dataclass import class_schema
 
-origins = [
-    "http://localhost.tiangolo.com",
-    "https://localhost.tiangolo.com",
-    "http://localhost",
-    "http://localhost:8080",
-]
-
-
-##############################################################################################################
-#                                          Active Learning                                                   #
-##############################################################################################################
-
 
 @dataclass
 class ALConfig:

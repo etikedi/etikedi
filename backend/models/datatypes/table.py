@@ -19,14 +19,14 @@ class Table(Sample):
         The constructor takes all keyword arguments of `Sample` in addition to `content`.
 
         >>> import json
-        >>> from backend.models import Dataset
+        >>> from .models import Dataset
         >>> table = Table(
         ...     features=json.dumps({'rows': 5, 'complete': True}),
-        ...     dataset=db.session.query(Dataset).first()
+        ...     dataset=db.query(Dataset).first()
         ...     content = '<table>[...]</table>'
         ... )
-        >>> db.session.add(table)
-        >>> db.session.commit()
+        >>> db.add(table)
+        >>> db.commit()
 
         After running the example, the database will look like this:
 
@@ -46,7 +46,7 @@ class Table(Sample):
 
         After that, querying `Sample` will return objects of of this class.
 
-        >>> db.session.query(Sample).all()
+        >>> db.query(Sample).all()
         [Table 1 in dataset "Lorem"]
     """
 

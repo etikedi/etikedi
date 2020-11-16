@@ -189,18 +189,6 @@ To test the Api without the frontend you can use e.g. curl:
 > curl http://127.0.0.1:5000/api/resumees/1
 ```
 
-### Database Setup
-
-In order to create the SQLite database and the needed tables, you have to use the `python` interpreter
-
-```python
->>> from backend.aergia import db
->>> db.create_all()
-
-# And to drop all tables
->>> db.drop_all()
-```
-
 ### example_active_learning_run.py
 
 In this file we've shown how to start the Active Learning Module for the basic iris data set.

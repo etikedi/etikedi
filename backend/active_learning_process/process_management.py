@@ -2,7 +2,7 @@ import json
 from multiprocessing import Pipe
 
 from .al_process import ALProcess
-from ..aergia import logger
+from ..config import logger
 from ..models import Dataset
 
 

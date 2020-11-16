@@ -19,15 +19,15 @@ class Image(Sample):
         The constructor takes all keyword arguments of `Sample` in addition to `data`.
 
         >>> import json
-        >>> from backend.models import Dataset
+        >>> from .models import Dataset
         >>> image_data = open('folder/your_image.png', 'rb').read()
         >>> image = Image(
         ...     features=json.dumps({'width': 480, 'blue_pixels': 1487}),
-        ...     dataset=db.session.query(Dataset).first()
+        ...     dataset=db.query(Dataset).first()
         ...     content = image_data
         ... )
-        >>> db.session.add(image_data)
-        >>> db.session.commit()
+        >>> db.add(image_data)
+        >>> db.commit()
 
         After running the example, the database will look like this:
 
@@ -47,7 +47,7 @@ class Image(Sample):
 
         After that, querying `Sample` will return objects of of this class.
 
-        >>> db.session.query(Sample).all()
+        >>> db.query(Sample).all()
         [Image 1 in dataset "Lorem"]
     """
 
