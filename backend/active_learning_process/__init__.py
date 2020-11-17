@@ -50,7 +50,7 @@ def get_next_sample(dataset: Dataset) -> Sample:
 def notify_about_new_sample(
     dataset: Dataset, user_id: int, sample_id: int, label_id: int
 ) -> None:
-    if dataset.get_config().RANDOM_SAMPLE_EVERY == 0:
+    if dataset.get_config().RANDOM_SAMPLE_EVERY == 1:
         return
 
     process_resources = manager.get_or_else_load(dataset_id=dataset.id)
