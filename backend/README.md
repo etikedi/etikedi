@@ -26,10 +26,8 @@ The backend can then be started the `flask` cli. While the `aergia.py` could be 
 flask cli provides the advantage of live reloading the running app when your code changes.
 
 ```bash
-> python -m 
-
-## One-liner to start app without entering pipenv first - run directly in backend folder:
-```pipenv run env FLASK_APP=aergia.py FLASK_ENV=development flask run```
+> cd ..   # to git root
+> python -m backend
 ```
 
 ### 🐳 Docker
@@ -98,7 +96,6 @@ Worker2
 In your editor you can set as code formatter [black](https://github.com/psf/black).
 
 ### Models
-
 
 ```mermaid
 classDiagram
