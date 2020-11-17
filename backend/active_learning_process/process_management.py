@@ -1,20 +1,30 @@
 import json
+from dataclasses import dataclass
 from multiprocessing import Pipe
+from multiprocessing.connection import Connection
+from typing import Dict
 
 from .al_process import ALProcess
 from ..config import logger
 from ..models import Dataset
 
 
+@dataclass
+class ProcessEntry:
+    process: ALProcess
+    pipe: Connection
+
+
 class ProcessManager:
     """
     Class for management of active-learning process for different data sets.
     """
+    process_resources_by_dataset_id: Dict[int, ProcessEntry]
 
     def __init__(self):
         self.process_resources_by_dataset_id = {}
 
-    def get_or_else_load(self, dataset: Dataset):
+    def get_or_else_load(self, dataset: Dataset) -> ProcessEntry:
         """
         Retrieves resources of an active-learning process for the specified data set id. Resources being the process
         object itself and the corresponding pipe backend endpoint for communication with said process.
@@ -36,10 +46,10 @@ class ProcessManager:
                 json.loads(dataset.config), dataset.id, process_endpoint
             )
             new_process.start()
-            self.process_resources_by_dataset_id[dataset.id] = {
-                "process": new_process,
-                "pipe": backend_endpoint,
-            }
+            self.process_resources_by_dataset_id[dataset.id] = ProcessEntry(
+                process=new_process,
+                pipe=backend_endpoint
+            )
             return self.process_resources_by_dataset_id[dataset.id]
 
     def restart_with_config(self, dataset: Dataset, config: dict):

@@ -151,4 +151,5 @@ tags
 datasets/
 *.db
 log.txt
+log_example.txt
 /data/
