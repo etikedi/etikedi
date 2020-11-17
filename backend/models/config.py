@@ -49,7 +49,8 @@ class ActiveLearningConfig(Schema):
     WITH_CLUSTER_RECOMMENDATION: bool = True
     WITH_SNUBA_LITE: bool = False
 
-    RANDOM_SAMPLE_EVERY: PositiveInt = 1
+    RANDOM_SAMPLE_EVERY: PositiveInt = 10
+    TIMEOUT_FOR_WORKER: PositiveInt = 60
 
 
 default_al_config = ActiveLearningConfig()

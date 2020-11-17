@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel as Schema
 from sqlalchemy import Column, Text, String, Integer
 
-from . import default_al_config
+from . import default_al_config, ActiveLearningConfig
 from .label import LabelDTO
 from ..config import Base
 
@@ -28,6 +28,9 @@ class Dataset(Base):
 
     def __str__(self):
         return self.name
+
+    def get_config(self):
+        return ActiveLearningConfig(**json.loads(self.config))
 
 
 class BaseDatasetSchema(Schema):
