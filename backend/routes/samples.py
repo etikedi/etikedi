@@ -1,10 +1,9 @@
 from sqlite3 import IntegrityError
 
-from fastapi import Depends, status, APIRouter, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import status, APIRouter, HTTPException
 
 from ..active_learning_process import get_next_sample, notify_about_new_sample
-from ..config import get_db
+from ..config import db
 from ..models import Association, Sample, SampleDTO
 from ..utils import get_current_active_user, can_assign
 

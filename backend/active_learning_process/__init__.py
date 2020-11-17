@@ -1,15 +1,16 @@
+import json
 from sqlalchemy import func as db_functions
 
 from .al_oracle import ParallelOracle
 from .al_process import ALProcess
 from .process_management import manager
-from ..config import logger
-from ..models import Dataset, Association, Sample
+from ..config import logger, db
+from ..models import Dataset, Association, Sample, ActiveLearningConfig
 
 
 def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) -> bool:
     number_of_labeled_samples = (
-        Association.query.join(Association.sample)
+        db.query(Association).join(Association.sample)
         .filter(Sample.dataset == dataset)
         .count()
     )
@@ -18,24 +19,26 @@ def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) 
 
 def get_random_unlabelled_sample(dataset: Dataset) -> Sample:
     return (
-        Sample.query.filter(Sample.dataset == dataset, ~Sample.associations.any())
+        db.query(Sample).filter(Sample.dataset == dataset, ~Sample.associations.any())
         .order_by(db_functions.random())
         .first()
     )
 
 
 def get_next_sample(dataset: Dataset) -> Sample:
-    # Retrieve pipe endpoint from process manager
-    if should_label_random_sample(dataset=dataset):
+    config = ActiveLearningConfig(**json.loads(dataset.config))
+
+    if should_label_random_sample(dataset=dataset, random_sample_every=config.RANDOM_SAMPLE_EVERY):
         return get_random_unlabelled_sample(dataset)
 
+    # Retrieve pipe endpoint from process manager
     process_resources = manager.get_or_else_load(dataset)
     pipe_endpoint = process_resources["pipe"]
 
     if pipe_endpoint.poll(60):
-        logger.info("Found new datapoints")
+        logger.info("Found new data points")
         next_sample_id = pipe_endpoint.recv()
-        return Sample.query.get(next_sample_id)
+        return db.query(Sample).get(next_sample_id)
     else:
         # Send back a random label anyway for testing purposes
         logger.info("No samples available from AL, send back a random sample instead")
