@@ -10,13 +10,11 @@ from ..models import Dataset
 
 def get_or_create_dataset(name):
     try:
-        dataset = Dataset.query.filter(Dataset.name == name).one()
+        return db.query(Dataset).filter(Dataset.name == name).one()
     except NoResultFound:
         dataset = Dataset(name=name)
-        db.session.add(dataset)
-        db.session.commit()
-
-    return dataset
+        db.add(dataset)
+        db.commit()
 
 
 def download_archive(url: str, download_path: Path, target_path: Path):

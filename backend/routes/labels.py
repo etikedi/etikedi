@@ -1,40 +1,38 @@
-from flask_praetorian import auth_required, roles_required
-from flask_restful import abort, Resource
+from typing import List
 
-from ..config import app, api
-from ..models import Label, LabelSchema
+from fastapi import HTTPException, APIRouter
+from starlette import status
 
+from ..config import db
+from ..models import Label, CreateLabelDTO, LabelDTO
 
-class LabelAPI(Resource):
-    method_decorators = {"get": [auth_required], "post": [roles_required("admin")]}
-
-    def get(self, dataset_id):
-        """
-        This function responds to a request for /api/int:dataset_id/labels
-        with the complete lists of data sets
-
-        :return:        json string of list of labels for a data set
-        """
-        labels = Label.query.filter(Label.dataset_id == dataset_id)
-
-        if labels is None:
-            abort(
-                404,
-                "Labels not found for data set: {dataset_id}".format(
-                    dataset_id=dataset_id
-                ),
-            )
-
-        return LabelSchema(many=True).dump(labels)
-
-    def post(self):
-        """ TODO: Allow adding labels for admins """
-        pass
+label_router = APIRouter()
 
 
-api.add_resource(LabelAPI, "/api/datasets/<int:dataset_id>/labels")
+@label_router.get("/", response_model=List[LabelDTO])
+async def get_labels(dataset_id: int):
+    """
+    This function responds to a request for /api/int:dataset_id/labels
+    with the complete lists of data sets
+
+    :return:        json string of list of labels for a data set
+    """
+    labels = db.query(Label).filter(Label.dataset_id == dataset_id)
+
+    if labels is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Labels not found for data set: {}".format(dataset_id),
+        )
+
+    return list(labels)
 
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return "<h1>404</h1><p>The resource could not be found.</p>", 404
+@label_router.post("/", response_model=LabelDTO)
+async def post_labels(dataset_id: int, label: CreateLabelDTO):
+    """ Create a new label for the given dataset. """
+    new_label = Label(name=label.name, dataset_id=dataset_id)
+    db.add(new_label)
+    db.commit()
+
+    return new_label

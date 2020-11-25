@@ -1,16 +1,29 @@
-from sqlalchemy import ForeignKey
+from pydantic import BaseModel as Schema
+from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy.orm import relationship, backref
 
-from ..config import db, ma
-
-
-class Label(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(), nullable=False)
-
-    dataset_id = db.Column(db.Integer, ForeignKey("dataset.id"), nullable=False)
-    dataset = db.relationship("Dataset", backref=db.backref("labels", lazy=True))
+from ..config import Base
 
 
-class LabelSchema(ma.Schema):
-    class Meta:
-        fields = ("id", "name")
+class Label(Base):
+    __tablename__ = "label"
+    id = Column(Integer, primary_key=True)
+    name = Column(String(), nullable=False)
+
+    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset = relationship("Dataset", backref=backref("labels"))
+
+
+class BaseLabelSchema(Schema):
+    name: str
+
+
+class LabelDTO(BaseLabelSchema):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class CreateLabelDTO(BaseLabelSchema):
+    pass

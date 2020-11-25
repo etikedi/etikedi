@@ -8,6 +8,7 @@ backend/data
 *.njsproj
 *.sln
 *.sw?
+*.db
 
 node_modules
 

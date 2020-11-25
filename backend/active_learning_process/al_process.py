@@ -1,15 +1,10 @@
 import multiprocessing
-from io import StringIO
 
-import numpy as np
-import pandas as pd
-from sklearn.preprocessing import LabelEncoder
-
+from .al_oracle import ParallelOracle
+from .prepare import prepare_dataset_for_active_learning
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
-from ..config import app, db
-from ..models import Association, Sample, Dataset
-from .al_oracle import ParallelOracle
+from ..models import Dataset
 
 
 class ALProcess(multiprocessing.Process):
@@ -33,49 +28,12 @@ class ALProcess(multiprocessing.Process):
         data -  fed to the active learning code.
         """
         init_logger("log.txt")
-        dataset = Dataset.query.get(self.dataset_id)
-        app.logger.info("Starting for dataset {}".format(self.dataset_id))
 
-        buffer = StringIO(dataset.features)
-        sample_df = pd.read_csv(buffer).set_index("ID")
-        sample_ids = dict(enumerate(sample_df.index))
+        dataset = Dataset.query.filter_by(id=self.dataset_id).first()
+        df = prepare_dataset_for_active_learning(dataset)
 
-        associated_labels = (
-            db.session.query(Association.sample_id, Association.label_id)
-            .join(Association.sample)
-            .filter(Sample.dataset == dataset)
-            .all()
-        )
-
-        label_df = pd.DataFrame(associated_labels, columns=["ID", 0]).set_index("ID")
-        label_encoder = LabelEncoder()
-        label_encoder.fit(label_df[0].unique())
-        label_df[0] = label_encoder.transform(label_df[0])  # Labels now start with 0
-        ids_of_labeled_samples = np.array(associated_labels)[:, 0]
-
-        all_sample_ids = (
-            db.session.query(Sample.id)
-            .filter(Sample.dataset_id == self.dataset_id)
-            .all()
-        )
-        all_sample_ids = np.array(all_sample_ids)[:, 0]
-        sample_df.index = pd.Int64Index(all_sample_ids)
-
-        labeled_sample_df = sample_df.loc[ids_of_labeled_samples]
-        unlabeled_sample_df = sample_df.drop(ids_of_labeled_samples)
-
-        # Y_train are the resulting labels
-        # metrics_per_al_cycle contains a lot of labels useful for visualisation
-        (_, Y_train, _, metrics_per_al_cycle, _, _) = train_al(
-            X_labeled=labeled_sample_df,
-            X_unlabeled=unlabeled_sample_df,
-            Y_labeled=label_df,
-            label_encoder=label_encoder,
-            START_SET_SIZE=3,
+        (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
             hyper_parameters=self.config,
-            oracle=ParallelOracle(
-                sample_ids=sample_ids,
-                pipe_endpoint=self.pipe_endpoint,
-                label_encoder=label_encoder,
-            ),
+            df=df,
+            oracle=ParallelOracle(pipe_endpoint=self.pipe_endpoint)
         )

@@ -2,13 +2,11 @@
 
 The backend features a REST API, built using the following technologies
 
-- [Flask](https://flask.palletsprojects.com/), a lightweight web framework 
-- [Flask-RESTful](https://flask-restful.readthedocs.io/) for building the REST interface
-- [FlaskSQLAlchemy](https://flask-sqlalchemy.palletsprojects.com/en/2.x/) Tiny wrapper around the [SQLAlchemy ORM](https://docs.sqlalchemy.org/en/13/orm/tutorial.html)
-- [Marshmallow](https://realpython.com/flask-connexion-rest-api-part-2/)
-- Sqlite for storing the data in `test.db`
+- [FastAPI](https://fastapi.tiangolo.com) for building the API
+- [Pydantic](https://pydantic-docs.helpmanual.io) for validating data
+- [SQLAlchemy](https://www.sqlalchemy.org/) for working with SQLite databases
 
-You can the latest api spec under `localhost:5000/api-spec`.
+You can the latest api spec under `localhost:8000/docs`.
 
 ## ✈️ Installation and setup 
 
@@ -28,15 +26,8 @@ The backend can then be started the `flask` cli. While the `aergia.py` could be 
 flask cli provides the advantage of live reloading the running app when your code changes.
 
 ```bash
-> export FLASK_APP=aergia.py
-> export FLASK_ENV=development
-> python aergia.py
-
-# or as a oneliner
-> FLASK_APP=aergia.py FLASK_ENV=development flask run
-
-## One-liner to start app without entering pipenv first - run directly in backend folder:
-```pipenv run env FLASK_APP=aergia.py FLASK_ENV=development flask run```
+> cd ..   # to git root
+> python -m backend
 ```
 
 ### 🐳 Docker
@@ -105,7 +96,6 @@ Worker2
 In your editor you can set as code formatter [black](https://github.com/psf/black).
 
 ### Models
-
 
 ```mermaid
 classDiagram
@@ -188,22 +178,3 @@ To test the Api without the frontend you can use e.g. curl:
 ```bash
 > curl http://127.0.0.1:5000/api/resumees/1
 ```
-
-### Database Setup
-
-In order to create the SQLite database and the needed tables, you have to use the `python` interpreter
-
-```python
->>> from backend.aergia import db
->>> db.create_all()
-
-# And to drop all tables
->>> db.drop_all()
-```
-
-### example_active_learning_run.py
-
-In this file we've shown how to start the Active Learning Module for the basic iris data set.
-This code needs to be combined with the back end Flask code.
-For now an example oracle `aergia_oracle.py` is used, which just randomly guesses the correct label.
-Instead the user input from the frontend should be used of course.
