@@ -53,3 +53,6 @@ class Sample(Base):
 class SampleDTO(BaseModel):
     class Meta:
         fields = ("id", "dataset_id", "type", "content")
+
+    class Config:
+        orm_mode = True
