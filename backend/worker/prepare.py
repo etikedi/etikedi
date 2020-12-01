@@ -22,7 +22,7 @@ def prepare_dataset_for_active_learning(dataset: Dataset) -> DataFrame:
     sample_df = pd.read_csv(buffer).set_index("ID")
 
     associated_labels = (
-        db.session.query(Association.sample_id, Association.label_id)
+        db.query(Association.sample_id, Association.label_id)
             .join(Association.sample)
             .filter(Sample.dataset == dataset)
             .all()
@@ -32,7 +32,7 @@ def prepare_dataset_for_active_learning(dataset: Dataset) -> DataFrame:
     df = pd.concat([sample_df, label_df], axis=1)
 
     # @todo: investigate what the following index shenanigans actually does
-    all_sample_ids = db.session.query(Sample.id).filter(Sample.dataset_id == dataset.id).all()
+    all_sample_ids = db.query(Sample.id).filter(Sample.dataset_id == dataset.id).all()
     all_sample_ids = np.array(all_sample_ids)[:, 0]
 
     df.index = pd.Int64Index(all_sample_ids)

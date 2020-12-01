@@ -63,7 +63,3 @@ class UserInDB(BaseUserSchema):
 class Token(Schema):
     access_token: str
     token_type: str
-
-
-class TokenData(Schema):
-    username: Optional[str] = None

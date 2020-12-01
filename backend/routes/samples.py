@@ -1,11 +1,11 @@
 from sqlite3 import IntegrityError
 
-from fastapi import status, APIRouter, HTTPException
+from fastapi import status, APIRouter, HTTPException, Depends
 
-from ..active_learning_process import get_next_sample, notify_about_new_sample
+from ..worker import get_next_sample, notify_about_new_sample
 from ..config import db
-from ..models import Association, Sample, SampleDTO
-from ..utils import get_current_active_user, can_assign
+from ..models import Association, Sample, SampleDTO, User
+from ..utils import get_current_user, can_assign
 
 sample_router = APIRouter()
 
@@ -23,17 +23,15 @@ def get_sample(sample_id: int):
 
 
 @sample_router.post("/{sample_id}", response_model=SampleDTO)
-def post_sample(sample_id: int, label_id: int):
+def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_user)):
     """
     Associate a sample with a label and return the next label.
 
     :param sample_id:   ID of data sample to find
     :param label_id:    ID of the label
-    :param db:          Database connection
+    :param user:        Current user Object
     :return:            data set matching ID
     """
-    user = get_current_active_user()
-
     if not can_assign(sample_id, label_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
