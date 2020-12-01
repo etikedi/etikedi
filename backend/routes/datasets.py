@@ -1,11 +1,11 @@
 from typing import List
 
-from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter
-from sqlalchemy.orm import Session
+from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status
 
+from ..active_learning_process import get_next_sample
 from ..config import db
 from ..importing import import_dataset
-from ..models import Dataset, DatasetDTO, User, Table, Image, Text
+from ..models import Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO
 from ..utils import get_current_active_user
 
 dataset_router = APIRouter()
@@ -39,3 +39,23 @@ def create_dataset(
     )
 
     return dataset
+
+
+@dataset_router.get("/{dataset_id}/first_sample", response_model=SampleDTO)
+def get_first_sample(dataset_id: int):
+    dataset = db.query(Dataset).get(dataset_id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(dataset_id)
+        )
+
+    first_sample = get_next_sample(dataset)
+    if not first_sample:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="There was an error retrieving the first sample.",
+        )
+    first_sample.ensure_string_content()
+
+    return first_sample
