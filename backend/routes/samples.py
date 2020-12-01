@@ -19,6 +19,7 @@ def get_sample(sample_id: int):
             detail="Sample not found for id: {}.".format(sample_id),
         )
 
+    sample.ensure_string_content()
     return sample
 
 

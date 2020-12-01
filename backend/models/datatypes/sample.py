@@ -51,5 +51,10 @@ class Sample(Base):
 
 
 class SampleDTO(Schema):
-    class Meta:
-        fields = ("id", "dataset_id", "type", "content")
+    id: int
+    dataset_id: int
+    type: str
+    content: bytes
+
+    class Config:
+        orm_mode = True
