@@ -54,7 +54,7 @@ class SampleDTO(Schema):
     id: int
     dataset_id: int
     type: str
-    content: bytes
+    content: str
 
     class Config:
         orm_mode = True

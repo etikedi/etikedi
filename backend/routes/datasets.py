@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status
 
-from ..active_learning_process import get_next_sample
+from ..worker import get_next_sample
 from ..config import db
 from ..importing import import_dataset
 from ..models import Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO
