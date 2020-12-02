@@ -37,7 +37,7 @@ sample_config = {
 
 def test_active_learning_cifar():
     """ The active learning code should be able to get a CIFAR sample in 120 seconds """
-    timeout = 15 * 60
+    timeout = 3 * 60
     process_resources = manager.get_or_else_load(dataset=cifar)
 
     print('Start polling')
@@ -93,9 +93,9 @@ def test_prepare_cifar():
     assert len(df.columns) >= 2
 
 
-# def test_prepare_dwtc():
-#     dwtc = db.query(Dataset).filter_by(name='DWTC').first()
-#     df = prepare_dataset_for_active_learning(dwtc)
-#     assert isinstance(df.index, Int64Index)
-#     assert 'label' in df.columns
-#     assert len(df.columns) >= 2
+def test_prepare_dwtc():
+    dwtc = db.query(Dataset).filter_by(name='DWTC').first()
+    df = prepare_dataset_for_active_learning(dwtc)
+    assert isinstance(df.index, Int64Index)
+    assert 'label' in df.columns
+    assert len(df.columns) >= 2
