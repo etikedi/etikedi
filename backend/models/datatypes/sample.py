@@ -1,7 +1,7 @@
 import base64
 from typing import Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel as Schema
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
 from sqlalchemy.orm import backref, relationship
 
@@ -50,6 +50,11 @@ class Sample(Base):
         return str(self)
 
 
-class SampleDTO(BaseModel):
-    class Meta:
-        fields = ("id", "dataset_id", "type", "content")
+class SampleDTO(Schema):
+    id: int
+    dataset_id: int
+    type: str
+    content: str
+
+    class Config:
+        orm_mode = True

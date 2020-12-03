@@ -33,7 +33,6 @@ class ProcessManager:
         specified data set id exist. If any are found, they are returned in a dictionary. If none are found, a new
         process is started and its resources are returned.
 
-        :param dataset
         :return:            Process resources as a dictionary with the fields: 'process' and 'pipe'
         """
         if dataset.id in self.process_resources_by_dataset_id:

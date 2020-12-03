@@ -1,8 +1,13 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URI = "sqlite:///test.db"
+# inside the backend folder
+database_path = Path(__file__).parent.parent.absolute() / 'test.db'
+
+SQLALCHEMY_DATABASE_URI = "sqlite:///" + str(database_path)
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 engine = create_engine(

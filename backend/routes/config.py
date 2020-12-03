@@ -2,7 +2,7 @@ import json
 
 from fastapi import APIRouter, HTTPException, status
 
-from ..active_learning_process import manager
+from ..worker import manager
 from ..config import db
 from ..models import Dataset, ActiveLearningConfig
 

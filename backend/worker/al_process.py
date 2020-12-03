@@ -4,6 +4,7 @@ from .al_oracle import ParallelOracle
 from .prepare import prepare_dataset_for_active_learning
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
+from ..config import db
 from ..models import Dataset
 
 
@@ -29,7 +30,7 @@ class ALProcess(multiprocessing.Process):
         """
         init_logger("log.txt")
 
-        dataset = Dataset.query.filter_by(id=self.dataset_id).first()
+        dataset = db.query(Dataset).filter_by(id=self.dataset_id).first()
         df = prepare_dataset_for_active_learning(dataset)
 
         (_, _, metrics_per_al_cycle, data_storage, _) = train_al(

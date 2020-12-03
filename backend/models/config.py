@@ -40,8 +40,8 @@ class ActiveLearningConfig(Schema):
     STOPPING_CRITERIA_ACC: ZeroToOne = 0
     STOPPING_CRITERIA_STD: ZeroToOne = 0
     USER_QUERY_BUDGET_LIMIT: PositiveFloat = 2000
-    RANDOM_SEED: LargerNegativeOne = 1
     N_JOBS: LargerNegativeOne = -1
+    RANDOM_SEED: PositiveInt = 1
     NR_QUERIES_PER_ITERATION: PositiveInt = 100
     NR_LEARNING_ITERATIONS: PositiveInt = 200000
     ALLOW_RECOMMENDATIONS_AFTER_STOP: bool = True
