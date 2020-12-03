@@ -1,7 +1,7 @@
 <script>
-    import {logout, token} from '../store/auth'
+  import { logout, token } from '../store/auth'
 
-    export let segment
+  export let segment
 </script>
 
 <style>
@@ -31,20 +31,20 @@
 </style>
 
 <div>
-    <header class="navbar">
-        <section class="navbar-section">
-            <a href="/" class="btn btn-link"> Home</a>
-            <a href="/about" class="btn btn-link">About</a>
-        </section>
-        <section class="navbar-center">
-            <h3>Aergia</h3>
-        </section>
-        <section class="navbar-section">
-            {#if segment === "App" && $token}
-                <a href="/" on:click={logout} class="btn btn-link">Logout</a>
-            {:else}
-                <a href="/login" class="btn btn-link">Login</a>
-            {/if}
-        </section>
-    </header>
+  <header class="navbar">
+    <section class="navbar-section">
+      <a href="/" class="btn btn-link"> Home</a>
+      <a href="/about" class="btn btn-link">About</a>
+    </section>
+    <section class="navbar-center">
+      <h3>Aergia</h3>
+    </section>
+    <section class="navbar-section">
+      {#if segment === "App" && $token}
+        <a href="/" on:click={logout} class="btn btn-link">Logout</a>
+      {:else}
+        <a href="/login" class="btn btn-link">Login</a>
+      {/if}
+    </section>
+  </header>
 </div>
