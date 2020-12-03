@@ -12,6 +12,4 @@ RUN pipenv install --system
 # Copy the project files
 COPY . backend/
 
-CMD ["python", "-m", "backend"]
-
-
+CMD ["python", "-u", "-m", "backend"]
