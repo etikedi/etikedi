@@ -2,4 +2,6 @@
     import Login from "../components/Login.svelte";
 </script>
 
-<h1>About</h1>
+<h1>Login</h1>
+<Login>
+</Login>

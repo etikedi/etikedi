@@ -6,7 +6,7 @@ The backend features a REST API, built using the following technologies
 - [Pydantic](https://pydantic-docs.helpmanual.io) for validating data
 - [SQLAlchemy](https://www.sqlalchemy.org/) for working with SQLite databases
 
-You can the latest api spec under `localhost:8000/docs`.
+You can see the latest api spec under `localhost:8000/docs`.
 
 ## ✈️ Installation and setup 
 

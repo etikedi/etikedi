@@ -1,12 +1,12 @@
 import { writable } from 'svelte/store'
 import axios from 'axios'
 
-export const data = writable([])
+export const datasets = writable([])
 
 export async function load() {
   const { data: d } = await axios({
     method: 'get',
-    url: '/api/datasets/',
+    url: '/datasets/',
   })
-  data.set(d)
+  datasets.set(d)
 }

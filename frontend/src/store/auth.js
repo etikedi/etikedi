@@ -2,9 +2,9 @@ import { writable } from 'svelte/store'
 import axios from 'axios'
 import JWTDecode from 'jwt-decode'
 
-axios.defaults.baseURL = 'http://localhost:5000/'
-axios.defaults.headers['Accept'] = 'application/json'
-axios.defaults.headers['Content-Type'] = 'application/json'
+axios.defaults.baseURL = 'http://localhost:8000/'
+//axios.defaults.headers['Accept'] = 'application/json'
+axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.withCredentials = false
 
 const STORAGE_KEY = 'aergia:token'
@@ -37,15 +37,22 @@ export async function login(form) {
   }
 
   // Load remotely
+  const params = new URLSearchParams()
+  /*
+    params.append('username', form.username)
+    params.append('password', form.password)
+  */
+  params.append('username', 'ernst_haft')
+  params.append('password', 'adminadmin')
   const { data } = await axios({
-    url: '/login',
+    url: '/token',
     method: 'post',
-    data: form,
+    data: params,
   })
   save(data.access_token)
 }
 
-export function logout(){
+export function logout() {
   window.localStorage.removeItem(STORAGE_KEY)
   token.set(null)
 }
