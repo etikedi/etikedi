@@ -4,8 +4,8 @@
   let loading = false
   let error = ''
   let form = {
-    username: '',
-    password: '',
+    username: 'ernst_haft',
+    password: 'adminadmin',
   }
 
   async function submit() {

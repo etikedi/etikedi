@@ -3,8 +3,8 @@ import axios from 'axios'
 import JWTDecode from 'jwt-decode'
 
 axios.defaults.baseURL = 'http://localhost:8000/'
-//axios.defaults.headers['Accept'] = 'application/json'
-axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
+axios.defaults.headers['Accept'] = 'application/json'
+// axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.withCredentials = false
 
 const STORAGE_KEY = 'aergia:token'
@@ -30,26 +30,20 @@ function load() {
 }
 
 export async function login(form) {
-  // Load from localstorage
+  // Load token from localstorage if no form is provided
   if (!form) {
     load()
     return
   }
 
   // Load remotely
-  const params = new URLSearchParams()
-  /*
-    params.append('username', form.username)
-    params.append('password', form.password)
-  */
-  params.append('username', 'ernst_haft')
-  params.append('password', 'adminadmin')
+  const params = new URLSearchParams(form)
   const { data } = await axios({
     url: '/token',
     method: 'post',
     data: params,
   })
-  save(data.access_token)
+  save(data.access_token, true)
 }
 
 export function logout() {
