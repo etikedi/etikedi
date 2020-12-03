@@ -21,7 +21,7 @@
     <div class="card-body columns">
         <div class="col-3">
             <div class="card-title h5">{dataset.name}</div>
-            <div class="card-subtitle text-gray">icons</div>
+            <div class="card-subtitle text-gray">ID: {dataset.id}</div>
         </div>
         <div class="col-2 pl-2">
             <div>Total</div>
