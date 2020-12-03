@@ -37,7 +37,9 @@
       <a href="/about" class="btn btn-link">About</a>
     </section>
     <section class="navbar-center">
-      <h3>Aergia</h3>
+      <a href="/app">
+        <h3>Aergia</h3>
+      </a>
     </section>
     <section class="navbar-section">
       {#if segment === 'app' && $token}
