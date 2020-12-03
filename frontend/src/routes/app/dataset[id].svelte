@@ -32,18 +32,23 @@
 
 </style>
 
-<h1>Dataset {id}</h1>
-<div class="card mb-2 container">
-  <img src="https://picsum.photos/200">
-  <label for="label">Label</label>
-  <select bind:value={newLabel} id="label">
-    {#each dataset.labels as label}
-      <option value={label}>
-        {label.name}
-      </option>
-    {/each}
-  </select>
-  <button class="" on:click={send}>
-    Send
-  </button>
-</div>
+{#if dataset}
+  <h1>Dataset {id}</h1>
+  <div class="card mb-2 container">
+    <img src="https://picsum.photos/200">
+    <label for="label">Label</label>
+    <select bind:value={newLabel} id="label">
+      {#each dataset.labels as label}
+        <option value={label}>
+          {label.name}
+        </option>
+      {/each}
+    </select>
+    <button class="" on:click={send}>
+      Send
+    </button>
+  </div>
+{:else}
+  <p>Please fetch the datasets first:</p>
+  <a href="/app">APP</a>
+{/if}
