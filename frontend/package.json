@@ -9,6 +9,7 @@
   "dependencies": {
     "axios": "^0.20.0",
     "compression": "^1.7.1",
+    "human-readable-numbers": "^0.9.5",
     "jwt-decode": "^3.0.0",
     "polka": "next",
     "sirv": "^1.0.0",
