@@ -20,6 +20,8 @@ python-jose = "*"
 uvicorn = "*"
 passlib = "*"
 seaborn = "*"
+sqlalchemy = "*"
+json-tricks = "*"
 
 [dev-packages]
 pylint = "*"
@@ -34,3 +36,6 @@ nb-black = "*"
 
 [requires]
 python_version = "3"
+
+[pipenv]
+allow_prereleases = true
