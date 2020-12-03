@@ -1,9 +1,10 @@
 <script>
-  import { auth } from '../store'
+  import { login } from '../store/auth'
 
   let loading = false
   let error = ''
   let form = {
+    // TODO: Eventually remove
     username: 'ernst_haft',
     password: 'adminadmin',
   }
@@ -12,7 +13,7 @@
     try {
       loading = true
       error = ''
-      await auth.login(form)
+      await login(form)
     } catch {
       error = 'Nope'
       form.password = ''

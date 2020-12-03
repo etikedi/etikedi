@@ -3,12 +3,12 @@
   import 'spectre.css/dist/spectre.css'
 
   import Nav from '../components/Nav.svelte'
-  import { auth } from '../store'
+  import { login } from '../store/auth'
 
   export let segment
 
   onMount(() => {
-    auth.login()
+    login()
   })
 </script>
 
