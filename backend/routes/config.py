@@ -19,10 +19,10 @@ async def get_dataset_config(dataset_id: int):
             status_code=status.HTTP_404_NOT_FOUND, detail="No config found."
         )
 
-    return ActiveLearningConfig(**json.loads(dataset.config))
+    return dataset.get_config()
 
 
-@config_router.post("/")
+@config_router.post("/", response_model=ActiveLearningConfig)
 async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig):
     """ Update the configuration for the given dataset. Implies a restart of the AL process. Currently not working. """
     dataset = db.query(Dataset).get(dataset_id)
@@ -32,9 +32,9 @@ async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig):
             status_code=status.HTTP_404_NOT_FOUND, detail="No dataset found."
         )
 
-    dataset.config = json.dumps(config.dict())
+    dataset.set_config(config)
     db.commit()
 
     manager.restart_with_config(dataset, json.loads(dataset.config))
 
-    return None, 204
+    return dataset.get_config()

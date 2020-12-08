@@ -29,8 +29,11 @@ class Dataset(Base):
     def __str__(self):
         return self.name
 
-    def get_config(self):
+    def get_config(self) -> ActiveLearningConfig:
         return ActiveLearningConfig(**json.loads(self.config))
+
+    def set_config(self, config: ActiveLearningConfig) -> None:
+        self.config = json.dumps(config.dict(), default=lambda x: x.value)
 
 
 class BaseDatasetSchema(Schema):
