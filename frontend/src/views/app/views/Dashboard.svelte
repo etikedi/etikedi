@@ -1,6 +1,7 @@
 <script>
-  import DatasetPreview from './views/DatasetPreview.svelte'
-  import { data } from '../../store/datasets'
+  import DatasetPreview from './DatasetPreview.svelte'
+
+  import { data } from '../../../store/datasets'
 </script>
 
 <style>

@@ -6,9 +6,10 @@
   import { token } from '../../store/auth'
   import { load } from '../../store/datasets'
 
-  import Dashboard from './Dashboard.svelte'
+  import Dashboard from './views/Dashboard.svelte'
   import Config from './views/Config.svelte'
   import Label from './views/Label.svelte'
+  import Upload from './views/Upload.svelte'
 
   $: if ($token) {
     load()
@@ -17,6 +18,9 @@
 
 {#if $token !== null}
   {#if $token}
+    <Route path="/upload">
+      <Upload />
+    </Route>
     <Route path="/">
       <Dashboard />
     </Route>
