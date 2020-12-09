@@ -9,6 +9,8 @@
   const { id } = router.params()
 
   let config = null
+  let loading = false
+
   const ZeroToOne = { type: 'number', min: 0, max: 1, step: 'any' }
   const OneHalfToOne = { type: 'number', min: 0.5, max: 1, step: 'any' }
   const PositiveFloat = { type: 'number', min: 0, step: 'any' }
@@ -50,12 +52,17 @@
   })
 
   async function submit() {
-    const { data } = await axios({
-      method: 'post',
-      url: `/datasets/${id}/config/`,
-      data: config,
-    })
-    back()
+    try {
+      if (loading) return
+      loading = true
+      const { data } = await axios({
+        method: 'post',
+        url: `/datasets/${id}/config/`,
+        data: config,
+      })
+    } finally {
+      loading = false
+    }
   }
 
   function back() {
@@ -63,18 +70,28 @@
   }
 </script>
 
-{#if dataset}
-  <div>
-    <h1>{dataset.name}</h1>
-    <h3>Config</h3>
-    {#if config}
-      <form on:submit|preventDefault={submit}>
-        {#each Object.entries(spec) as field}
-          <ConfigField {field} bind:config />
-        {/each}
-        <button type="button" on:click={back} class="btn">Cancel</button>
-        <button type="sumbit" class="btn btn-primary">Update</button>
-      </form>
-    {/if}
-  </div>
-{/if}
+<style>
+  ion-icon {
+    font-size: 1.5em;
+  }
+</style>
+
+<div>
+  <button class="btn btn-action btn-primary" on:click={back}>
+    <ion-icon name="arrow-back" />
+  </button>
+  <br />
+  <br />
+  {#if dataset && config}
+    <h3>Config <i>{dataset.name}</i></h3>
+    <form on:submit|preventDefault={submit}>
+      {#each Object.entries(spec) as field}
+        <ConfigField {field} bind:config disabled={loading} />
+      {/each}
+      <button type="button" on:click={back} class="btn">Cancel</button>
+      <button type="sumbit" class="btn btn-primary" class:loading disabled={loading}>Update</button>
+    </form>
+  {:else}
+    <div class="loading loading-lg" />
+  {/if}
+</div>
