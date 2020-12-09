@@ -24,12 +24,13 @@
     <!-- This contains the contents of the <svelte:head> component, if
 	     the current page has one -->
     %sapper.head%
+
+    <script defer type="module" src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.esm.js"></script>
+    <script defer nomodule="" src="https://unpkg.com/ionicons@5.2.3/dist/ionicons/ionicons.js"></script>
   </head>
   <body>
     <!-- The application will be rendered inside this element,
 	     because `src/client.js` references it -->
     <div id="sapper">%sapper.html%</div>
-
-    <script src="https://unpkg.com/ionicons@5.2.3/dist/ionicons.js"></script>
   </body>
 </html>
