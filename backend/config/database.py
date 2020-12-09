@@ -12,7 +12,10 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI,
-    connect_args={"check_same_thread": SQLALCHEMY_TRACK_MODIFICATIONS},
+    connect_args={
+        "check_same_thread": SQLALCHEMY_TRACK_MODIFICATIONS,
+        "timeout": 30
+    },
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
