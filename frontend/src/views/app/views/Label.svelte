@@ -101,4 +101,9 @@
       {/each}
     </div>
   </div>
-{:else}Loading Sample...{/if}
+{:else}
+  <div class="text-center">
+    <div class="loading loading-lg" />
+    <p>Waiting for server</p>
+  </div>
+{/if}
