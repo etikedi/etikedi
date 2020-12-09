@@ -66,7 +66,7 @@ class ProcessManager:
         backend_endpoint, process_endpoint = Pipe()
         new_process = ALProcess(config, dataset.id, process_endpoint)
         if dataset.id in self.process_resources_by_dataset_id:
-            old_process = self.process_resources_by_dataset_id[dataset.id]["process"]
+            old_process = self.process_resources_by_dataset_id[dataset.id].process
             old_process.terminate()
             logger.debug(
                 "Restarting process for dataset {} with new configuration".format(
@@ -74,10 +74,10 @@ class ProcessManager:
                 )
             )
             new_process.start()
-            self.process_resources_by_dataset_id[dataset.id] = {
-                "process": new_process,
-                "pipe": backend_endpoint,
-            }
+            self.process_resources_by_dataset_id[dataset.id] = ProcessEntry(
+                process=new_process,
+                pipe=backend_endpoint
+            )
             return self.process_resources_by_dataset_id[dataset.id]
         else:
             logger.debug(
@@ -86,10 +86,10 @@ class ProcessManager:
                 )
             )
             new_process.start()
-            self.process_resources_by_dataset_id[dataset.id] = {
-                "process": new_process,
-                "pipe": backend_endpoint,
-            }
+            self.process_resources_by_dataset_id[dataset.id] = ProcessEntry(
+                process=new_process,
+                pipe=backend_endpoint
+            )
             return self.process_resources_by_dataset_id[dataset.id]
 
 
