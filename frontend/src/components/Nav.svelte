@@ -41,7 +41,7 @@
       </a>
     </section>
     <section class="navbar-section">
-      {#if $router.path === '/app' && $token}
+      {#if $router.path.startsWith('/app') && $token}
         <a href="/" on:click={logout} class="btn btn-link">Logout</a>
       {:else}<a href="/app" class="btn btn-link">App</a>{/if}
     </section>
