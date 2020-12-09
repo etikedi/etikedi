@@ -1,7 +1,7 @@
-<script>
+<script lang="ts">
   import { logout, token } from '../store/auth'
 
-  export let segment
+  export let segment = ''
 </script>
 
 <style>

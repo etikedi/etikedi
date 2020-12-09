@@ -4,7 +4,6 @@ import JWTDecode from 'jwt-decode'
 
 axios.defaults.baseURL = 'http://localhost:8000/'
 axios.defaults.headers['Accept'] = 'application/json'
-// axios.defaults.headers['Content-Type'] = 'application/x-www-form-urlencoded'
 axios.defaults.withCredentials = false
 
 const STORAGE_KEY = 'aergia:token'
@@ -20,7 +19,7 @@ function save(tkn, persist = true) {
 function load() {
   const saved = window.localStorage.getItem(STORAGE_KEY)
   if (saved) {
-    const decoded = JWTDecode(saved)
+    const decoded: any = JWTDecode(saved)
     if (decoded.exp > ((Date.now() / 1000) | 0)) {
       save(saved, false)
       return
@@ -29,7 +28,11 @@ function load() {
   save('', false)
 }
 
-export async function login(form) {
+export type LoginForm = {
+  username: string
+  password: string
+}
+export async function login(form?: LoginForm) {
   // Load token from localstorage if no form is provided
   if (!form) {
     load()

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   export let field
   export let config
 

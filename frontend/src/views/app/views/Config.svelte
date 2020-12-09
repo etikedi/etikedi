@@ -1,18 +1,12 @@
-<script context="module">
-  export function preload(page) {
-    return page.params
-  }
-</script>
-
-<script>
-  import axios from 'axios'
+<script lang="ts">
   import { onMount } from 'svelte'
-  import { goto } from '@sapper/app'
+  import axios from 'axios'
+  import { router } from 'tinro'
 
-  import { data } from '../../../../store/datasets'
-  import ConfigField from '../_components/ConfigField.svelte'
+  import { data } from '../../../store/datasets'
+  import ConfigField from '../components/ConfigField.svelte'
 
-  export let id
+  const { id } = router.params()
 
   let config = null
   const ZeroToOne = { type: 'number', min: 0, max: 1, step: 'any' }
@@ -53,20 +47,19 @@
       url: `/datasets/${id}/config/`,
     })
     config = data
-    console.log(config)
   })
 
   async function submit() {
-    console.log(config)
     const { data } = await axios({
       method: 'post',
       url: `/datasets/${id}/config/`,
       data: config,
     })
+    back()
   }
 
   function back() {
-    goto('/app')
+    router.goto('/app')
   }
 </script>
 

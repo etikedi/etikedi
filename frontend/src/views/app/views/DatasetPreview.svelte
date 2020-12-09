@@ -1,5 +1,5 @@
-<script>
-  import { toHumanString } from 'human-readable-numbers'
+<script lang="ts">
+  import { humanize } from '../../../lib/human'
 
   export let dataset
 </script>
@@ -43,8 +43,8 @@
       <div>Labeled</div>
     </div>
     <div class="col-1">
-      <div>{toHumanString(dataset.size || 0)}</div>
-      <div>{toHumanString(dataset.labeled || 0)}</div>
+      <div>{humanize(dataset.size || 0)}</div>
+      <div>{humanize(dataset.labeled || 0)}</div>
     </div>
     <div class="col-2 pl-2">
       <div>Features</div>

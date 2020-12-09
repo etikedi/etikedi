@@ -1,24 +1,19 @@
-<script context="module">
-  export function preload(page) {
-    return page.params
-  }
-</script>
-
 <script>
   import { onMount } from 'svelte'
+  import { router } from 'tinro'
   import axios from 'axios'
 
-  import Table from '../../../../components/labeling/Table.svelte'
-  import Image from '../../../../components/labeling/Image.svelte'
+  import Table from '../components/labeling/Table.svelte'
+  import Image from '../components/labeling/Image.svelte'
 
-  import { data as datasets } from '../../../../store/datasets'
+  import { data as datasets } from '../../../store/datasets'
 
   const mappings = {
     table: Table,
     image: Image,
   }
 
-  export let id
+  const { id } = router.params()
 
   let error = null
   let assigned = null
@@ -36,7 +31,6 @@
   })
 
   async function send() {
-    console.log(sample.id, assigned)
     if (assigned === null) {
       error = 'Select a label'
       return

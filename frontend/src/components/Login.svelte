@@ -1,9 +1,10 @@
-<script>
+<script lang="ts">
+  import type { LoginForm } from '../store/auth'
   import { login } from '../store/auth'
 
   let loading = false
   let error = ''
-  let form = {
+  let form: LoginForm = {
     // TODO: Eventually remove
     username: 'ernst_haft',
     password: 'adminadmin',

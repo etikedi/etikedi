@@ -1,5 +1,5 @@
 <script>
-  import DatasetPreview from '../../components/DatasetPreview.svelte'
+  import DatasetPreview from './views/DatasetPreview.svelte'
   import { data } from '../../store/datasets'
 </script>
 
