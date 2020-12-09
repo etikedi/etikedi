@@ -12,11 +12,13 @@
     "human-readable-numbers": "^0.9.5",
     "jwt-decode": "^3.0.0",
     "polka": "next",
+    "sanitize-html": "^2.2.0",
     "sirv": "^1.0.0",
     "spectre.css": "^0.5.9"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^8.0.0",
     "@rollup/plugin-replace": "^2.2.0",
     "prettier": "^2.2.1",

@@ -50,7 +50,7 @@
   onMount(async () => {
     const { data } = await axios({
       method: 'get',
-      url: `/datasets/${id}/config`,
+      url: `/datasets/${id}/config/`,
     })
     config = data
     console.log(config)
@@ -60,7 +60,7 @@
     console.log(config)
     const { data } = await axios({
       method: 'post',
-      url: `/datasets/${id}/config`,
+      url: `/datasets/${id}/config/`,
       data: config,
     })
   }
