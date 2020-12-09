@@ -1,7 +1,6 @@
 <script lang="ts">
+  import { router } from 'tinro'
   import { logout, token } from '../store/auth'
-
-  export let segment = ''
 </script>
 
 <style>
@@ -42,7 +41,7 @@
       </a>
     </section>
     <section class="navbar-section">
-      {#if segment === 'app' && $token}
+      {#if $router.path === '/app' && $token}
         <a href="/" on:click={logout} class="btn btn-link">Logout</a>
       {:else}<a href="/app" class="btn btn-link">App</a>{/if}
     </section>
