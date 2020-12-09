@@ -1,4 +1,4 @@
-from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 
 from fastapi import status, APIRouter, HTTPException, Depends
 
@@ -40,11 +40,17 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
         )
 
     try:
-        new_association = Association(
-            sample_id=sample_id, label_id=label_id, user_id=user.id
-        )
-        db.add(new_association)
-        db.commit()
+        # TODO: Investigate how this can be done using a method other than a raw query
+        # It seems like SQLAlchemy tries to load the sample and then tries to save it again
+        # However, while loading it converts the content of the sample to text and fails to save it again
+        # because it expects a byte-like object.
+
+        # new_association = Association(
+        #     sample_id=sample_id, label_id=label_id, user_id=user.id
+        # )
+        # db.add(new_association)
+        # db.commit()
+        db.execute(f'INSERT INTO association (sample_id, label_id, user_id) VALUES ({sample_id}, {label_id}, {user.id})')
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
