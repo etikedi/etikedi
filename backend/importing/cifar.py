@@ -9,9 +9,8 @@ from zipfile import ZipFile
 import numpy as np
 from PIL import Image as PillowImage
 
-from ..config import db
 from .generic import import_dataset
-from .utils import download_archive, get_or_create_dataset
+from .utils import download_archive
 from ..config import logger
 from ..models import Image
 
