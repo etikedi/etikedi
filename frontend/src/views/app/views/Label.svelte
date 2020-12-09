@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { onMount } from 'svelte'
   import { router } from 'tinro'
   import axios from 'axios'
@@ -15,72 +15,90 @@
 
   const { id } = router.params()
 
-  let error = null
-  let assigned = null
   let sample = null
 
   $: dataset = $datasets[id]
   $: ready = dataset && sample != null
 
-  onMount(async () => {
-    const { data } = await axios({
+  onMount(() => {
+    axios({
       method: 'get',
       url: `/datasets/${id}/first_sample`,
-    })
-    sample = data
+    }).then((response) => (sample = response.data))
+
+    window.document.addEventListener('keypress', keyPress)
+    return () => {
+      window.document.removeEventListener('keypress', keyPress)
+    }
   })
 
-  async function send() {
-    if (assigned === null) {
-      error = 'Select a label'
-      return
+  function keyPress(e: KeyboardEvent) {
+    const i = parseInt(e.key)
+    if (dataset && Number.isInteger(i)) {
+      const label = dataset.labels[i - 1]
+      if (label) send(label.id)
     }
+  }
+
+  async function send(selected: string) {
+    if (!ready) return
+    console.log(selected)
     const id = sample.id
     sample = null
     const { data } = await axios({
       method: 'post',
       url: `/samples/${id}`,
       params: {
-        label_id: assigned,
+        label_id: selected,
       },
     })
-    error = null
-    assigned = null
     sample = data
   }
 </script>
 
 <style>
   .card {
-    padding: 30px;
-    border-radius: 15px;
-    border: 2px solid #032557;
+    padding: 1.5em 2em;
+    background-color: #f7f7f7;
+    border-radius: var(--round);
+    border: 1px solid #e9f2ff;
     align-items: center;
+  }
+
+  .data {
+    max-height: calc(100vh - 23em);
+    overflow: auto;
+  }
+
+  .labels {
+    margin-top: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .labels > button {
+    margin: 0.5em;
   }
 </style>
 
 {#if ready}
-  <h1>Dataset {id}</h1>
+  <h3>Dataset {id}</h3>
   <div class="card mb-2 container">
-    {#if Object.keys(mappings).includes(sample.type)}
-      <svelte:component this={mappings[sample.type]} data={sample.content} />
-    {:else}
-      <p>Unsupported type {sample.type}</p>
-    {/if}
-    <!-- {#if sample.type === 'image'}
-      <img src="data:image/png;base64,{sample.content}" alt="sample" />
-    {:else if sample.type === 'table'}
-      {@html atob(sample.content)}
-    {:else}{sample.type}{/if} -->
-    <label for="label">Label</label>
-    <select bind:value={assigned} id="label">
-      {#each dataset.labels as { id, name } (id)}
-        <option value={id}>{name}</option>
+    <div class="data">
+      {#if Object.keys(mappings).includes(sample.type)}
+        <svelte:component this={mappings[sample.type]} data={sample.content} />
+      {:else}
+        <p>Unsupported type {sample.type}</p>
+      {/if}
+    </div>
+
+    <div class="labels">
+      {#each dataset.labels as { id, name }, i (id)}
+        <button class="btn" on:click={() => send(id)}>{name} <code>{i + 1}</code></button>
       {/each}
-    </select>
-    {#if error}
-      <p>{error}</p>
-    {/if}
-    <button on:click={send}>Send</button>
+    </div>
   </div>
 {:else}Loading Sample...{/if}
