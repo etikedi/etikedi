@@ -9,6 +9,12 @@ from ..models import Dataset, Association, Sample
 
 
 def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) -> bool:
+    # Could possibly fix https://gitlab.hrz.tu-chemnitz.de/ddsg/aergia/aergia/-/issues/62
+    # Used when active learning code is not used at all to speed up development of frontend
+    # In this case, we can skip the count query
+    if random_sample_every == 1:
+        return True
+
     number_of_labeled_samples = (
         db.query(Association).join(Association.sample)
         .filter(Sample.dataset == dataset)
