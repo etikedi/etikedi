@@ -150,6 +150,7 @@ tags
 *.pickle
 datasets/
 *.db
+*.db-journal
 log.txt
 log_example.txt
 /data/

@@ -26,6 +26,8 @@ def convert_dwtc_features(source: Path, to: Path) -> None:
         for entry in data:
             entry = list(entry)
             entry[0] = int(entry[0])
+            if isinstance(entry[-1], bytes):
+                entry[-1] = entry[-1].decode()
             csv_writer.writerow(entry)
 
 

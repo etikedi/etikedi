@@ -3,6 +3,7 @@ import pickle
 from io import BytesIO
 from itertools import product
 from pathlib import Path
+from typing import List
 from zipfile import ZipFile
 
 import numpy as np
@@ -37,6 +38,14 @@ def convert_cifar_to_png(pixels) -> bytes:
     return stream.getvalue()
 
 
+def get_cifar_meta(path: Path) -> List[str]:
+    with path.open('rb') as f:
+        raw_meta = pickle.load(f, encoding="bytes")
+
+    label_names = raw_meta[b'label_names']
+    return [s.decode() for s in label_names]
+
+
 def convert_cifar(data_path: Path):
     cifar_path = data_path / "cifar-10-batches-py"
 
@@ -53,9 +62,11 @@ def convert_cifar(data_path: Path):
 
     if not (target_csv_path.exists() and target_zip_path.exists()):
         with ZipFile(target_zip_path.open("wb"), "w") as zip_file, target_csv_path.open(
-            "w"
+                "w"
         ) as csv_file:
             identifier = 1
+
+            meta = get_cifar_meta(cifar_path / 'batches.meta')
 
             csv_writer = csv.writer(csv_file)
             colors = ["red", "green", "blue"]
@@ -74,7 +85,7 @@ def convert_cifar(data_path: Path):
 
                 for pixels, label in zip(data[b"data"], data[b"labels"]):
                     zip_file.writestr(f"{identifier}.raw", convert_cifar_to_png(pixels))
-                    csv_writer.writerow([identifier] + list(pixels) + [label])
+                    csv_writer.writerow([identifier] + list(pixels) + [meta[label]])
                     identifier += 1
     else:
         logger.info("Skip converting CIFAR as it is already present")
