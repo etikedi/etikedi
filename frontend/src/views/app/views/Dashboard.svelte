@@ -1,26 +1,15 @@
 <script>
+  import Button from '../../../ui/Button.svelte'
   import DatasetPreview from './DatasetPreview.svelte'
 
   import { data } from '../../../store/datasets'
 </script>
 
-<style>
-  .header {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1em;
-  }
-
-  h1 {
-    margin: 0;
-  }
-</style>
-
-<div class="header">
+<div class="flex justify-between items-center mb3">
   <h1>Datasets</h1>
-  <a href="/app/upload"> <button class="btn btn-lg"> Add one </button> </a>
+  <a href="/app/upload">
+    <Button label="Add one" icon="add-circle-sharp" />
+  </a>
 </div>
 
 {#each Object.values($data) as dataset}

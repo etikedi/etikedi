@@ -2,9 +2,14 @@
   import { onMount } from 'svelte'
   import axios from 'axios'
   import { router } from 'tinro'
+  import { sentenceCase } from 'change-case'
+
+  import Button from '../../../ui/Button.svelte'
+  import Input from '../../../ui/Input.svelte'
+  import Checkbox from '../../../ui/Checkbox.svelte'
+  import Select from '../../../ui/Select.svelte'
 
   import { data } from '../../../store/datasets'
-  import ConfigField from '../components/ConfigField.svelte'
 
   const { id } = router.params()
 
@@ -55,7 +60,7 @@
     try {
       if (loading) return
       loading = true
-      const { data } = await axios({
+      await axios({
         method: 'post',
         url: `/datasets/${id}/config/`,
         data: config,
@@ -70,26 +75,23 @@
   }
 </script>
 
-<style>
-  ion-icon {
-    font-size: 1.5em;
-  }
-</style>
-
 <div>
-  <button class="btn btn-action btn-primary" on:click={back}>
-    <ion-icon name="arrow-back" />
-  </button>
-  <br />
+  <Button icon="arrow-back-sharp" label="Back" on:click={back} />
   <br />
   {#if dataset && config}
-    <h3>Config <i>{dataset.name}</i></h3>
+    <h2><b>{dataset.name}</b> Config</h2>
     <form on:submit|preventDefault={submit}>
-      {#each Object.entries(spec) as field}
-        <ConfigField {field} bind:config disabled={loading} />
+      {#each Object.entries(spec) as [key, { type, ...props }]}
+        {#if type === 'number'}
+          <Input {type} {...props} bind:value={config[key]} disabled={loading} label={sentenceCase(key)} />
+        {:else if Array.isArray(type)}
+          <Select label={sentenceCase(key)} bind:value={config[key]} disabled={loading} values={type} />
+        {:else if type === 'bool'}
+          <Checkbox bind:value={config[key]} disabled={loading} label={sentenceCase(key)} />
+        {/if}
       {/each}
-      <button type="button" on:click={back} class="btn">Cancel</button>
-      <button type="sumbit" class="btn btn-primary" class:loading disabled={loading}>Update</button>
+      <Button type="button" on:click={back} label="Cancel" />
+      <Button type="submit" {loading} disabled={loading} label="Update" icon="save-sharp" />
     </form>
   {:else}
     <div class="loading loading-lg" />

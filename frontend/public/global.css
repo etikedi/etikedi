@@ -1,5 +1,11 @@
 :root {
   --round: 0.5rem;
+  --clr-primary: #002557;
+  --clr-primary-light: #def1f7;
+  --clr-primary-light-alt: hsl(194, 61%, 80%);
+  --clr-white: #fff;
+  --clr-black: #000;
+  --clr-light: hsl(212, 10%, 97%);
 }
 
 body {
@@ -8,30 +14,17 @@ body {
     Helvetica Neue, sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: #111;
+  color: var(--clr-black);
+  background-color: var(--clr-light);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   text-shadow: rgba(0, 0, 0, 0.01) 0 0 1px;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin: 0 0 0.5em 0;
-  font-weight: 400;
-  line-height: 1.2;
-}
-
-h1 {
-  font-size: 2em;
-}
-
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 code {

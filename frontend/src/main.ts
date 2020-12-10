@@ -1,4 +1,4 @@
-import 'spectre.css/dist/spectre.css'
+// import 'spectre.css/dist/spectre.css'
 
 import App from './App.svelte'
 

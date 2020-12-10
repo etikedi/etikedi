@@ -4,46 +4,46 @@
 </script>
 
 <style>
-  div header {
+  nav {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     z-index: 10;
-    background-color: #009fff;
+    background-color: var(--clr-primary);
     padding: 0.5rem 1rem;
-    color: white;
+    color: var(--clr-white);
   }
 
-  div {
-    margin-bottom: 3em;
-  }
-
-  h3 {
-    margin: 0;
+  nav > div {
+    flex: 1;
   }
 
   a {
-    color: inherit;
     font-size: 1.15em;
+    border-bottom: 0.1em solid transparent;
+    padding: 0.25em 0.5em;
+  }
+  a:hover:not(.logo) {
+    border-bottom: 0.1em solid var(--clr-white);
+  }
+
+  .logo {
+    font-size: 2.5em;
+    font-weight: lighter;
+    transform: translateY(-0.1em);
+    display: block;
+    padding: 0;
   }
 </style>
 
-<div>
-  <header class="navbar">
-    <section class="navbar-section">
-      <a href="/" class="btn btn-link"> Home</a>
-      <a href="/about" class="btn btn-link">About</a>
-    </section>
-    <section class="navbar-center">
-      <a href="/app">
-        <h3>Aergia</h3>
-      </a>
-    </section>
-    <section class="navbar-section">
-      {#if $router.path.startsWith('/app') && $token}
-        <a href="/" on:click={logout} class="btn btn-link">Logout</a>
-      {:else}<a href="/app" class="btn btn-link">App</a>{/if}
-    </section>
-  </header>
-</div>
+<div class="h3" />
+<nav class="flex h3 items-center justify-center">
+  <div><a href="/"> Home</a> <a href="/about">About</a></div>
+  <div class="tc"><a href="/app" class="logo"> Aergia </a></div>
+  <div class="tr">
+    {#if $router.path.startsWith('/app') && $token}
+      <a href="/" on:click={logout}>Logout</a>
+    {:else}<a href="/app">App</a>{/if}
+  </div>
+</nav>

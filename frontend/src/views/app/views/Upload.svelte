@@ -1,112 +1,62 @@
 <script lang="ts">
-  let data, features, displayFiles
-  let files = []
+  import axios from 'axios'
 
-  function initFiles(input) {
-    files = Array.from(input.files)
-    let output = []
-    files.forEach((file) => {
-      output.push(
-        '<li><strong>',
-        escape(file.name),
-        '</strong> (',
-        file.type || 'n/a',
-        ') - ',
-        file.size,
-        ' bytes, last modified: ',
-        file.lastModifiedDate.toLocaleDateString(),
-        '</li>'
-      )
-    })
-    displayFiles.innerHTML = '<ul>' + output.join('') + '</ul>'
+  import File from '../../../ui/File.svelte'
+  import Input from '../../../ui/Input.svelte'
+  import Button from '../../../ui/Button.svelte'
+
+  let error: null | string = null
+
+  let contents: HTMLInputElement | null = null
+  let features: HTMLInputElement | null = null
+  const form = {
+    name: '',
+    sample_type: '',
   }
 
-  function upload() {
-    if (files.length === 0) {
-      console.error('No files chosen!')
+  async function upload() {
+    error = null
+    if (contents.files.length !== 1 || features.files.length !== 1) {
+      error = 'No files selected'
       return
     }
-    files.forEach((file) => {
-      const reader = new FileReader()
+    const fd = new FormData()
+    fd.append('name', form.name)
+    fd.append('sample_type', form.sample_type)
+    fd.append('features', features.files[0])
+    fd.append('contents', contents.files[0])
 
-      reader.addEventListener('error', (err) => {
-        console.error('FileReader error' + err)
-      })
-
-      reader.onload = (ev) => {
-        // Send result
-        console.log(ev)
-      }
-
-      reader.readAsArrayBuffer(file)
-
-      console.log(reader)
+    const { data } = await axios({
+      url: '/datasets',
+      method: 'post',
+      data: fd,
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     })
+    console.log(data)
   }
 </script>
 
 <style>
-  .cards {
+  .uploads {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: 10px;
-    margin-bottom: 10px;
-  }
-
-  .card {
-    padding: 30px;
-    border-radius: 15px;
-    border: 3px solid #032557;
-    align-items: center;
-  }
-
-  ion-icon {
-    color: #000;
-    width: 4.5em;
-    height: 4.5em;
-    margin-bottom: 2em;
-  }
-
-  span {
-    font-size: 2.5em;
-    font-weight: lighter;
-  }
-
-  .btn {
-    color: #3b4351;
-    height: initial;
-    width: 100%;
+    column-gap: 1em;
   }
 </style>
 
 <h1>Upload</h1>
-<input
-  type="file"
-  bind:this={data}
-  style="display: none"
-  multiple
-  accept="application/json"
-  on:input={() => initFiles(data)} />
-<input
-  type="file"
-  bind:this={features}
-  style="display: none"
-  multiple
-  accept="image/*"
-  on:input={() => initFiles(features)} />
-<div class="cards">
-  <div>
-    <button class="card btn" on:click={data.click()}>
-      <ion-icon name="folder" />
-      <span>Data</span>
-    </button>
+
+<form on:submit|preventDefault={upload}>
+  <Input label="Name" bind:value={form.name} />
+  <Input label="Type" bind:value={form.sample_type} />
+  <div class="uploads">
+    <File type="file" label="Data" accept="application/zip" bind:element={contents} />
+    <File type="file" label="Features" accept="text/comma-separated-values" bind:element={features} />
   </div>
-  <div>
-    <button class="card btn" on:click={features.click()}>
-      <ion-icon name="document" />
-      <span>Features</span>
-    </button>
-  </div>
-</div>
-<div bind:this={displayFiles} />
-<button class="btn card" on:click={upload}> <span>Upload</span> </button>
+  <Button full label="Upload" type="submit" />
+  {#if error}
+    <p>{error}</p>
+  {/if}
+</form>

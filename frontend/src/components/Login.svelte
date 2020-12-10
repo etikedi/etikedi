@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Input from '../ui/Input.svelte'
+  import Button from '../ui/Button.svelte'
+
   import type { LoginForm } from '../store/auth'
   import { login } from '../store/auth'
 
@@ -32,21 +35,10 @@
 </style>
 
 <form on:submit|preventDefault={submit}>
-  <div class="form-group">
-    <label class="form-label">
-      Name
-      <input class="form-input" type="text" bind:value={form.username} disabled={loading} />
-    </label>
-  </div>
+  <Input bind:value={form.username} disabled={loading} label="Username" />
+  <Input bind:value={form.password} disabled={loading} label="Password" type="password" />
 
-  <div class="form-group">
-    <label class="form-label">
-      Password
-      <input class="form-input" type="password" bind:value={form.password} disabled={loading} />
-    </label>
-  </div>
-
-  <button type="submit" class="btn btn-primary" disabled={loading} class:loading>Login</button>
+  <Button type="submit" disabled={loading} {loading} label="Login" icon="person-circle-sharp" />
 
   {#if error}
     <p class="text-error">{error}</p>
