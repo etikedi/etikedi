@@ -108,7 +108,7 @@
     <div class="data">
       {#if Object.keys(mappings).includes(sample.type)}
         {#if grid}
-          <Grid/>
+          <Grid firstSample={sample.content} labels={dataset.labels}/>
         {:else}
           <svelte:component this={mappings[sample.type]} data={sample.content} />
         {/if}

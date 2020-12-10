@@ -1,4 +1,10 @@
 <script>
+  import { onMount } from 'svelte'
+
+  export let firstSample
+  export let labels
+  export let users = ['Lisa', 'Mona', 'Petra']
+
   let mock = [
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Dog' },
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Dog' },
@@ -12,18 +18,18 @@
   ]
 
   let displayed = mock
+  let labelNames, inputs = []
 
+  $: labelNames = labels.map(label => {return label.name})
+
+  // TODO: user options from real data, display labelnames (not working because of svelte array magic)
   let filter = [
-    { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
-    { name: 'Label', label: 'label', options: ['Dog', 'Cat', 'Mouse'] },
-    { name: 'Automatic', label: 'automatic', options: ['Full Auto', 'Semi Auto', 'Single Shot'] },
-    { name: 'Uncertainty', label: 'uncertainty', options: ['Big', 'Small'] },
+    { name: 'Label', label: 'label', options: labelNames || [] },
+    { name: 'User', label: 'user', options:  [...users] },
+    { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
     { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
   ]
 
-
-
-  let inputs = []
 
   function filterData() {
     let array = []
