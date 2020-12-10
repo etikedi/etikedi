@@ -7,15 +7,18 @@
   import Image from '../components/labeling/Image.svelte'
 
   import { data as datasets } from '../../../store/datasets'
+  import Grid from '../components/labeling/Grid.svelte'
 
   const mappings = {
     table: Table,
-    image: Image,
+    image: Image
   }
 
   const { id } = router.params()
 
   let sample = null
+  let grid = false
+  let dataset, ready
 
   $: dataset = $datasets[id]
   $: ready = dataset && sample != null
@@ -23,7 +26,7 @@
   onMount(() => {
     axios({
       method: 'get',
-      url: `/datasets/${id}/first_sample`,
+      url: `/datasets/${id}/first_sample`
     }).then((response) => (sample = response.data))
 
     window.document.addEventListener('keypress', keyPress)
@@ -49,47 +52,66 @@
       method: 'post',
       url: `/samples/${id}`,
       params: {
-        label_id: selected,
-      },
+        label_id: selected
+      }
     })
     sample = data
   }
 </script>
 
 <style>
-  .card {
-    padding: 1.5em 2em;
-    background-color: #f7f7f7;
-    border-radius: var(--round);
-    border: 1px solid #e9f2ff;
-    align-items: center;
-  }
 
-  .data {
-    max-height: calc(100vh - 23em);
-    overflow: auto;
-  }
+    .top {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
 
-  .labels {
-    margin-top: 2em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    flex-wrap: wrap;
-  }
+    .card {
+        padding: 1.5em 2em;
+        background-color: #f7f7f7;
+        border-radius: var(--round);
+        border: 1px solid #e9f2ff;
+        align-items: center;
+    }
 
-  .labels > button {
-    margin: 0.5em;
-  }
+    .data {
+        max-height: calc(100vh - 23em);
+        overflow: auto;
+    }
+
+    .labels {
+        margin-top: 2em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .labels > button {
+        margin: 0.5em;
+    }
 </style>
 
 {#if ready}
-  <h3>Dataset {id}</h3>
+  <div class="top">
+    <h3>Dataset {id}</h3>
+    <div class="form-group">
+      <label class="form-switch">
+        <input type="checkbox" on:change={(e) => grid = e.target.checked}>
+        <i class="form-icon"></i> Grid view
+      </label>
+    </div>
+  </div>
   <div class="card mb-2 container">
     <div class="data">
       {#if Object.keys(mappings).includes(sample.type)}
-        <svelte:component this={mappings[sample.type]} data={sample.content} />
+        {#if grid}
+          <Grid/>
+        {:else}
+          <svelte:component this={mappings[sample.type]} data={sample.content} />
+        {/if}
       {:else}
         <p>Unsupported type {sample.type}</p>
       {/if}
