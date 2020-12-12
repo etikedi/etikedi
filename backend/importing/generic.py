@@ -1,6 +1,6 @@
 import base64
 from pathlib import Path
-from tempfile import NamedTemporaryFile, SpooledTemporaryFile, TemporaryFile
+from tempfile import SpooledTemporaryFile
 from typing import IO, Type, Tuple
 from zipfile import ZipFile
 
