@@ -25,9 +25,9 @@ def create_dataset(
     contents: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user),
 ):
-    sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
-    if not sample_class:
+    if sample_type not in ["table", "image", "text"]:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
+    sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
 
     dataset, number_of_samples = import_dataset(
         name=name,
