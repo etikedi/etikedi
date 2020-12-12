@@ -24,7 +24,8 @@ class Sample(Base):
 
     id = Column(Integer, primary_key=True)
 
-    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset_id = Column(Integer, ForeignKey(
+        "dataset.id", ondelete="CASCADE"), nullable=False)
     dataset = relationship("Dataset", backref=backref("items", lazy=True))
 
     labels = relationship(
@@ -46,7 +47,8 @@ class Sample(Base):
 
     content: Union[str, bytes]
 
-    __mapper_args__ = {"polymorphic_identity": "sample", "polymorphic_on": "type"}
+    __mapper_args__ = {"polymorphic_identity": "sample",
+                       "polymorphic_on": "type"}
 
     def ensure_string_content(self) -> None:
         """ Converts the content to a base64 encoded string if it is binary """

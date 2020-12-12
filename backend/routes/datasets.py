@@ -26,7 +26,7 @@ def delete_dataset(
             detail="Dataset not found for id: {}.".format(id)
         )
 
-    db.query(Label).filter(Label.dataset_id == id).delete()
+    # db.query(Label).filter(Label.dataset_id == id).delete()
     db.delete(dataset)
     db.commit()
     return dataset
