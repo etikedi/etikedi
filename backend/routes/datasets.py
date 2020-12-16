@@ -1,7 +1,8 @@
 from typing import List, Optional, Union
 
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query
-from sqlalchemy import text, func
+from sqlalchemy import func
+from sqlalchemy_paginator import Paginator, EmptyPage
 
 from ..worker import get_next_sample
 from ..config import db
@@ -65,21 +66,26 @@ def get_first_sample(dataset_id: int):
 @dataset_router.get("/{dataset_id}/samples", response_model=List[SampleDTO])
 def get_filtered_samples(
         dataset_id: int,
-        number_elements: Optional[int] = None,
+        total_amount: Optional[int] = None,
+        page: Optional[int] = None,
+        limit: Optional[int] = None,
         labels: Optional[List[int]] = Query(None),
         users: Optional[List[int]] = Query(None),
         labeled: Optional[bool] = None,
         free_text: Optional[Union[str, bytes]] = None,
         divided_labels: Optional[bool] = None):
     """
+    :param dataset_id:          dataset_id for dataset\\
+    :param limit:               number of samples per page\\
+    :param page:                number of page that should be fetched (beginning with 1)\\
+    :param total_amount:        sets max limit how many samples should be returned\\
 
-    :param dataset_id:          dataset_id for dataset
-    :param number_elements:     sets max limit how many samples should be returned\\
-    :param labels:              list of label_ids to filter for add each label with label = label_id\\
-    :param users:               list of user_ids to filter for add each user with users = user_id\\
     :param labeled:             return only labeled samples (true) / unlabeled samples (false)\\
-    :param free_text:           freetext search (only one word)\\
+    :param labels:              list of label_ids to filter for add each label with label = label_id\\
     :param divided_labels:      search only for samples, which different users labeled differently\\
+
+    :param users:               list of user_ids to filter for add each user with users = user_id\\
+    :param free_text:           freetext search (only one word)\\
     :return:                    list of samples
     """
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
@@ -143,10 +149,20 @@ def get_filtered_samples(
         query = query.group_by(Sample.id).having(func.count(Association.label_id) > 1).order_by(
             func.count(Association.label_id))
 
-    # limit number of returned elements
-    if number_elements:
-        query = query.limit(number_elements)
+    # limit number of returned elements and paging
+    if page and limit:
+        paginator = Paginator(query, limit)
+        try:
+            paginator.validate_page_number(page)
+        except EmptyPage:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Page not found for page: {}.".format(page)
+            )
+        return paginator.page(page).object_list
 
-    samples = query.all()
+    if total_amount:
+        query = query.limit(total_amount)
+        return query.all()
 
-    return samples
+    return query.all()
