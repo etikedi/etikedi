@@ -1,11 +1,7 @@
 <script>
   import { onMount } from 'svelte'
 
-  export let firstSample
-  export let labels
-  export let users = ['Lisa', 'Mona', 'Petra']
-
-  let mock = [
+  export let displayed = [
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Dog' },
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Dog' },
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Petra', label: 'Cat' },
@@ -17,31 +13,8 @@
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Cat' }
   ]
 
-  let displayed = mock
-  let labelNames, inputs = []
-
-  $: labelNames = labels.map(label => {return label.name})
-
   // TODO: user options from real data, display labelnames (not working because of svelte array magic)
-  let filter = [
-    { name: 'Label', label: 'label', options: labelNames || [] },
-    { name: 'User', label: 'user', options:  [...users] },
-    { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
-    { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
-  ]
 
-
-  function filterData() {
-    let array = []
-    inputs.forEach(input => {
-      if (input.value) {
-        array.push(mock.filter(sample => sample[input.name] === input.value))
-      }
-    })
-    array = array.flat()
-    // Eliminate duplicates and convert it back to array
-    displayed = [...new Set([...array])]
-  }
 </script>
 
 <style>
@@ -53,35 +26,6 @@
 </style>
 
 <div class="wrapper">
-  <ul class="menu">
-    <!-- menu header text -->
-    <li class="divider" data-content="FILTER OPTIONS">
-    </li>
-    <!-- menu item with form control -->
-    {#each filter as filterOption, i}
-      <li class="menu-item">
-        <!-- form select control -->
-        <div class="form-group">
-          <label>{filterOption.name}
-            <select bind:this={inputs[i]} name="{filterOption.label}" class="form-select">
-              <option disabled selected value style="display: none"></option>
-              {#each filterOption.options as option}
-                <option>{option}</option>
-              {/each}
-            </select>
-          </label>
-        </div>
-      </li>
-    {/each}
-    <!-- menu divider -->
-    <li class="divider"></li>
-    <!-- menu item with badge -->
-    <li class="menu-item">
-      <button class="btn btn-lg" on:click={filterData}>
-        Filter
-      </button>
-    </li>
-  </ul>
   <div class="container">
     <div class="columns">
       {#each displayed as sample}

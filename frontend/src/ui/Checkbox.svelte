@@ -3,7 +3,8 @@
   export let label: string = ''
   export let disabled = false
 
-  $: name = value ? 'checkmark-sharp' : 'close-sharp'
+  //$: name = value ? 'checkmark-sharp' : 'close-sharp'
+  $: name = value ? 'close-sharp' : 'checkmark-sharp'
 </script>
 
 <style>
