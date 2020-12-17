@@ -28,38 +28,11 @@
   $: dataset = $datasets[id]
   $: ready = dataset && sample != null
 
-  let filterOptions
-  let selectFilter = {}
-  let displayed
-
-  $: if (ready) {
-    filterOptions = [
-      { name: 'Label', label: 'label', options: dataset.labels },
-      { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
-      { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
-      { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
-    ]
-  }
-
-  function filterData() {
-    let array = []
-    Object.keys(selectFilter).forEach(key => {
-      if (selectFilter[key]) {
-        array.push(displayed.filter(sample => sample[key] === selectFilter[key]))
-      }
-    })
-    array = array.flat()
-    // Eliminate duplicates and convert it back to array
-    displayed = [...new Set([...array])]
-  }
-
   onMount(() => {
     axios({
       method: 'get',
       url: `/datasets/${id}/first_sample`
-    }).then((response) => {
-      sample = response.data
-    })
+    }).then(response => sample = response.data)
 
     window.document.addEventListener('keypress', keyPress)
     return () => {
@@ -109,20 +82,6 @@
     .labels > :global(*) {
         margin: 0.5em;
     }
-
-    .wrapper {
-        display: flex;
-        flex-direction: row;
-    }
-
-    .menu {
-        display: flex;
-        flex-direction: column;
-    }
-
-    ul {
-      padding: 0;
-    }
 </style>
 
 {#if ready}
@@ -131,25 +90,13 @@
     <Checkbox bind:value={grid} label="Grid view" />
   </div>
 
-  <div class="wrapper">
-    {#if grid}
-      <div class="menu">
-        <ul>
-          {#each filterOptions as filterOption, i}
-            <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name} values={filterOption.options} />
-          {/each}
-        </ul>
-        <Button label="Filter" on:click={filterData} />
-      </div>
-    {/if}
+  {#if grid}
+    <Grid firstSample={sample.content} labels={dataset.labels} datasetId={id} />
+  {:else}
     <Card>
       <div class="data tc">
         {#if Object.keys(mappings).includes(sample.type)}
-          {#if grid}
-            <Grid firstSample={sample.content} labels={dataset.labels} bind:displayed={displayed} />
-          {:else}
-            <svelte:component this={mappings[sample.type]} data={sample.content} />
-          {/if}
+          <svelte:component this={mappings[sample.type]} data={sample.content} />
         {:else}
           <p>Unsupported type {sample.type}</p>
         {/if}
@@ -161,7 +108,8 @@
         {/each}
       </div>
     </Card>
-  </div>
+  {/if}
+
 {:else}
   <div class="text-center">
     <div class="loading loading-lg" />

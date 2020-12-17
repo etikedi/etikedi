@@ -9,4 +9,4 @@
   }
 </style>
 
-<img src="data:image/png;base64,{data}" alt="sample" />
+<img src="data:image/png;base64,{data}" alt="sample" on:click/>

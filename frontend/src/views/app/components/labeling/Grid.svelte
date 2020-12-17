@@ -1,5 +1,10 @@
 <script>
   import { onMount } from 'svelte'
+  import axios from 'axios'
+  import Image from './Image.svelte'
+  import Select from '../../../../ui/Select.svelte'
+  import Button from '../../../../ui/Button.svelte'
+  import Card from '../../../../ui/Card.svelte'
 
   export let displayed = [
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Dog' },
@@ -13,31 +18,117 @@
     { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Cat' }
   ]
 
-  // TODO: user options from real data, display labelnames (not working because of svelte array magic)
+  export let labels = []
+  export let datasetId
+
+  let samples = []
+
+  onMount(() => {
+    for (let i = 0; i < 9; i++) {
+      axios({
+        method: 'get',
+        url: `/datasets/${datasetId}/first_sample`
+      }).then(response => samples[i] = response.data)
+    }
+  })
+
+  /* Filtering */
+  let filterOptions
+  let selectFilter = {}
+
+  filterOptions = [
+    { name: 'Label', label: 'label', options: labels.map(label => label.name) },
+    { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
+    { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
+    { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
+  ]
+
+  function filterData() {
+    let array = []
+    Object.keys(selectFilter).forEach(key => {
+      if (selectFilter[key]) {
+        array.push(displayed.filter(sample => sample[key] === selectFilter[key]))
+      }
+    })
+    array = array.flat()
+    // Eliminate duplicates and convert it back to array
+    displayed = [...new Set([...array])]
+  }
+
+  let chosen = []
+
+  function choose(sample, index) {
+    if (chosen.find(el => el === sample)) {
+      chosen.splice(chosen.indexOf(sample), 1)
+      document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
+      return
+    }
+    document.getElementById(`sample${index}`).style.backgroundColor = 'lightskyblue'
+    chosen.push(sample)
+  }
+
+  async function send(label_id) {
+    const newSamples = []
+    console.log("Label", label_id)
+    console.log("samples", chosen)
+    for (const sample of chosen) {
+      newSamples.push(await axios({
+        method: 'post',
+        url: `/samples/${sample.id}`,
+        params: {
+          label_id
+        }
+      }))
+    }
+    console.log(newSamples)
+  }
 
 </script>
 
 <style>
     .wrapper {
-        display: grid;
-        grid-template-columns: 1fr 4fr;
-        column-gap: 35px;
+        display: flex;
+        flex-direction: row;
+
+    }
+
+    .menu {
+        display: flex;
+        flex-direction: column;
+    }
+
+    ul {
+        padding: 0;
+        margin: 0;
+        width: 150px;
     }
 </style>
 
-<div class="wrapper">
-  <div class="container">
-    <div class="columns">
-      {#each displayed as sample}
-        <div class="column col-4 card mb-2">
-          <div class="card-title text-gray">Sample {sample.sampleId}</div>
-          <div class="card-body">
-            {sample.content}
-            {sample.user}
-            {sample.label}
+<Card>
+  <div class="wrapper">
+    <div class="menu">
+      <ul>
+        {#each filterOptions as filterOption, i}
+          <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
+                  values={filterOption.options} />
+        {/each}
+      </ul>
+      <Button label="Filter" on:click={filterData} />
+    </div>
+    <div class="mw9 center ph3-ns">
+      <div class="cf ph2-ns">
+        {#each samples as sample, i}
+          <div id="sample{i}" class="fl w-100 w-third-ns pa2">
+            <Image data={sample.content} on:click={() => choose(sample, i)} />
           </div>
-        </div>
-      {/each}
+        {/each}
+      </div>
     </div>
   </div>
-</div>
+  <div class="labels">
+    {#each labels as { id, name }, i (id)}
+      <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
+    {/each}
+  </div>
+</Card>
+
