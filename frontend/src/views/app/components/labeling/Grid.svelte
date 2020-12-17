@@ -22,14 +22,24 @@
   export let datasetId
 
   let samples = []
+  let ready = false
 
   onMount(() => {
     for (let i = 0; i < 9; i++) {
       axios({
         method: 'get',
         url: `/datasets/${datasetId}/first_sample`
-      }).then(response => samples[i] = response.data)
+      })
+        .then(response => {
+          samples[i] = response.data
+        })
+        .catch(err => {
+          // Remove failed sample
+          samples.splice(i, 1)
+        })
     }
+    console.log(samples)
+    ready = true
   })
 
   /* Filtering */
@@ -69,8 +79,8 @@
 
   async function send(label_id) {
     const newSamples = []
-    console.log("Label", label_id)
-    console.log("samples", chosen)
+    console.log('Label', label_id)
+    console.log('samples', chosen)
     for (const sample of chosen) {
       newSamples.push(await axios({
         method: 'post',
@@ -102,6 +112,17 @@
         margin: 0;
         width: 150px;
     }
+
+    .samples {
+        display: grid;
+        justify-content: center;
+        margin: 8px;
+        border-radius: 10px;
+    }
+
+    .w-third-ns {
+        width: 30.33333%;
+    }
 </style>
 
 <Card>
@@ -117,11 +138,15 @@
     </div>
     <div class="mw9 center ph3-ns">
       <div class="cf ph2-ns">
-        {#each samples as sample, i}
-          <div id="sample{i}" class="fl w-100 w-third-ns pa2">
-            <Image data={sample.content} on:click={() => choose(sample, i)} />
-          </div>
-        {/each}
+        {#if ready}
+          {#each samples as sample, i}
+            {#if sample}
+              <div id="sample{i}" class="fl w-100 w-third-ns pa2 samples" on:click={() => choose(sample, i)}>
+                <Image data={sample.content} />
+              </div>
+            {/if}
+          {/each}
+        {/if}
       </div>
     </div>
   </div>
