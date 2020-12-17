@@ -33,12 +33,10 @@
         .then(response => {
           samples[i] = response.data
         })
-        .catch(err => {
-          // Remove failed sample
-          samples.splice(i, 1)
-        })
+        .catch(err => console.log(err))
     }
-    console.log(samples)
+    // Remove empty entries from array
+    samples = samples.filter(el => el != null)
     ready = true
   })
 
@@ -61,11 +59,13 @@
       }
     })
     array = array.flat()
+
     // Eliminate duplicates and convert it back to array
     displayed = [...new Set([...array])]
   }
 
   let chosen = []
+  let nextSamples = []
 
   function choose(sample, index) {
     if (chosen.find(el => el === sample)) {
@@ -78,19 +78,42 @@
   }
 
   async function send(label_id) {
-    const newSamples = []
-    console.log('Label', label_id)
-    console.log('samples', chosen)
-    for (const sample of chosen) {
-      newSamples.push(await axios({
+
+    // Remove empty entries in array
+    samples = samples.filter(el => el != null)
+
+    const temp = samples
+    // Remove background color
+    samples.forEach((sample, index) => {
+      document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
+    })
+
+    // Remove chosen from samples
+    chosen.forEach(el => {
+      temp.splice(temp.indexOf(el), 1)
+    })
+
+    samples = temp
+
+    for (const [index, sample] of chosen.entries()) {
+      await axios({
         method: 'post',
         url: `/samples/${sample.id}`,
         params: {
           label_id
         }
-      }))
+      })
+        .then(res => {
+          nextSamples.push(res.data)
+        })
+        .catch(err => console.log(err))
     }
-    console.log(newSamples)
+    chosen = []
+    // If samples are all labeled, set next samples
+    if (Object.values(samples).length === 0) {
+      samples = nextSamples
+      nextSamples = []
+    }
   }
 
 </script>
@@ -123,6 +146,19 @@
     .w-third-ns {
         width: 30.33333%;
     }
+
+    .labels {
+        margin-top: 2em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .labels > :global(*) {
+        margin: 0.5em;
+    }
 </style>
 
 <Card>
@@ -148,12 +184,12 @@
           {/each}
         {/if}
       </div>
+      <div class="labels">
+        {#each labels as { id, name }, i (id)}
+          <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
+        {/each}
+      </div>
     </div>
-  </div>
-  <div class="labels">
-    {#each labels as { id, name }, i (id)}
-      <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
-    {/each}
   </div>
 </Card>
 
