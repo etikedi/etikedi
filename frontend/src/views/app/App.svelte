@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Route } from 'tinro'
+  import { Route, router } from 'tinro'
 
   import Login from '../../components/Login.svelte'
 
@@ -31,6 +31,9 @@
       <Route path="/label">
         <Label />
       </Route>
+    </Route>
+    <Route path="/app/*">
+      {router.goto($router.path.replace('/app', ''))}
     </Route>
   {:else}
     <Login />
