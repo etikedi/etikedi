@@ -20,12 +20,13 @@
 
   export let labels = []
   export let datasetId
+  export let sampleCount = 9
 
   let samples = []
   let ready = false
 
   onMount(() => {
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < sampleCount; i++) {
       axios({
         method: 'get',
         url: `/datasets/${datasetId}/first_sample`
@@ -109,8 +110,22 @@
         .catch(err => console.log(err))
     }
     chosen = []
+
     // If samples are all labeled, set next samples
     if (Object.values(samples).length === 0) {
+      if (nextSamples.length < sampleCount) {
+        // Load missing samples
+        for (let i = 0; i < sampleCount - nextSamples.length; i++) {
+          await axios({
+            method: 'get',
+            url: `/datasets/${datasetId}/first_sample`
+          })
+            .then(response => {
+              nextSamples.push(response.data)
+            })
+            .catch(err => console.log(err))
+        }
+      }
       samples = nextSamples
       nextSamples = []
     }
