@@ -21,7 +21,7 @@ def convert_religions_texts_features(source: Path, to: Path) -> None:
         label_names.append(label)
 
     features["LABEL"] = label_names
-    features.rename(columns={'Unnamed: 0': 'CHAPTER'}, inplace=True)
+    features.drop(columns='Unnamed: 0', inplace=True)
 
     features.to_csv(to, index_label="ID")
 
