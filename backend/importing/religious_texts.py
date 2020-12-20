@@ -1,49 +1,82 @@
-import csv
+""" Preprocessing steps for the Religions Texts dataset """
 from pathlib import Path
+from zipfile import ZipFile
 
-from .utils import download_archive, get_or_create_dataset
-from ..config import logger, db
-from ..models import Sample
+import pandas as pd
+
+from .generic import import_dataset
+from .utils import download_archive
+from ..config import logger
+from ..models import Text
 
 
-def download_religions_texts(data_path):
-    if (data_path / "AsianReligionsData").exists():
-        return
+def convert_religions_texts_features(source: Path, to: Path) -> None:
+    logger.info("Converting Religions Texts features")
+    features = pd.read_csv(source, delimiter=",")
 
-    logger.info("Downloading Religions Texts...")
-    download_archive(
-        url="https://archive.ics.uci.edu/ml/machine-learning-databases/00512/AsianReligionsData.zip",
-        download_path=data_path / "AsianReligiousData.zip",
-        target_path=data_path / "AsianReligionsData",
+    label_names = []
+
+    for index, book in features.iterrows():
+        label = book[0][:book[0].rfind("_")]
+        label_names.append(label)
+
+    features["LABEL"] = label_names
+    features.rename(columns={'Unnamed: 0': 'CHAPTER'}, inplace=True)
+
+    features.to_csv(to, index_label="ID")
+
+
+def convert_religions_texts_data(source: Path, to: Path) -> None:
+    """ Convert the text file to a zip """
+
+    with ZipFile(to, "w") as zip_file, source.open() as source_file:
+        logger.info("Converting Religions Texts data")
+
+        identifier = 0
+        for row in source_file:
+            if is_number(row):
+                continue
+            if not row:
+                row = ""
+            zip_file.writestr(f"{identifier}.raw", row)
+            identifier += 1
+
+
+def convert_religions_texts(data_path: Path):
+    religions_texts_path = data_path / "religions_texts"
+    religions_texts_path.mkdir(parents=True, exist_ok=True)
+
+    feature_path = religions_texts_path / "AllBooks_baseline_DTM_Labelled.csv"
+    text_path = religions_texts_path / "Complete_data .txt"
+
+    if not (feature_path.exists() and text_path.exists()):
+        logger.info("Downloading Religions Texts")
+        download_archive(
+            url="https://archive.ics.uci.edu/ml/machine-learning-databases/00512/AsianReligionsData.zip",
+            download_path=religions_texts_path / "ReligionsData.zip",
+            target_path=religions_texts_path,
+        )
+
+    target_csv_path = religions_texts_path / "religions_texts.csv"
+    target_zip_path = religions_texts_path / "religions_texts.zip"
+
+    if not target_csv_path.exists():
+        convert_religions_texts_features(source=feature_path, to=target_csv_path)
+
+    if not target_zip_path.exists():
+        convert_religions_texts_data(source=text_path, to=target_zip_path)
+
+    import_dataset(
+        name="Religions Texts",
+        sample_class=Text,
+        features=target_csv_path,
+        content=target_zip_path,
     )
 
 
-def import_religions_texts(data_path: Path):
-    religions_texts = get_or_create_dataset("Religious texts")
-    if db.query(Sample).filter(Sample.dataset == religions_texts).count():
-        logger.info("Skip Religions Texts...")
-        return
-    download_religions_texts(data_path)
-
-    feature_path = data_path / "AsianReligionsData/AllBooks_baseline_DTM_Labelled.csv"
-    text_path = data_path / "AsianReligionsData/Complete_data .txt"
-    content_attribute = "data"  # Should not be a feature
-
-    logger.info("Importing Religions Texts...")
-    with feature_path.open() as feature_file, text_path.open(
-        encoding="latin-1"
-    ) as text_file:
-        features_names, *all_features = list(csv.reader(feature_file))
-        texts = list(text_file)[1::2]
-
-        if len(texts) != len(all_features):
-            raise ValueError("Number of features does not match the number of texts")
-
-        samples = []
-        for features, text in zip(all_features, texts):
-            sample = {
-                feature: value for feature, value in zip(features_names, features)
-            }
-            sample[content_attribute] = text
-            samples.append(sample)
-    logger.info("Done Religions Texts...")
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
