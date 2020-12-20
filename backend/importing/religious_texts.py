@@ -7,7 +7,7 @@ import pandas as pd
 from .generic import import_dataset
 from .utils import download_archive
 from ..config import logger
-from ..models import Text
+from ..models import TextSample
 
 
 def convert_religions_texts_features(source: Path, to: Path) -> None:
@@ -68,7 +68,7 @@ def convert_religions_texts(data_path: Path):
 
     import_dataset(
         name="Religions Texts",
-        sample_class=Text,
+        sample_class=TextSample,
         features=target_csv_path,
         content=target_zip_path,
     )
