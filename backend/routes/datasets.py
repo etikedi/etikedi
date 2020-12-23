@@ -1,8 +1,7 @@
 from typing import List, Optional, Union
 
-from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query
+from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query, Response
 from sqlalchemy import func
-from sqlalchemy_paginator import Paginator, EmptyPage
 
 from ..worker import get_next_sample
 from ..config import db
@@ -63,8 +62,9 @@ def get_first_sample(dataset_id: int):
     return first_sample
 
 
-@dataset_router.get("/{dataset_id}/samples", response_model=List[SampleDTO])
+@dataset_router.get("/{dataset_id}/samples/", response_model=List[SampleDTO])
 def get_filtered_samples(
+        response: Response,
         dataset_id: int,
         total_amount: Optional[int] = None,
         page: Optional[int] = None,
@@ -77,7 +77,7 @@ def get_filtered_samples(
     """
     :param dataset_id:          dataset_id for dataset\\
     :param limit:               number of samples per page\\
-    :param page:                number of page that should be fetched (beginning with 1)\\
+    :param page:                number of page that should be fetched (beginning with 0)\\
     :param total_amount:        sets max limit how many samples should be returned\\
 
     :param labeled:             return only labeled samples (true) / unlabeled samples (false)\\
@@ -150,18 +150,14 @@ def get_filtered_samples(
             func.count(Association.label_id))
 
     # limit number of returned elements and paging
-    if page and limit:
-        paginator = Paginator(query, limit)
-        try:
-            paginator.validate_page_number(page)
-        except EmptyPage:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Page not found for page: {}.".format(page)
-            )
-        return paginator.page(page).object_list
+    if page is not None and limit:
+        total_elements = query.count()
+        response.headers["X-Total"] = "{}".format(total_elements)
+        lower_limit = page * limit
+        upper_limit = page * limit + limit
+        query = query.order_by(Sample.id).slice(lower_limit, upper_limit)
 
-    if total_amount:
+    if total_amount and not (page is not None and limit):
         query = query.limit(total_amount)
         return query.all()
 
