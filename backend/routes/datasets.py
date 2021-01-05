@@ -132,9 +132,10 @@ def get_filtered_samples(
     # filter for only labeled or unlabeled datasets
     if labeled is not None:
         if labeled:
-            query = query.join(Association, Sample.id == Association.sample_id)
+            if not (labels or users or divided_labels):
+                query = query.join(Association, Sample.id == Association.sample_id)
         else:
-            if users or labels:
+            if users or labels or divided_labels:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot process unlabeled Samples if filters for Labels or Users are set.",
@@ -148,14 +149,24 @@ def get_filtered_samples(
 
         if content_type == "text":
             query = query.join(Text).filter(Text.content.like('%{}%'.format(free_text)))
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="The Dataset with id {} does not have text to search as content.".format(dataset_id),
+            )
 
     # filter for divided labels (sample has more than 1 label)
     if divided_labels:
         query = query.group_by(Sample.id).having(func.count(Association.label_id) > 1).order_by(
-            func.count(Association.label_id))
+            func.count(Association.label_id).desc())
 
     # limit number of returned elements and paging
     if page is not None and limit:
+        if page < 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Page number needs to be 0 or greater. Page number was: {}.".format(page),
+            )
         total_elements = query.count()
         response.headers["X-Total"] = "{}".format(total_elements)
         lower_limit = page * limit
