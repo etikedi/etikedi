@@ -66,7 +66,6 @@ def get_first_sample(dataset_id: int):
 def get_filtered_samples(
         response: Response,
         dataset_id: int,
-        total_amount: Optional[int] = None,
         page: Optional[int] = None,
         limit: Optional[int] = None,
         labels: Optional[List[int]] = Query(None),
@@ -75,16 +74,22 @@ def get_filtered_samples(
         free_text: Optional[Union[str, bytes]] = None,
         divided_labels: Optional[bool] = None):
     """
+    NOT for usage in connection with Active Learning!
+
+    :param response:            gets Response Header Object from FastAPI, dont fill\\
     :param dataset_id:          dataset_id for dataset\\
+
     :param limit:               number of samples per page\\
-    :param page:                number of page that should be fetched (beginning with 0)\\
-    :param total_amount:        sets max limit how many samples should be returned\\
+    :param page:                number of page that should be fetched (beginning with 0) \\
+
+    both limit and page need to be filled for paging, returns Total number of elements in the Header in X-Total \\
 
     :param labeled:             return only labeled samples (true) / unlabeled samples (false)\\
     :param labels:              list of label_ids to filter for add each label with label = label_id\\
     :param divided_labels:      search only for samples, which different users labeled differently\\
 
     :param users:               list of user_ids to filter for add each user with users = user_id\\
+
     :param free_text:           freetext search (only one word)\\
     :return:                    list of samples
     """
@@ -156,9 +161,5 @@ def get_filtered_samples(
         lower_limit = page * limit
         upper_limit = page * limit + limit
         query = query.order_by(Sample.id).slice(lower_limit, upper_limit)
-
-    if total_amount and not (page is not None and limit):
-        query = query.limit(total_amount)
-        return query.all()
 
     return query.all()
