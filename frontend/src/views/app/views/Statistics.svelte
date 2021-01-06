@@ -1,33 +1,49 @@
 <script>
   import Chartkick from 'chartkick'
   import Chart from 'chart.js'
-  import ApexCharts from 'apexcharts'
   import { onMount } from 'svelte'
   import { router } from 'tinro'
 
   const { id } = router.params()
 
-  let options = {
-    chart: {
-      type: 'line'
-    },
-    series: [{
-      name: 'sales',
-      data: [30,40,35,50,49,60,70,91,125]
-    }],
-    xaxis: {
-      categories: [1991,1992,1993,1994,1995,1996,1997, 1998,1999]
-    }
+  let classStats = [{
+    name: 'dog',
+    total: 1500,
+    labeled: 1023
+  }, {
+    name: 'cat',
+    total: 1000,
+    labeled: 343
+  }, {
+    name: 'fish',
+    total: 7200,
+    labeled: 3423
+  }, {
+    name: 'car',
+    total: 400,
+    labeled: 312
+  }, {
+    name: 'horse',
+    total: 600,
+    labeled: 23
+  }, {
+    name: 'plane',
+    total: 1100,
+    labeled: 189
+  }]
+
+  let userStats = {
+    total: 13205,
+    labeled: 2000
   }
+
+  let classCharts = []
 
   onMount(() => {
     Chartkick.use(Chart)
-
-    new Chartkick.LineChart("chart-1", {"2017-01-01": 11, "2017-01-02": 6})
-
-    let chart = new ApexCharts(document.querySelector("#chart"), options);
-
-    chart.render();
+    classCharts.forEach((chart, index) => {
+      new Chartkick.PieChart(chart, [['Unlabeled', classStats[index].total - classStats[index].labeled], ['Labeled', classStats[index].labeled]])
+    })
   })
 </script>
 
@@ -40,6 +56,9 @@
 
 <h1 class="mb4">Dataset {id} - Statistics</h1>
 <h2 class="mb4">Chartkick</h2>
-<div id="chart-1" style="height: 300px;"></div>
-<h2 class="mb4">ApexCharts</h2>
-<div id="chart"></div>
+{#each classStats as stat, i}
+  <div class="fl w-third pa2">
+    <h3 class="mb4">{stat.name}</h3>
+    <div bind:this={classCharts[i]} style="height: 250px;"></div>
+  </div>
+{/each}

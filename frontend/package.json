@@ -24,7 +24,6 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "apexcharts": "^3.23.1",
     "axios": "^0.21.0",
     "change-case": "^4.1.2",
     "chart.js": "^2.9.4",
