@@ -91,7 +91,7 @@
   </div>
 
   {#if grid}
-    <Grid firstSample={sample.content} labels={dataset.labels} datasetId={id} />
+    <Grid labels={dataset.labels} datasetId={id} />
   {:else}
     <Card>
       <div class="data tc">
