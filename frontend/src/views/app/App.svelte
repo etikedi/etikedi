@@ -10,6 +10,7 @@
   import Config from './views/Config.svelte'
   import Label from './views/Label.svelte'
   import Upload from './views/Upload.svelte'
+  import Statistics from './views/Statistics.svelte'
 
   $: if ($token) {
     load()
@@ -30,6 +31,9 @@
       </Route>
       <Route path="/label">
         <Label />
+      </Route>
+      <Route path="/statistics">
+        <Statistics />
       </Route>
     </Route>
     <Route path="/app/*">
