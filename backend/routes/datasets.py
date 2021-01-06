@@ -104,7 +104,7 @@ def get_filtered_samples(
     query = db.query(Sample).filter(Sample.dataset_id == dataset_id)
 
     # JOIN table association for later use
-    if labels or users or divided_labels:
+    if labels or users:
         query = query.join(Association, Sample.id == Association.sample_id)
 
     # filter for labels
@@ -132,7 +132,7 @@ def get_filtered_samples(
     # filter for only labeled or unlabeled datasets
     if labeled is not None:
         if labeled:
-            if not (labels or users or divided_labels):
+            if not (labels or users):
                 query = query.join(Association, Sample.id == Association.sample_id)
         else:
             if users or labels or divided_labels:
@@ -140,13 +140,14 @@ def get_filtered_samples(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="Cannot process unlabeled Samples if filters for Labels or Users are set.",
                 )
-            query = query.filter(Sample.dataset_id == 1, ~Sample.associations.any())
+            query = query.filter(Sample.dataset_id == dataset_id, ~Sample.associations.any())
 
     # text search
     if free_text:
         sample = db.query(Sample).filter(Sample.dataset_id == dataset_id).first()
         content_type = sample.type
 
+        # text search only for content type 'text'
         if content_type == "text":
             query = query.join(Text).filter(Text.content.like('%{}%'.format(free_text)))
         else:
@@ -157,10 +158,16 @@ def get_filtered_samples(
 
     # filter for divided labels (sample has more than 1 label)
     if divided_labels:
-        query = query.group_by(Sample.id).having(func.count(Association.label_id) > 1).order_by(
-            func.count(Association.label_id).desc())
+        # rebuild base query
+        base_query = db.query(Sample).filter(Sample.dataset_id == dataset_id).join(
+            Association, Sample.id == Association.sample_id)
+        # use query as subquery to apply other filters (eg. for labels or users)
+        sub_query = query.with_entities(Sample.id).subquery()
+        # build new query
+        query = base_query.filter(Sample.id.in_(sub_query)).group_by(Sample.id).having(
+            func.count(Association.label_id) > 1).order_by(func.count(Association.label_id).desc())
 
-    # limit number of returned elements and paging
+    # limit number of returned elements and paging, return total_elements in header
     if page is not None and limit:
         if page < 0:
             raise HTTPException(
