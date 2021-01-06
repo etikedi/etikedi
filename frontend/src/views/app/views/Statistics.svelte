@@ -38,20 +38,18 @@
   }
 
   let classCharts = []
+  let pieCharts = []
 
   onMount(() => {
     Chartkick.use(Chart)
     classCharts.forEach((chart, index) => {
-      new Chartkick.PieChart(chart, [['Unlabeled', classStats[index].total - classStats[index].labeled], ['Labeled', classStats[index].labeled]])
+      new Chartkick.BarChart(chart, [['Unlabeled', classStats[index].total - classStats[index].labeled], ['Labeled', classStats[index].labeled]])
     })
   })
 </script>
 
 <style>
-    #chart {
-        max-width: 650px;
-        margin: 35px auto;
-    }
+
 </style>
 
 <h1 class="mb4">Dataset {id} - Statistics</h1>
