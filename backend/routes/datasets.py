@@ -1,7 +1,8 @@
 from typing import List, Optional, Union
 
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query, Response
-from sqlalchemy import func
+from sqlalchemy import func, not_
+from sqlalchemy.orm import aliased
 
 from ..worker import get_next_sample
 from ..config import db
@@ -158,14 +159,24 @@ def get_filtered_samples(
 
     # filter for divided labels (sample has more than 1 label)
     if divided_labels:
-        # rebuild base query
-        base_query = db.query(Sample).filter(Sample.dataset_id == dataset_id).join(
-            Association, Sample.id == Association.sample_id)
+        # rebuild base query, join association 2x with alias
+        association1 = aliased(Association)
+        association2 = aliased(Association)
+
+        base_query = db.query(Sample)\
+            .filter(Sample.dataset_id == dataset_id)\
+            .join(association1, Sample.id == association1.sample_id)\
+            .join(association2, Sample.id == association2.sample_id)
+
         # use query as subquery to apply other filters (eg. for labels or users)
         sub_query = query.with_entities(Sample.id).subquery()
+
         # build new query
-        query = base_query.filter(Sample.id.in_(sub_query)).group_by(Sample.id).having(
-            func.count(Association.label_id) > 1).order_by(func.count(Association.label_id).desc())
+        query = base_query\
+            .filter(not_(association1.label_id == association2.label_id))\
+            .filter(Sample.id.in_(sub_query))\
+            .group_by(Sample.id).having(func.count(association1.label_id) > 1)\
+            .order_by(func.count(association1.label_id).desc())
 
     # limit number of returned elements and paging, return total_elements in header
     if page is not None and limit:
@@ -174,6 +185,7 @@ def get_filtered_samples(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Page number needs to be 0 or greater. Page number was: {}.".format(page),
             )
+
         total_elements = query.count()
         response.headers["X-Total"] = "{}".format(total_elements)
         lower_limit = page * limit
