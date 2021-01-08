@@ -5,25 +5,36 @@
   import Select from '../../../../ui/Select.svelte'
   import Button from '../../../../ui/Button.svelte'
   import Card from '../../../../ui/Card.svelte'
+  import { router } from 'tinro'
+  import { data as datasets } from '../../../../store/datasets'
 
-
-  export let labels = []
-  export let datasetId
   export let sampleCount = 9
+  export let newSamples = true
+
+  const { id } = router.params()
+  let dataset, labels
+
+  $: dataset = $datasets[id]
+  $: labels = dataset.labels
 
   let samples = []
   let ready = false
 
   onMount(() => {
-    for (let i = 0; i < sampleCount; i++) {
-      axios({
-        method: 'get',
-        url: `/datasets/${datasetId}/first_sample`
-      })
-        .then(response => {
-          samples[i] = response.data
+    // Load 9 unlabeled samples
+    if (newSamples) {
+      for (let i = 0; i < sampleCount; i++) {
+        axios({
+          method: 'get',
+          url: `/datasets/${id}/first_sample`
         })
-        .catch(err => console.log(err))
+          .then(response => {
+            samples[i] = response.data
+          })
+          .catch(err => console.log(err))
+      }
+    } else {
+      // TODO: Load 9 already labeled samples
     }
     // Remove empty entries (caused by backend error) from array
     samples = samples.filter(el => el != null)
@@ -32,7 +43,9 @@
 
   /* Filtering */
   let selectFilter = {}
-  let filterOptions = [
+  let filterOptions
+
+  $: filterOptions = [
     { name: 'Label', label: 'label', options: labels.map(label => label.name) },
     { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
     { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
@@ -74,6 +87,7 @@
     samples = samples.filter(el => el != null)
 
     const temp = samples
+
     // Remove background color
     samples.forEach((sample, index) => {
       document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
@@ -86,6 +100,7 @@
 
     samples = temp
 
+    // Send
     for (const [index, sample] of chosen.entries()) {
       await axios({
         method: 'post',
@@ -95,6 +110,8 @@
         }
       })
         .then(res => {
+
+          // Save next sample
           nextSamples.push(res.data)
         })
         .catch(err => console.log(err))
@@ -104,11 +121,12 @@
     // If samples are all labeled, set next samples
     if (Object.values(samples).length === 0) {
       if (nextSamples.length < sampleCount) {
+
         // Load missing samples
         for (let i = 0; i < sampleCount - nextSamples.length; i++) {
           await axios({
             method: 'get',
-            url: `/datasets/${datasetId}/first_sample`
+            url: `/datasets/${id}/first_sample`
           })
             .then(response => {
               nextSamples.push(response.data)
@@ -168,15 +186,17 @@
 
 <Card>
   <div class="wrapper">
-    <div class="menu">
-      <ul>
-        {#each filterOptions as filterOption, i}
-          <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
-                  values={filterOption.options} />
-        {/each}
-      </ul>
-      <Button label="Filter" on:click={filterData} />
-    </div>
+    {#if !newSamples}
+      <div class="menu">
+        <ul>
+          {#each filterOptions as filterOption, i}
+            <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
+                    values={filterOption.options} />
+          {/each}
+        </ul>
+        <Button label="Filter" on:click={filterData} />
+      </div>
+    {/if}
     <div class="mw9 center ph3-ns">
       <div class="cf ph2-ns">
         {#if ready}

@@ -10,6 +10,7 @@
   import Config from './views/Config.svelte'
   import Label from './views/Label.svelte'
   import Upload from './views/Upload.svelte'
+  import Grid from './components/labeling/Grid.svelte'
 
   $: if ($token) {
     load()
@@ -30,6 +31,9 @@
       </Route>
       <Route path="/label">
         <Label />
+      </Route>
+      <Route path="/labeled">
+        <Grid newSamples={false} />
       </Route>
     </Route>
     <Route path="/app/*">
