@@ -25,7 +25,7 @@
   }, {
     name: 'horse',
     total: 600,
-    labeled: 701
+    labeled: 501
   }, {
     name: 'plane',
     total: 1100,
