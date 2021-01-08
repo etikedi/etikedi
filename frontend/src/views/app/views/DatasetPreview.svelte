@@ -23,7 +23,7 @@
         margin-left: 1em;
     }
 
-    ion-icon.settings {
+    ion-icon.settings, ion-icon.labeled {
         font-size: 1.5em;
         /* transform: translateX(0.25em); */
     }
@@ -56,7 +56,7 @@
     </div>
     <div class="actions flex items-center">
       <a href="app/dataset/{dataset.id}/labeled">
-        <ion-icon name="checkmark-done-circle-outline" />
+        <ion-icon class="labeled" name="checkmark-done-circle-outline" />
       </a>
       <a href="app/dataset/{dataset.id}/config">
         <ion-icon class="settings" name="cog-outline" />

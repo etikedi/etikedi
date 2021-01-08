@@ -12,13 +12,12 @@
   export let newSamples = true
 
   const { id } = router.params()
-  let dataset, labels
+  let dataset, labels, ready
+  let samples = []
 
   $: dataset = $datasets[id]
-  $: labels = dataset.labels
-
-  let samples = []
-  let ready = false
+  $: ready = dataset && samples.length !== 0
+  $: if (ready) labels = dataset.labels
 
   onMount(() => {
     // Load 9 unlabeled samples
@@ -34,18 +33,27 @@
           .catch(err => console.log(err))
       }
     } else {
-      // TODO: Load 9 already labeled samples
+      // TODO: Load 9 already labeled samples instead of new ones
+      for (let i = 0; i < sampleCount; i++) {
+        axios({
+          method: 'get',
+          url: `/datasets/${id}/first_sample`
+        })
+          .then(response => {
+            samples[i] = response.data
+          })
+          .catch(err => console.log(err))
+      }
     }
     // Remove empty entries (caused by backend error) from array
     samples = samples.filter(el => el != null)
-    ready = true
   })
 
   /* Filtering */
   let selectFilter = {}
   let filterOptions
 
-  $: filterOptions = [
+  $: if (ready) filterOptions = [
     { name: 'Label', label: 'label', options: labels.map(label => label.name) },
     { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
     { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
@@ -184,22 +192,22 @@
     }
 </style>
 
-<Card>
-  <div class="wrapper">
-    {#if !newSamples}
-      <div class="menu">
-        <ul>
-          {#each filterOptions as filterOption, i}
-            <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
-                    values={filterOption.options} />
-          {/each}
-        </ul>
-        <Button label="Filter" on:click={filterData} />
-      </div>
-    {/if}
-    <div class="mw9 center ph3-ns">
-      <div class="cf ph2-ns">
-        {#if ready}
+{#if ready}
+  <Card>
+    <div class="wrapper">
+      {#if !newSamples}
+        <div class="menu">
+          <ul>
+            {#each filterOptions as filterOption, i}
+              <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
+                      values={filterOption.options} />
+            {/each}
+          </ul>
+          <Button label="Filter" on:click={filterData} />
+        </div>
+      {/if}
+      <div class="mw9 center ph3-ns">
+        <div class="cf ph2-ns">
           {#each samples as sample, i}
             {#if sample}
               <div id="sample{i}" class="fl w-100 w-third-ns pa2 samples" on:click={() => choose(sample, i)}>
@@ -207,14 +215,13 @@
               </div>
             {/if}
           {/each}
-        {/if}
-      </div>
-      <div class="labels">
-        {#each labels as { id, name }, i (id)}
-          <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
-        {/each}
+        </div>
+        <div class="labels">
+          {#each labels as { id, name }, i (id)}
+            <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
+          {/each}
+        </div>
       </div>
     </div>
-  </div>
-</Card>
-
+  </Card>
+{/if}
