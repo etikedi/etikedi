@@ -6,17 +6,6 @@
   import Button from '../../../../ui/Button.svelte'
   import Card from '../../../../ui/Card.svelte'
 
-  export let displayed = [
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Dog' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Dog' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Petra', label: 'Cat' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Cat' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Cat' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Lisa', label: 'Mouse' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Petra', label: 'Cat' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Petra', label: 'Mouse' },
-    { sampleId: '524', content: 'dmaklwdmkwalmdkl', user: 'Mona', label: 'Cat' }
-  ]
 
   export let labels = []
   export let datasetId
@@ -36,16 +25,14 @@
         })
         .catch(err => console.log(err))
     }
-    // Remove empty entries from array
+    // Remove empty entries (caused by backend error) from array
     samples = samples.filter(el => el != null)
     ready = true
   })
 
   /* Filtering */
-  let filterOptions
   let selectFilter = {}
-
-  filterOptions = [
+  let filterOptions = [
     { name: 'Label', label: 'label', options: labels.map(label => label.name) },
     { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
     { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
@@ -53,10 +40,13 @@
   ]
 
   function filterData() {
+    console.log(selectFilter)
+    console.log(samples)
+
     let array = []
     Object.keys(selectFilter).forEach(key => {
       if (selectFilter[key]) {
-        array.push(displayed.filter(sample => sample[key] === selectFilter[key]))
+        array.push(samples.filter(sample => sample[key] === selectFilter[key]))
       }
     })
     array = array.flat()
