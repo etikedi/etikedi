@@ -1,4 +1,5 @@
 """ Preprocessing steps for the Religions Texts dataset """
+import codecs
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -28,10 +29,8 @@ def convert_religions_texts_features(source: Path, to: Path) -> None:
 
 def convert_religions_texts_data(source: Path, to: Path) -> None:
     """ Convert the text file to a zip """
-
-    with ZipFile(to, "w") as zip_file, source.open() as source_file:
+    with ZipFile(to, "w") as zip_file, codecs.open(source, "r", "ISO-8859-1") as source_file:
         logger.info("Converting Religions Texts data")
-
         identifier = 0
         for row in source_file:
             if is_number(row):
