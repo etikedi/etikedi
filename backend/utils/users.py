@@ -4,8 +4,8 @@ from typing import Optional
 from fastapi import Depends, HTTPException, status
 from jose import jwt, JWTError
 
-from ..config import pwd_context, SECRET_KEY, ALGORITHM, oauth2_scheme, fake_users_db, db
-from ..models import User, UserInDB
+from ..config import pwd_context, SECRET_KEY, ALGORITHM, oauth2_scheme, db
+from ..models import User
 
 
 def verify_password(plain_password, hashed_password):
@@ -16,17 +16,17 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-def get_user(db, username: str):
-    if username in db:
-        user_dict = db[username]
-        return UserInDB(**user_dict)
+def get_user(username: str):
+    user = db.query(User).filter(User.username == username).first()
+    if user:
+        return user
 
 
-def authenticate_user(fake_db, username: str, password: str):
-    user = get_user(fake_db, username)
+def authenticate_user(username: str, password: str):
+    user = get_user(username)
     if not user:
         return False
-    if not verify_password(password, user.hashed_password):
+    if not verify_password(password, user.password):
         return False
     return user
 
