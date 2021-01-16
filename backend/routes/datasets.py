@@ -4,11 +4,12 @@ from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, s
 from sqlalchemy import func, not_
 from sqlalchemy.orm import aliased
 
-from ..worker import get_next_sample
 from ..config import db
 from ..importing import import_dataset
-from ..models import Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, Label
-from ..utils import get_current_active_user
+from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
+    Label
+from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
+from ..worker import get_next_sample
 
 dataset_router = APIRouter()
 
@@ -16,6 +17,15 @@ dataset_router = APIRouter()
 @dataset_router.get("", response_model=List[DatasetDTO])
 def get_datasets():
     datasets = db.query(Dataset).all()
+
+    for dataset in datasets:
+        dataset.statistics = DatasetStatistics(
+            total_samples=number_of_total_samples(dataset),
+            labelled_samples=number_of_labelled_samples(dataset),
+            features=number_of_features(dataset),
+            labels=len(dataset.labels)
+        )
+
     return datasets
 
 
