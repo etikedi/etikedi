@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, ForeignKey, Text
 from .sample import Sample
 
 
-class Text(Sample):
+class TextSample(Sample):
     """
     A sample containing raw text.
 
