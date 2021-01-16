@@ -17,6 +17,8 @@ class User(Base):
 
     id = Column(Integer, primary_key=True)
     username = Column(VARCHAR(255))
+    fullname = Column(VARCHAR(255))
+    email = Column(VARCHAR(255))
     roles = Column(Text)
     password = Column(Text)
 
