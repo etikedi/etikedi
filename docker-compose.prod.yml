@@ -1,0 +1,9 @@
+version: '3'
+
+services:
+  frontend:
+    image: tu-dresden/aergia-frontend
+    build:
+      context: ./frontend
+    ports:
+      - 80:80

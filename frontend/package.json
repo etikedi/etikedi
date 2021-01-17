@@ -29,7 +29,6 @@
     "dompurify": "^2.2.3",
     "jwt-decode": "^3.1.2",
     "sirv-cli": "^1.0.0",
-    "spectre.css": "^0.5.9",
     "tinro": "^0.4.3"
   }
 }
