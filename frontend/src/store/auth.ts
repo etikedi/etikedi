@@ -2,7 +2,9 @@ import { writable } from 'svelte/store'
 import axios from 'axios'
 import JWTDecode from 'jwt-decode'
 
-axios.defaults.baseURL = 'http://localhost:8000/'
+import { devProdSwitch } from '../lib/utils'
+
+axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', 'backend')
 axios.defaults.headers['Accept'] = 'application/json'
 axios.defaults.withCredentials = false
 
@@ -51,5 +53,5 @@ export async function login(form?: LoginForm) {
 
 export function logout() {
   window.localStorage.removeItem(STORAGE_KEY)
-  token.set(null)
+  token.set(false)
 }

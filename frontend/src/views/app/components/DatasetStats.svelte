@@ -8,15 +8,15 @@
   <table>
     <tr>
       <td>Total</td>
-      <td class="value">{humanize(statistics.total_samples || 0)}</td>
+      <td class="value">{humanize(statistics.total_samples)}</td>
       <td>Features</td>
-      <td class="value">{statistics.features || 0}</td>
+      <td class="value">{humanize(statistics.features)}</td>
     </tr>
     <tr>
       <td>Labeled</td>
-      <td class="value">{humanize(statistics.labelled_samples || 0)}</td>
+      <td class="value">{humanize(statistics.labelled_samples)}</td>
       <td>Labels</td>
-      <td class="value">{statistics.labels}</td>
+      <td class="value">{humanize(statistics.labels)}</td>
     </tr>
   </table>
   <div class="percentage">
