@@ -26,10 +26,11 @@ class Sample(Base):
 
     labels = relationship(
         "Label",
-        secondary="association",
         lazy="subquery",
-        # TODO: Figure out the difference to `back_populates`
-        backref=backref("samples", lazy=True),
+        secondary="association",
+        back_populates="samples",
+        cascade="all, delete",
+        passive_deletes=True
     )
 
     # Saves concrete type of data in this sample

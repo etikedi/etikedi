@@ -10,10 +10,10 @@ class Association(Base):
     """ The decision of a user to assign a label to a sample. """
 
     sample_id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
-    sample = relationship("Sample", backref="associations")
+    sample = relationship("Sample")
 
     label_id = Column(Integer, ForeignKey("label.id"), primary_key=True)
-    label = relationship("Label", backref="associations")
+    label = relationship("Label")
 
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
     user = relationship("User", backref="associations")
