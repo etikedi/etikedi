@@ -33,6 +33,9 @@ class Dataset(Base):
         default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
 
+    samples = relationship("Sample", cascade="all, delete", passive_deletes=True)
+    labels = relationship("Label", cascade="all, delete", passive_deletes=True)
+
     statistics: DatasetStatistics
 
     def __repr__(self):
