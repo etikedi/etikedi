@@ -56,5 +56,5 @@ def notify_about_new_sample(
         return
 
     process_resources = manager.get_or_else_load(dataset=dataset)
-    pipe_endpoint = process_resources["pipe"]
+    pipe_endpoint = process_resources.pipe
     pipe_endpoint.send({"id": sample_id, "label": label_id, "user": user_id})
