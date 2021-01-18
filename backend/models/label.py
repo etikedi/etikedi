@@ -11,7 +11,7 @@ class Label(Base):
     name = Column(String(), nullable=False)
 
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
-    dataset = relationship("Dataset", backref=backref("labels"))
+    dataset = relationship("Dataset", backref=backref("existing_labels"))
 
 
 class BaseLabelSchema(Schema):
