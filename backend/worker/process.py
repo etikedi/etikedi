@@ -125,18 +125,27 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         """
         return self.storage.label_encoder.transform([label])[0]
 
-    def add_sample(self, sample_id: int, label_id: int):
+    def is_requested(self, sample_id: SampleID) -> bool:
+        """ Checks if the given sample was requested by the AL code. False means, it is a random sample. """
+        return sample_id in self.current_samples
+
+    def add_sample(self, sample_id: SampleID, label_id: LabelID):
         logger.debug(f"ALProcess.Oracle:\tFound label {label_id} for sample with id {sample_id}")
-        if sample_id in self.current_samples:
+        if self.is_requested(sample_id):
             self.current_samples[sample_id] = self.label_to_internal_representation(label_id)
-        # TODO: Add sample to data storage
+        else:
+            # Update will be considered when the classifier is retrained the next time
+            internal_sample_id = self.sample_mapping[sample_id]
+            internal_label_id = self.label_to_internal_representation(label_id)
+            self.storage.update_samples(query_indices=[internal_sample_id], Y_query=[internal_label_id])
 
     def remove_sample(self, sample_id: int) -> None:
-        if sample_id in self.current_samples:
+        if self.is_requested(sample_id):
             # Has not been returned so no harm done
             self.current_samples[sample_id] = None
-            return
-        raise RuntimeError('Not yet implemented')
+        else:
+            # Update will be considered when the classifier is retrained the next time
+            self.storage.unlabel_samples([sample_id])
 
     @property
     def remaining_samples(self) -> List[SampleID]:

@@ -14,9 +14,9 @@ from ..models import Dataset, Sample, ActiveLearningConfig
 class WorkerState(Enum):
     TRAINING = 'training'
     WAITING = 'waiting'
+    STARTING = 'starting'
 
 
-# noinspection PyUnreachableCode
 class ActiveLearningWorker:
     dataset: Dataset
     config: ActiveLearningConfig
@@ -51,6 +51,28 @@ class ActiveLearningWorker:
         self.process.start()
         self.state = WorkerState.TRAINING
 
+    def restart_process(self, config: ActiveLearningConfig) -> None:
+        """
+        Restarts the current running active-learning process for the specified data set with the given configuration
+        returns the new process' resources. Resources being the process object itself and the corresponding pipe
+        backend endpoint for communication with said process.
+
+        If there's currently no process running for the given data set id, a new one is created and its resources
+        are returned.
+
+        :param config:      configuration for active-learning code the process is restarted with
+        """
+        self.state = WorkerState.STARTING
+        if self.process.is_alive():
+            self.process.kill()
+        del self.process
+        self.config = config
+        self.create_process()
+        self.start_process()
+
+    def __del__(self):
+        self.process.kill()
+
     def add_sample_label(self, sample_id: int, label_id: int) -> None:
         if sample_id in self.requested_samples:
             del self.requested_samples[sample_id]
@@ -65,7 +87,6 @@ class ActiveLearningWorker:
             self.state = WorkerState.TRAINING
 
     def remove_sample_label(self, sample_id: int, label_id) -> None:
-        raise RuntimeError('Currently not implemented. Wait for update of AL Code')
         self.pipe.send({
             "event": "remove_sample",
             "sample_id": sample_id,
