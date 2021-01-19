@@ -63,11 +63,11 @@
     filterData({})
   })
 
-  function filterData(params) {
+  async function filterData(params) {
     console.log('SE', selectElements)
     console.log(samples)
-
-    axios({
+    samples = []
+    await axios({
       method: 'get',
       url: `/datasets/${id}/samples`,
       params: {
@@ -78,12 +78,12 @@
       }
     })
       .then(response => {
-        samples.push(response.data)
+        samples.push(...response.data)
+        // Remove empty entries (caused by backend error) from array
+        // samples = samples.filter(el => el != null)
+        samples = [...samples]
       })
       .catch(err => console.log(err))
-
-    // Remove empty entries (caused by backend error) from array
-    // samples = samples.filter(el => el != null)
   }
 
   async function send(sample_id, label_id) {
@@ -146,12 +146,11 @@
       </div>
       <div class="mw9 center ph3-ns">
         <div class="cf ph2-ns">
-          {#each samples as sample, i}
+          {#each samples as sample}
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
-                <span>TYPE: {sample.type}</span>
                 {#if Object.keys(mappings).includes(sample.type)}
-                  <svelte:component this={mappings[sample.type]} data={sample.content} />
+                  <svelte:component this={mappings[sample.type]} data={sample.content} toDecode={false}/>
                 {:else}
                   <p>Unsupported type {sample.type}</p>
                 {/if}
