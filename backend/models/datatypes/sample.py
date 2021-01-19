@@ -33,6 +33,11 @@ class Sample(Base):
         passive_deletes=True
     )
 
+    associations = relationship(
+        "Association",
+        back_populates='sample'
+    )
+
     # Saves concrete type of data in this sample
     type = Column(VARCHAR(10))
 

@@ -2,9 +2,9 @@ from sqlalchemy.exc import IntegrityError
 
 from fastapi import status, APIRouter, HTTPException, Depends
 
-from ..worker import get_next_sample, notify_about_new_sample
+from ..worker import manager
 from ..config import db
-from ..models import Association, Sample, SampleDTO, User
+from ..models import Sample, SampleDTO, User
 from ..utils import get_current_user, can_assign
 
 sample_router = APIRouter()
@@ -57,11 +57,10 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
     # Retrieve pipe endpoint for process with corresponding dataset_id and send new label
     dataset = db.query(Sample).get(sample_id).dataset
 
-    notify_about_new_sample(
-        dataset=dataset, user_id=user.id, sample_id=sample_id, label_id=label_id
-    )
+    worker = manager.get_or_else_load(dataset)
+    worker.add_sample_label(sample_id=sample_id, label_id=label_id)
 
-    next_sample = get_next_sample(dataset)
+    next_sample = worker.get_next_sample()
     if not next_sample:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
