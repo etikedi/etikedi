@@ -9,7 +9,6 @@
   import { data as datasets } from '../../../../store/datasets'
 
   export let sampleCount = 9
-  export let newSamples = true
 
   const { id } = router.params()
   let dataset, labels, ready
@@ -21,60 +20,19 @@
 
   onMount(() => {
     // Load 9 unlabeled samples
-    if (newSamples) {
-      for (let i = 0; i < sampleCount; i++) {
-        axios({
-          method: 'get',
-          url: `/datasets/${id}/first_sample`
+    for (let i = 0; i < sampleCount; i++) {
+      axios({
+        method: 'get',
+        url: `/datasets/${id}/first_sample`
+      })
+        .then(response => {
+          samples[i] = response.data
         })
-          .then(response => {
-            samples[i] = response.data
-          })
-          .catch(err => console.log(err))
-      }
-    } else {
-      // TODO: Load 9 already labeled samples instead of new ones
-      for (let i = 0; i < sampleCount; i++) {
-        axios({
-          method: 'get',
-          url: `/datasets/${id}/first_sample`
-        })
-          .then(response => {
-            samples[i] = response.data
-          })
-          .catch(err => console.log(err))
-      }
+        .catch(err => console.log(err))
     }
     // Remove empty entries (caused by backend error) from array
     samples = samples.filter(el => el != null)
   })
-
-  /* Filtering */
-  let selectFilter = {}
-  let filterOptions
-
-  $: if (ready) filterOptions = [
-    { name: 'Label', label: 'label', options: labels.map(label => label.name) },
-    { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
-    { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
-    { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
-  ]
-
-  function filterData() {
-    console.log(selectFilter)
-    console.log(samples)
-
-    let array = []
-    Object.keys(selectFilter).forEach(key => {
-      if (selectFilter[key]) {
-        array.push(samples.filter(sample => sample[key] === selectFilter[key]))
-      }
-    })
-    array = array.flat()
-
-    // Eliminate duplicates and convert it back to array
-    displayed = [...new Set([...array])]
-  }
 
   let chosen = []
   let nextSamples = []
@@ -156,11 +114,6 @@
 
     }
 
-    .menu {
-        display: flex;
-        flex-direction: column;
-    }
-
     ul {
         padding: 0;
         margin: 0;
@@ -195,17 +148,6 @@
 {#if ready}
   <Card>
     <div class="wrapper">
-      {#if !newSamples}
-        <div class="menu">
-          <ul>
-            {#each filterOptions as filterOption, i}
-              <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
-                      values={filterOption.options} />
-            {/each}
-          </ul>
-          <Button label="Filter" on:click={filterData} />
-        </div>
-      {/if}
       <div class="mw9 center ph3-ns">
         <div class="cf ph2-ns">
           {#each samples as sample, i}
