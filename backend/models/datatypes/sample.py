@@ -17,6 +17,8 @@ class Sample(Base):
     this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
     """
 
+    # TODO: Add associations as backref?
+
     __tablename__ = "sample"
 
     id = Column(Integer, primary_key=True)
@@ -26,10 +28,16 @@ class Sample(Base):
 
     labels = relationship(
         "Label",
-        secondary="association",
         lazy="subquery",
-        # TODO: Figure out the difference to `back_populates`
-        backref=backref("samples", lazy=True),
+        secondary="association",
+        back_populates="samples",
+        cascade="all, delete",
+        passive_deletes=True
+    )
+
+    associations = relationship(
+        "Association",
+        back_populates='sample'
     )
 
     # Saves concrete type of data in this sample
