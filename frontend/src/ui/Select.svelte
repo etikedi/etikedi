@@ -50,7 +50,7 @@
         <option disabled selected value style="display: none"></option>
       {/if}
       {#each values as v}
-        <option value={v}>{v}</option>
+        <option value={v.id || v}>{v.name || v}</option>
       {/each}
     </select>
   </label>

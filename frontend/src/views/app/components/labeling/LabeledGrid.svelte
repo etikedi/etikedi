@@ -22,51 +22,36 @@
   let samples = []
 
   $: dataset = $datasets[id]
-  $: ready = dataset
-  // $: ready = dataset && samples.length !== 0
+  $: ready = dataset && samples.length !== 0
   $: if (ready) labels = dataset.labels
-
-  onMount(() => {
-    /*
-    axios({
-      method: 'get',
-      url: `/datasets/${id}/samples`,
-      params: {
-        page: 0,
-        limit: 3,
-        labeled: true
-      }
-    })
-      .then(response => {
-        console.log(response)
-      })
-      .catch(err => console.log(err))
-    // Remove empty entries (caused by backend error) from array
-    samples = samples.filter(el => el != null)
-
-     */
-  })
 
   // Filter html elements
   let selectElements = {}
 
   // Select options
   let filterOptions
-
   $: if (ready) filterOptions = [
-    { name: 'Label', label: 'labels', options: labels.map(label => label.name) },
+    { name: 'Label', label: 'labels', options: labels},
     { name: 'User', label: 'users', options: ['Lisa', 'Mona', 'Petra'] },
     { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
   ]
 
   onMount(() => {
-    filterData({})
+    filterData()
   })
 
-  async function filterData(params) {
+  async function filterData() {
     console.log('SE', selectElements)
     console.log(samples)
     samples = []
+
+    // Find filled filter options
+    let params = {}
+    for (const [key, value] of Object.entries(selectElements)) {
+      if (value !== '' && value !== undefined) {
+        params[key] = value
+      }
+    }
     await axios({
       method: 'get',
       url: `/datasets/${id}/samples`,
@@ -80,8 +65,7 @@
       .then(response => {
         samples.push(...response.data)
         // Remove empty entries (caused by backend error) from array
-        // samples = samples.filter(el => el != null)
-        samples = [...samples]
+        samples = samples.filter(el => el != null)
       })
       .catch(err => console.log(err))
   }
@@ -142,7 +126,7 @@
           {/each}
           <Input bind:value={selectElements["free_text"]} type="text" label="Free text" />
         </ul>
-        <Button label="Filter" on:click={() => {filterData(selectElements)}} />
+        <Button label="Filter" on:click={filterData} />
       </div>
       <div class="mw9 center ph3-ns">
         <div class="cf ph2-ns">
