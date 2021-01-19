@@ -47,34 +47,44 @@
      */
   })
 
-  /* Filtering */
-  let selectFilter = {}
+  // Filter html elements
+  let selectElements = {}
+
+  // Select options
   let filterOptions
 
   $: if (ready) filterOptions = [
-    { name: 'Label', label: 'label', options: labels.map(label => label.name) },
-    { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
-    { name: 'Divided  labels', label: 'divided', options: ['True', 'False'] }
+    { name: 'Label', label: 'labels', options: labels.map(label => label.name) },
+    { name: 'User', label: 'users', options: ['Lisa', 'Mona', 'Petra'] },
+    { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
   ]
 
-  function filterData() {
-    console.log(selectFilter)
+  onMount(() => {
+    filterData({})
+  })
+
+  function filterData(params) {
+    console.log('SE', selectElements)
     console.log(samples)
 
-    let array = []
-    Object.keys(selectFilter).forEach(key => {
-      if (selectFilter[key]) {
-        array.push(samples.filter(sample => sample[key] === selectFilter[key]))
+    axios({
+      method: 'get',
+      url: `/datasets/${id}/samples`,
+      params: {
+        page: 0,
+        limit: 3,
+        labeled: true,
+        ...params
       }
     })
-    array = array.flat()
+      .then(response => {
+        samples.push(response.data)
+      })
+      .catch(err => console.log(err))
 
-    // Eliminate duplicates and convert it back to array
-    displayed = [...new Set([...array])]
+    // Remove empty entries (caused by backend error) from array
+    // samples = samples.filter(el => el != null)
   }
-
-  let chosen = []
-  let nextSamples = []
 
   async function send(sample_id, label_id) {
     await axios({
@@ -127,18 +137,19 @@
       <div class="menu">
         <ul>
           {#each filterOptions as filterOption, i}
-            <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
+            <Select bind:value={selectElements[filterOption.label]} emptyFirst={true} label={filterOption.name}
                     values={filterOption.options} />
           {/each}
-          <Input type="text" label="Free text" />
+          <Input bind:value={selectElements["free_text"]} type="text" label="Free text" />
         </ul>
-        <Button label="Filter" on:click={filterData} />
+        <Button label="Filter" on:click={() => {filterData(selectElements)}} />
       </div>
       <div class="mw9 center ph3-ns">
         <div class="cf ph2-ns">
           {#each samples as sample, i}
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
+                <span>TYPE: {sample.type}</span>
                 {#if Object.keys(mappings).includes(sample.type)}
                   <svelte:component this={mappings[sample.type]} data={sample.content} />
                 {:else}
