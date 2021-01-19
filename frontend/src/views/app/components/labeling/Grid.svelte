@@ -5,20 +5,25 @@
   import Select from '../../../../ui/Select.svelte'
   import Button from '../../../../ui/Button.svelte'
   import Card from '../../../../ui/Card.svelte'
+  import { router } from 'tinro'
+  import { data as datasets } from '../../../../store/datasets'
 
-
-  export let labels = []
-  export let datasetId
   export let sampleCount = 9
 
+  const { id } = router.params()
+  let dataset, labels, ready
   let samples = []
-  let ready = false
+
+  $: dataset = $datasets[id]
+  $: ready = dataset && samples.length !== 0
+  $: if (ready) labels = dataset.labels
 
   onMount(() => {
+    // Load 9 unlabeled samples
     for (let i = 0; i < sampleCount; i++) {
       axios({
         method: 'get',
-        url: `/datasets/${datasetId}/first_sample`
+        url: `/datasets/${id}/first_sample`
       })
         .then(response => {
           samples[i] = response.data
@@ -27,33 +32,7 @@
     }
     // Remove empty entries (caused by backend error) from array
     samples = samples.filter(el => el != null)
-    ready = true
   })
-
-  /* Filtering */
-  let selectFilter = {}
-  let filterOptions = [
-    { name: 'Label', label: 'label', options: labels.map(label => label.name) },
-    { name: 'User', label: 'user', options: ['Lisa', 'Mona', 'Petra'] },
-    { name: 'Uncertainty', label: 'uncertainty', options: ['Equal', 'Different'] },
-    { name: 'Already checked', label: 'checked', options: ['Yes', 'No'] }
-  ]
-
-  function filterData() {
-    console.log(selectFilter)
-    console.log(samples)
-
-    let array = []
-    Object.keys(selectFilter).forEach(key => {
-      if (selectFilter[key]) {
-        array.push(samples.filter(sample => sample[key] === selectFilter[key]))
-      }
-    })
-    array = array.flat()
-
-    // Eliminate duplicates and convert it back to array
-    displayed = [...new Set([...array])]
-  }
 
   let chosen = []
   let nextSamples = []
@@ -74,6 +53,7 @@
     samples = samples.filter(el => el != null)
 
     const temp = samples
+
     // Remove background color
     samples.forEach((sample, index) => {
       document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
@@ -86,6 +66,7 @@
 
     samples = temp
 
+    // Send
     for (const [index, sample] of chosen.entries()) {
       await axios({
         method: 'post',
@@ -95,6 +76,8 @@
         }
       })
         .then(res => {
+
+          // Save next sample
           nextSamples.push(res.data)
         })
         .catch(err => console.log(err))
@@ -104,11 +87,12 @@
     // If samples are all labeled, set next samples
     if (Object.values(samples).length === 0) {
       if (nextSamples.length < sampleCount) {
+
         // Load missing samples
         for (let i = 0; i < sampleCount - nextSamples.length; i++) {
           await axios({
             method: 'get',
-            url: `/datasets/${datasetId}/first_sample`
+            url: `/datasets/${id}/first_sample`
           })
             .then(response => {
               nextSamples.push(response.data)
@@ -128,11 +112,6 @@
         display: flex;
         flex-direction: row;
 
-    }
-
-    .menu {
-        display: flex;
-        flex-direction: column;
     }
 
     ul {
@@ -166,20 +145,11 @@
     }
 </style>
 
-<Card>
-  <div class="wrapper">
-    <div class="menu">
-      <ul>
-        {#each filterOptions as filterOption, i}
-          <Select bind:value={selectFilter[filterOption.label]} emptyFirst={true} label={filterOption.name}
-                  values={filterOption.options} />
-        {/each}
-      </ul>
-      <Button label="Filter" on:click={filterData} />
-    </div>
-    <div class="mw9 center ph3-ns">
-      <div class="cf ph2-ns">
-        {#if ready}
+{#if ready}
+  <Card>
+    <div class="wrapper">
+      <div class="mw9 center ph3-ns">
+        <div class="cf ph2-ns">
           {#each samples as sample, i}
             {#if sample}
               <div id="sample{i}" class="fl w-100 w-third-ns pa2 samples" on:click={() => choose(sample, i)}>
@@ -187,14 +157,13 @@
               </div>
             {/if}
           {/each}
-        {/if}
-      </div>
-      <div class="labels">
-        {#each labels as { id, name }, i (id)}
-          <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
-        {/each}
+        </div>
+        <div class="labels">
+          {#each labels as { id, name }, i (id)}
+            <Button small on:click={() => send(id)}>{name} <code>{i + 1}</code></Button>
+          {/each}
+        </div>
       </div>
     </div>
-  </div>
-</Card>
-
+  </Card>
+{/if}

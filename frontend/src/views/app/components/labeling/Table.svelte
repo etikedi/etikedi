@@ -4,8 +4,10 @@
   const config = { USE_PROFILES: { html: true }, FORBID_ATTR: ['href', 'src'] }
 
   export let data = null
+  export let toDecode = true
+  let decoded
 
-  $: decoded = window.atob(data)
+  $: decoded = toDecode? window.atob(data) : data
   $: sanitized = sanitize(decoded, config)
 </script>
 
