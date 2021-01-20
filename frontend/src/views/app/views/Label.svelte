@@ -15,7 +15,8 @@
 
   const mappings = {
     table: Table,
-    image: Image
+    image: Image,
+    text: Table
   }
 
   const { id } = router.params()

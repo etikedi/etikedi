@@ -14,7 +14,8 @@
 
   const mappings = {
     table: Table,
-    image: Image
+    image: Image,
+    text: Table
   }
 
   const { id } = router.params()
@@ -26,13 +27,14 @@
   $: if (ready) labels = dataset.labels
 
   // Filter html elements
-  let selectElements = {}
+  let filterParams = {}
 
   // Select options
   let filterOptions
   $: if (ready) filterOptions = [
     { name: 'Label', label: 'labels', options: labels},
-    { name: 'User', label: 'users', options: ['Lisa', 'Mona', 'Petra'] },
+    // TODO: Fetch existing users for options
+    { name: 'User', label: 'users', options: [] },
     { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
   ]
 
@@ -41,13 +43,13 @@
   })
 
   async function filterData() {
-    console.log('SE', selectElements)
+    console.log('Params', filterParams)
     console.log(samples)
     samples = []
 
     // Find filled filter options
     let params = {}
-    for (const [key, value] of Object.entries(selectElements)) {
+    for (const [key, value] of Object.entries(filterParams)) {
       if (value !== '' && value !== undefined) {
         params[key] = value
       }
@@ -71,6 +73,9 @@
   }
 
   async function send(sample_id, label_id) {
+    console.log("SampleID", sample_id)
+    console.log("LabelID", label_id)
+    /*
     await axios({
       method: 'post',
       url: `/samples/${sample_id}`,
@@ -82,6 +87,8 @@
         // Do something with next sample
       })
       .catch(err => console.log(err))
+
+     */
   }
 </script>
 
@@ -121,10 +128,10 @@
       <div class="menu">
         <ul>
           {#each filterOptions as filterOption, i}
-            <Select bind:value={selectElements[filterOption.label]} emptyFirst={true} label={filterOption.name}
+            <Select bind:value={filterParams[filterOption.label]} emptyFirst={true} label={filterOption.name}
                     values={filterOption.options} />
           {/each}
-          <Input bind:value={selectElements["free_text"]} type="text" label="Free text" />
+          <Input bind:value={filterParams["free_text"]} type="text" label="Free text" />
         </ul>
         <Button label="Filter" on:click={filterData} />
       </div>
@@ -134,6 +141,7 @@
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
                 {#if Object.keys(mappings).includes(sample.type)}
+                  <Select value={sample.label} emptyFirst={true} label="New label" values={labels} on:change={(el) => {send(sample.id, el)}}/>
                   <svelte:component this={mappings[sample.type]} data={sample.content} toDecode={false}/>
                 {:else}
                   <p>Unsupported type {sample.type}</p>
