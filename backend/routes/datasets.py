@@ -7,7 +7,7 @@ from sqlalchemy.orm import aliased
 from ..config import db
 from ..importing import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
-    Label
+    Label, SampleDTOwLabel
 from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
 from ..worker import get_next_sample
 
@@ -73,7 +73,7 @@ def get_first_sample(dataset_id: int):
     return first_sample
 
 
-@dataset_router.get("/{dataset_id}/samples/", response_model=List[SampleDTO])
+@dataset_router.get("/{dataset_id}/samples/", response_model=List[SampleDTOwLabel])
 def get_filtered_samples(
         response: Response,
         dataset_id: int,

@@ -1,10 +1,11 @@
 import base64
-from typing import Union
+from typing import Union, Optional, List
 
 from pydantic import BaseModel as Schema
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
 from sqlalchemy.orm import backref, relationship
 
+from .. import LabelDTO
 from ...config import Base
 
 
@@ -66,3 +67,7 @@ class SampleDTO(Schema):
 
     class Config:
         orm_mode = True
+
+
+class SampleDTOwLabel(SampleDTO):
+    labels: Optional[List[LabelDTO]] = None
