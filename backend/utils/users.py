@@ -13,7 +13,7 @@ from ..models import User
 def generate_password():
     password_characters = string.ascii_letters + string.digits + string.punctuation
     password_length = 8
-    random_character_list =[random.choice(password_characters) for i in range(password_length)]
+    random_character_list = [random.choice(password_characters) for i in range(password_length)]
     password = "".join(random_character_list)
     return password
 
@@ -24,6 +24,12 @@ def verify_password(plain_password, hashed_password):
 
 def get_password_hash(password):
     return pwd_context.hash(password)
+
+
+def get_user_by_id(user_id: int):
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        return user
 
 
 def get_user(username: str):
