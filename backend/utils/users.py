@@ -1,3 +1,5 @@
+import random
+import string
 from datetime import timedelta, datetime
 from typing import Optional
 
@@ -6,6 +8,14 @@ from jose import jwt, JWTError
 
 from ..config import pwd_context, SECRET_KEY, ALGORITHM, oauth2_scheme, db
 from ..models import User
+
+
+def generate_password():
+    password_characters = string.ascii_letters + string.digits + string.punctuation
+    password_length = 8
+    random_character_list =[random.choice(password_characters) for i in range(password_length)]
+    password = "".join(random_character_list)
+    return password
 
 
 def verify_password(plain_password, hashed_password):
@@ -64,4 +74,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
 def get_current_active_user(current_user: User = Depends(get_current_user)):
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+def get_current_active_admin(current_user: User = Depends(get_current_active_user)):
+    if not current_user.roles == "admin":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You do not have the necessary authorisations for this action. Please contact your admin!"
+        )
     return current_user

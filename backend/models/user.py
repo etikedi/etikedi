@@ -65,3 +65,8 @@ class UserInDB(BaseUserSchema):
 class Token(Schema):
     access_token: str
     token_type: str
+
+
+class UserNewPW(BaseUserSchema):
+    # Only for setting first PW or reset PW through admin
+    new_password: str
