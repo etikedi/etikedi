@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db
-from ..models import User, Token, UserInDB, UserNewPW
+from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema
 from ..utils import (
     authenticate_user,
     create_access_token,
@@ -82,6 +82,40 @@ async def add_user(username: str,
     user = db.query(User).filter(User.username == username).first()
     return {"username": user.username,
             "email": user.email,
-            "full_name": user.fullname,
-            "disabled": user.is_active,
+            "fullname": user.fullname,
+            "is_active": user.is_active,
             "new_password": password}
+
+
+@user_router.post("/disable_user", response_model=BaseUserSchema)
+async def disable_user(user_id: int, current_user: User = Depends(get_current_active_admin)):
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The User {} does not exist.".format(user_id),
+        )
+
+    user.is_active = False
+    db.commit()
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
+
+
+@user_router.post("/activate_user", response_model=BaseUserSchema)
+async def activate_user(user_id: int, current_user: User = Depends(get_current_active_admin)):
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The User {} does not exist.".format(user_id),
+        )
+
+    user.is_active = True
+    db.commit()
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return user
