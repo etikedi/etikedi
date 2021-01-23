@@ -74,3 +74,7 @@ class Token(Schema):
 class UserNewPW(BaseUserSchema):
     # Only for setting first PW or reset PW through admin
     new_password: str
+
+
+class UserWithRole(BaseUserSchema):
+    roles: str

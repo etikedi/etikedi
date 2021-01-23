@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db
-from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema
+from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema, UserWithRole
 from ..utils import (
     authenticate_user,
     create_access_token,
@@ -104,6 +104,12 @@ async def disable_user(user_id: int, current_user: User = Depends(get_current_ac
             detail="The User {} does not exist.".format(user_id),
         )
 
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="You can not disable your own account. Please ask an other admin to do so.",
+        )
+
     user.is_active = False
     db.commit()
 
@@ -178,3 +184,59 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     return current_user
 
 
+@user_router.post("/{user_id}/make_admin", response_model=UserWithRole)
+async def make_admin(user_id: int, current_user: User = Depends(get_current_active_admin)):
+    """
+    Change status of another user to admin
+
+    :int user_id: Id of User to be made admin
+    :return user and its new role
+    """
+
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The User {} does not exist.".format(user_id),
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="The User {} is not active. Please activate the user first".format(user_id),
+        )
+
+    user.roles = "admin"
+    db.commit()
+
+    user = get_user_by_id(user_id)
+    return user
+
+
+@user_router.post("/{user_id}/make_worker", response_model=UserWithRole)
+async def make_worker(user_id: int, current_user: User = Depends(get_current_active_admin)):
+    """
+    Change status of another user to worker
+
+    :int user_id: Id of User to be made worker
+    :return user and its new role
+    """
+
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The User {} does not exist.".format(user_id),
+        )
+
+    if user_id == current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="You can not demote your own account. Please ask an other admin to do so.",
+        )
+
+    user.roles = "worker"
+    db.commit()
+
+    user = get_user_by_id(user_id)
+    return user
