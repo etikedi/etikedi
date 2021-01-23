@@ -54,12 +54,16 @@ class User(Base):
 class BaseUserSchema(Schema):
     username: str
     email: Optional[str] = None
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = None
+    fullname: Optional[str] = None
+    is_active: Optional[bool] = None
+
+    class Config:
+        orm_mode = True
 
 
 class UserInDB(BaseUserSchema):
-    hashed_password: str
+    # hashed password
+    password: str
 
 
 class Token(Schema):
