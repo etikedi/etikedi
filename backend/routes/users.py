@@ -59,7 +59,7 @@ async def add_user(username: str,
     if users > 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="The user name {} already exists. Choose another user name!".format(username),
+            detail="The user name {} already exists. Choose another username!".format(username),
         )
 
     try:
@@ -104,10 +104,11 @@ async def disable_user(user_id: int, current_user: User = Depends(get_current_ac
             detail="The User {} does not exist.".format(user_id),
         )
 
-    if user_id == current_user.id:
+    count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
+    if count_active_admin <= 1:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="You can not disable your own account. Please ask an other admin to do so.",
+            detail="You can not disable this account. There needs to be at least 1 active admin.",
         )
 
     user.is_active = False
@@ -177,6 +178,14 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     :str new_password: new password\\
     :return user
     """
+    minimal_password_length = 6
+
+    if len(new_password) < minimal_password_length:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Your Password is to short. Please choose a password with at least {} characters".format(minimal_password_length),
+        )
+
     hashed_password = get_password_hash(new_password)
     current_user.password = hashed_password
     db.commit()
@@ -185,7 +194,7 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
 
 
 @user_router.post("/{user_id}/make_admin", response_model=UserWithRole)
-async def make_admin(user_id: int, current_user: User = Depends(get_current_active_admin)):
+async def make_user_admin(user_id: int, current_user: User = Depends(get_current_active_admin)):
     """
     Change status of another user to admin
 
@@ -214,7 +223,7 @@ async def make_admin(user_id: int, current_user: User = Depends(get_current_acti
 
 
 @user_router.post("/{user_id}/make_worker", response_model=UserWithRole)
-async def make_worker(user_id: int, current_user: User = Depends(get_current_active_admin)):
+async def make_user_worker(user_id: int, current_user: User = Depends(get_current_active_admin)):
     """
     Change status of another user to worker
 
@@ -229,10 +238,11 @@ async def make_worker(user_id: int, current_user: User = Depends(get_current_act
             detail="The User {} does not exist.".format(user_id),
         )
 
-    if user_id == current_user.id:
+    count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
+    if count_active_admin <= 1:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="You can not demote your own account. Please ask an other admin to do so.",
+            detail="You can not demote this account. There needs to be at least 1 active admin.",
         )
 
     user.roles = "worker"
@@ -244,15 +254,15 @@ async def make_worker(user_id: int, current_user: User = Depends(get_current_act
 
 @user_router.post("/{user_id}/change_data", response_model=BaseUserSchema)
 async def change_user_data(user_id: int,
-                      current_user: User = Depends(get_current_active_admin),
-                      username: Optional[str] = None,
-                      fullname: Optional[str] = None,
-                      email: Optional[str] = None):
+                           current_user: User = Depends(get_current_active_admin),
+                           username: Optional[str] = None,
+                           fullname: Optional[str] = None,
+                           email: Optional[str] = None):
     """
     Change data for a user. Changeable data includes username, fullname and email, or a combination of them.
 
     :int user_id: user_id of user whose data is to be changed\\
-    :str username: Opional: new username for user with user_id\\
+    :str username: Optional: new username for user with user_id\\
     :str fullname: Optional: new fullname for user with user_id\\
     :str email: Optional: new email for user with user_id\\
     :return user
