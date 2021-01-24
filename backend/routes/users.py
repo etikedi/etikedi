@@ -240,3 +240,58 @@ async def make_worker(user_id: int, current_user: User = Depends(get_current_act
 
     user = get_user_by_id(user_id)
     return user
+
+
+@user_router.post("/{user_id}/change_data", response_model=BaseUserSchema)
+async def change_user_data(user_id: int,
+                      current_user: User = Depends(get_current_active_admin),
+                      username: Optional[str] = None,
+                      fullname: Optional[str] = None,
+                      email: Optional[str] = None):
+    """
+    Change data for a user. Changeable data includes username, fullname and email, or a combination of them.
+
+    :int user_id: user_id of user whose data is to be changed\\
+    :str username: Opional: new username for user with user_id\\
+    :str fullname: Optional: new fullname for user with user_id\\
+    :str email: Optional: new email for user with user_id\\
+    :return user
+    """
+    user = get_user_by_id(user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="The User {} does not exist.".format(user_id),
+        )
+
+    # change username
+    if username:
+        username_in_db = db.query(User).filter(User.username == username).count()
+        if username_in_db:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="The username {} already exists. Please choose another username".format(username),
+            )
+
+        user.username = username
+
+    # change fullname
+    if fullname:
+        user.fullname = fullname
+
+    # change email
+    if email:
+        try:
+            valid = validate_email(email, check_deliverability=False)
+            email = valid.email
+        except EmailNotValidError as e:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="The e-mail {} is not valid. Reason: {}".format(email, e),
+            )
+        user.email = email
+
+    db.commit()
+
+    user = get_user_by_id(user_id)
+    return user
