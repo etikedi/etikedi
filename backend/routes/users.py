@@ -5,7 +5,7 @@ from email_validator import validate_email, EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
-from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db
+from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db, MINIMAL_PASSWORD_LENGTH
 from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema, UserWithRole
 from ..utils import (
     authenticate_user,
@@ -180,12 +180,10 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     :str new_password: new password\\
     :return user
     """
-    minimal_password_length = 6
-
-    if len(new_password) < minimal_password_length:
+    if len(new_password) < MINIMAL_PASSWORD_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="Your Password is to short. Please choose a password with at least {} characters".format(minimal_password_length),
+            detail="Your Password is too short. Please choose a password with at least {} characters".format(MINIMAL_PASSWORD_LENGTH),
         )
 
     hashed_password = get_password_hash(new_password)
