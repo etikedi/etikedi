@@ -3,7 +3,7 @@
   import { Route } from 'tinro'
 
   import Home from './views/Home.svelte'
-  import About from './views/about.svelte'
+  import About from './views/About.svelte'
   import Nav from './components/Nav.svelte'
 
   import { login } from './store/auth'
@@ -13,16 +13,6 @@
     login()
   })
 </script>
-
-<style>
-  main {
-    position: relative;
-    max-width: 56em;
-    padding: 2em;
-    margin: 0 auto;
-    box-sizing: border-box;
-  }
-</style>
 
 <Nav />
 <main>
@@ -36,3 +26,13 @@
     <AppWrapper />
   </Route>
 </main>
+
+<style>
+  main {
+    position: relative;
+    max-width: 56em;
+    padding: 2em;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+</style>

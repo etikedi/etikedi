@@ -15,7 +15,8 @@
 
   const mappings = {
     table: Table,
-    image: Image
+    image: Image,
+    text: Table
   }
 
   const { id } = router.params()
@@ -91,7 +92,7 @@
   </div>
 
   {#if grid}
-    <Grid labels={dataset.labels} datasetId={id} />
+    <Grid />
   {:else}
     <Card>
       <div class="data tc">

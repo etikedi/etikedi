@@ -6,6 +6,7 @@ from .prepare import *
 from .process_management import manager
 from ..config import logger, db
 from ..models import Dataset, Association, Sample
+from ..utils import number_of_labelled_samples
 
 
 def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) -> bool:
@@ -15,13 +16,7 @@ def should_label_random_sample(dataset: Dataset, random_sample_every: int = 10) 
     if random_sample_every == 1:
         return True
 
-    number_of_labeled_samples = (
-        db.query(Association).join(Association.sample)
-        .filter(Sample.dataset == dataset)
-        .count()
-    )
-    print("number_of_labeled_samples:" + str(number_of_labeled_samples))
-    return number_of_labeled_samples % random_sample_every == 0
+    return number_of_labelled_samples(dataset) % random_sample_every == 0
 
 
 def get_random_unlabelled_sample(dataset: Dataset) -> Sample:
