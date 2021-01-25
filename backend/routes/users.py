@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import Optional
+from typing import Optional, List
 
 from email_validator import validate_email, EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -34,6 +34,11 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         data={"sub": user.username}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@user_router.get("", response_model=List[BaseUserSchema])
+async def get_all_users(current_user: User = Depends(get_current_active_user)):
+    return db.query(User).all()
 
 
 @user_router.get("/me", response_model=UserInDB)
