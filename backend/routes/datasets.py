@@ -9,7 +9,7 @@ from ..importing import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
     Label, SampleDTOwLabel
 from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
-from ..worker import get_next_sample
+from ..worker import manager
 
 dataset_router = APIRouter()
 
@@ -62,7 +62,9 @@ def get_first_sample(dataset_id: int):
             detail="Dataset not found for id: {}.".format(dataset_id)
         )
 
-    first_sample = get_next_sample(dataset)
+    # first_sample = get_next_sample(dataset)
+    worker = manager.get_or_else_load(dataset)
+    first_sample = worker.get_next_sample()
     if not first_sample:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
