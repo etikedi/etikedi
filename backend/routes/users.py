@@ -59,7 +59,6 @@ async def add_user(username: str,
     :str username: intended username for new user\\
     :return User and random PW in cleartext
     """
-
     users = db.query(User).filter(User.username == username).count()
     if users > 0:
         raise HTTPException(
@@ -101,7 +100,6 @@ async def disable_user(user_id: int, current_user: User = Depends(get_current_ac
     :int user_id:\\
     :return user
     """
-
     user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(
@@ -109,18 +107,18 @@ async def disable_user(user_id: int, current_user: User = Depends(get_current_ac
             detail="The User {} does not exist.".format(user_id),
         )
 
-    count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
-    if count_active_admin <= 1:
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="You can not disable this account. There needs to be at least 1 active admin.",
-        )
+    if user.roles == 'admin':
+        count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
+        if count_active_admin <= 1:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="You can not disable this account. There needs to be at least 1 active admin.",
+            )
 
     user.is_active = False
     db.commit()
 
-    user = db.query(User).filter(User.id == user_id).first()
-    return user
+    return db.query(User).filter(User.id == user_id).first()
 
 
 @user_router.post("/{user_id}/activate_user", response_model=BaseUserSchema)
@@ -131,7 +129,6 @@ async def activate_user(user_id: int, current_user: User = Depends(get_current_a
     :int user_id:\\
     :return user
     """
-
     user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(
