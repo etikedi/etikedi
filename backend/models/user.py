@@ -78,3 +78,7 @@ class UserNewPW(BaseUserSchema):
 
 class UserWithRole(BaseUserSchema):
     roles: str
+
+
+class NewRole(Schema):
+    roles: str

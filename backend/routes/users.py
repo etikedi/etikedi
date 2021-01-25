@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db, MINIMAL_PASSWORD_LENGTH
-from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema, UserWithRole
+from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema, UserWithRole, NewRole
 from ..utils import (
     authenticate_user,
     create_access_token,
@@ -15,6 +15,7 @@ from ..utils import (
     generate_password,
     get_current_active_admin,
     get_user_by_id,
+    can_disable_admin
 )
 
 user_router = APIRouter()
@@ -36,12 +37,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@user_router.get("", response_model=List[BaseUserSchema])
+@user_router.get("", response_model=List[UserWithRole])
 async def get_all_users(current_user: User = Depends(get_current_active_user)):
     return db.query(User).all()
 
 
-@user_router.get("/me", response_model=UserInDB)
+@user_router.get("/me", response_model=UserWithRole)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
@@ -107,13 +108,8 @@ async def disable_user(user_id: int, current_user: User = Depends(get_current_ac
             detail="The User {} does not exist.".format(user_id),
         )
 
-    if user.roles == 'admin':
-        count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
-        if count_active_admin <= 1:
-            raise HTTPException(
-                status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail="You can not disable this account. There needs to be at least 1 active admin.",
-            )
+    if 'admin' in user.roles:
+        can_disable_admin(user)
 
     user.is_active = False
     db.commit()
@@ -193,15 +189,14 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     return current_user
 
 
-@user_router.post("/{user_id}/make_admin", response_model=UserWithRole)
-async def make_user_admin(user_id: int, current_user: User = Depends(get_current_active_admin)):
+@user_router.post("/{user_id}/roles", response_model=UserWithRole)
+async def make_user_admin(user_id: int, new_role: NewRole, current_user: User = Depends(get_current_active_admin)):
     """
     Change status of another user to admin
 
     :int user_id: Id of User to be made admin
     :return user and its new role
     """
-
     user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(
@@ -215,37 +210,10 @@ async def make_user_admin(user_id: int, current_user: User = Depends(get_current
             detail="The User {} is not active. Please activate the user first".format(user_id),
         )
 
-    user.roles = "admin"
-    db.commit()
+    if 'admin' in user.roles:
+        can_disable_admin(user)
 
-    user = get_user_by_id(user_id)
-    return user
-
-
-@user_router.post("/{user_id}/make_worker", response_model=UserWithRole)
-async def make_user_worker(user_id: int, current_user: User = Depends(get_current_active_admin)):
-    """
-    Change status of another user to worker
-
-    :int user_id: Id of User to be made worker
-    :return user and its new role
-    """
-
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The User {} does not exist.".format(user_id),
-        )
-
-    count_active_admin = db.query(User).filter(User.roles == "admin").filter(User.is_active == True).count()
-    if count_active_admin <= 1:
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="You can not demote this account. There needs to be at least 1 active admin.",
-        )
-
-    user.roles = "worker"
+    user.roles = new_role.roles
     db.commit()
 
     user = get_user_by_id(user_id)

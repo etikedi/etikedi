@@ -90,3 +90,16 @@ def get_current_active_admin(current_user: User = Depends(get_current_active_use
             detail="You do not have the necessary authorisations for this action. Please contact your admin!"
         )
     return current_user
+
+
+def can_disable_admin(admin: User):
+    other_active_admins = db.query(User).filter(
+        User.roles == "admin",
+        User.is_active == True,
+        User.id != admin.id
+    ).count()
+    if not other_active_admins:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="You can not demote this account. There needs to be at least 1 active admin.",
+        )
