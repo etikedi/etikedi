@@ -29,6 +29,9 @@
   <div class="flex justify-between">
     <DatasetStats statistics={dataset.statistics} />
     <div class="actions flex items-center">
+      <a href="app/dataset/{dataset.id}/graphs">
+        <ion-icon name="stats-chart" />
+      </a>
       <a href="app/dataset/{dataset.id}/labeled">
         <ion-icon class="labeled" name="checkmark-done-circle-outline" />
       </a>

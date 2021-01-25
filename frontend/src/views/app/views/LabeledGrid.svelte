@@ -1,14 +1,14 @@
 <script>
   import { onMount } from 'svelte'
   import axios from 'axios'
-  import Image from './Image.svelte'
-  import Select from '../../../../ui/Select.svelte'
-  import Button from '../../../../ui/Button.svelte'
-  import Card from '../../../../ui/Card.svelte'
+  import Image from '../components/labeling/Image.svelte'
+  import Select from '../../../ui/Select.svelte'
+  import Button from '../../../ui/Button.svelte'
+  import Card from '../../../ui/Card.svelte'
   import { router } from 'tinro'
-  import { data as datasets } from '../../../../store/datasets'
-  import Table from './Table.svelte'
-  import Input from '../../../../ui/Input.svelte'
+  import { data as datasets } from '../../../store/datasets'
+  import Table from '../components/labeling/Table.svelte'
+  import Input from '../../../ui/Input.svelte'
 
   export let sampleCount = 9
 
