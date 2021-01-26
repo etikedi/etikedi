@@ -5,13 +5,20 @@ from fastapi import status, APIRouter, HTTPException, Depends
 from ..worker import manager
 from ..config import db
 from ..models import Sample, SampleDTO, User
-from ..utils import get_current_user, can_assign
+from ..utils import can_assign, get_current_active_user
 
 sample_router = APIRouter()
 
 
 @sample_router.get("/{sample_id}", response_model=SampleDTO)
-def get_sample(sample_id: int):
+def get_sample(sample_id: int, current_user: User = Depends(get_current_active_user)):
+    if not current_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You may not be logged in or your account is deactivated.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     sample = db.query(Sample).filter_by(id=sample_id).first()
     if sample is None:
         raise HTTPException(
@@ -24,7 +31,7 @@ def get_sample(sample_id: int):
 
 
 @sample_router.post("/{sample_id}", response_model=SampleDTO)
-def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_user)):
+def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_active_user)):
     """
     Associate a sample with a label and return the next label.
 
@@ -33,6 +40,13 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
     :param user:        Current user Object
     :return:            data set matching ID
     """
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="You may not be logged in or your account is deactivated.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     if not can_assign(sample_id, label_id):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
