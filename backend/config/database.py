@@ -1,15 +1,13 @@
-from pathlib import Path
-
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # set access parameters for server and database
-server_username = "postgres"
+server_username = "root"
 server_password = "admin"
 server_ipaddress = "localhost"
 server_port = "5432"
-db_name = "postgres"
+db_name = "aergia"
 
 SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}" \
     .format(server_username, server_password, server_ipaddress, server_port, db_name)
