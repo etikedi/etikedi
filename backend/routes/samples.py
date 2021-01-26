@@ -4,8 +4,8 @@ from fastapi import status, APIRouter, HTTPException, Depends
 
 from ..worker import manager
 from ..config import db
-from ..models import Sample, SampleDTO, User
-from ..utils import get_current_user, can_assign
+from ..models import Sample, SampleDTO, User, UnlabelDTO, Label, Association, Dataset
+from ..utils import get_current_user, can_assign, get_current_active_user
 
 sample_router = APIRouter()
 
@@ -68,3 +68,40 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
         )
     next_sample.ensure_string_content()
     return next_sample
+
+
+@sample_router.delete("/{sample_id}", response_model=int)
+def unlabel(sample_id: int, data: UnlabelDTO, user=Depends(get_current_active_user)):
+    if 'admin' not in user.roles and data.all:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail='Only admin users are allowed to remove associations of other users'
+        )
+
+    sample = db.query(Sample).join(Dataset).filter(Sample.id == sample_id).first()
+    if not sample:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No sample {sample_id}'
+        )
+
+    label = db.query(Label).filter(Label.id == data.label_id).first()
+    if not label:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f'No label {data.label_id}'
+        )
+
+    associations = db.query(Association).filter(Association.sample_id == sample_id, Association.label_id == data.label_id)
+
+    if not data.all:
+        associations = associations.filter(Association.user_id == user.id)
+
+    worker = manager.get_or_else_load(sample.dataset)
+    worker.remove_sample_label(sample_id=sample_id, label_id=data.label_id)
+
+    return associations.delete()
+
+
+
+
