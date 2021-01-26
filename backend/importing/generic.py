@@ -1,3 +1,4 @@
+import base64
 from pathlib import Path
 from tempfile import SpooledTemporaryFile
 from typing import IO, Type, Tuple
@@ -5,6 +6,7 @@ from zipfile import ZipFile
 
 import numpy as np
 import pandas as pd
+from sqlalchemy import Text
 from sqlalchemy.orm.exc import NoResultFound
 
 from ..config import logger, db
@@ -63,6 +65,12 @@ def import_dataset(
 
         sample = sample_class()
         sample.dataset = dataset
+
+        # get type of content and convert to text if needed
+        content_type = sample_class.content.property.columns[0].type
+        if isinstance(content_type, Text):
+            content = content.decode('utf-8')
+
         sample.content = content
         samples.append(sample)
 

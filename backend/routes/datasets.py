@@ -1,7 +1,7 @@
 from typing import List, Optional, Union
 
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query, Response
-from sqlalchemy import func, not_
+from sqlalchemy import func, not_, select
 from sqlalchemy.orm import aliased
 
 from ..config import db
@@ -157,12 +157,19 @@ def get_filtered_samples(
 
     # text search
     if free_text:
+        # prepare text
+        free_text = free_text.replace(" ", " & ")
+
         sample = db.query(Sample).filter(Sample.dataset_id == dataset_id).first()
         content_type = sample.type
 
-        # text search only for content type 'text'
+        # text search only for content type 'text' and 'table'
         if content_type == "text":
-            query = query.join(Text).filter(Text.content.like('%{}%'.format(free_text)))
+            matched_tables = select([Text.id]).where(Text.content.match('{}'.format(free_text)))
+            query = query.join(Text).filter(Text.id.in_(matched_tables))
+        elif content_type == "table":
+            matched_tables = select([Table.id]).where(Table.content.match('{}'.format(free_text)))
+            query = query.join(Table).filter(Table.id.in_(matched_tables))
         else:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -175,19 +182,19 @@ def get_filtered_samples(
         association1 = aliased(Association)
         association2 = aliased(Association)
 
-        base_query = db.query(Sample)\
-            .filter(Sample.dataset_id == dataset_id)\
-            .join(association1, Sample.id == association1.sample_id)\
+        base_query = db.query(Sample) \
+            .filter(Sample.dataset_id == dataset_id) \
+            .join(association1, Sample.id == association1.sample_id) \
             .join(association2, Sample.id == association2.sample_id)
 
         # use query as subquery to apply other filters (eg. for labels or users)
         sub_query = query.with_entities(Sample.id).subquery()
 
         # build new query
-        query = base_query\
-            .filter(not_(association1.label_id == association2.label_id))\
-            .filter(Sample.id.in_(sub_query))\
-            .group_by(Sample.id).having(func.count(association1.label_id) > 1)\
+        query = base_query \
+            .filter(not_(association1.label_id == association2.label_id)) \
+            .filter(Sample.id.in_(sub_query)) \
+            .group_by(Sample.id).having(func.count(association1.label_id) > 1) \
             .order_by(func.count(association1.label_id).desc())
 
     # limit number of returned elements and paging, return total_elements in header
@@ -204,4 +211,7 @@ def get_filtered_samples(
         upper_limit = page * limit + limit
         query = query.order_by(Sample.id).slice(lower_limit, upper_limit)
 
-    return query.all()
+    samples = query.all()
+    for sample in samples:
+        sample.ensure_string_content()
+    return samples

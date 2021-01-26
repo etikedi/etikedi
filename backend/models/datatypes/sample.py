@@ -50,7 +50,8 @@ class Sample(Base):
 
     def ensure_string_content(self) -> None:
         """ Converts the content to a base64 encoded string if it is binary """
-        self.content = base64.b64encode(self.content).decode()
+        if not isinstance(self.content, str):
+            self.content = base64.b64encode(self.content).decode()
 
     def __str__(self):
         return "Sample {} in {}".format(self.id, self.dataset)

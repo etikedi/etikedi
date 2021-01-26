@@ -97,7 +97,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         After the data preparation is done, a BaseOracle object is created and - including with the configuration and
         data -  fed to the active learning code.
         """
-        init_logger("log.txt")
+        init_logger("console")
         print(f'Running worker for dataset {self.dataset_id}')
 
         self.current_samples = {}

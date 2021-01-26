@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, ForeignKey, BLOB
+from sqlalchemy.dialects.postgresql import BYTEA
 
 from .sample import Sample
 
@@ -54,7 +55,7 @@ class Image(Sample):
     __tablename__ = "image"
 
     id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
-    content = Column(BLOB)
+    content = Column(BYTEA)
 
     __mapper_args__ = {"polymorphic_identity": "image"}
 

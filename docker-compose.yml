@@ -9,3 +9,18 @@ services:
       - 8000:8000
     volumes:
       - ./backend:/aergia/backend
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: aergia
+    ports:
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql/data
+
+volumes:
+  data:

@@ -1,29 +1,21 @@
-from pathlib import Path
-
-from sqlalchemy import create_engine, event
-from sqlalchemy.engine import Engine
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# inside the backend folder
-database_path = Path(__file__).parent.parent.absolute() / 'test.db'
+# set access parameters for server and database
+server_username = "root"
+server_password = "admin"
+server_ipaddress = "localhost"
+server_port = "5432"
+db_name = "aergia"
 
-
-@event.listens_for(Engine, "connect")
-def set_sqlite_pragma(dbapi_connection, connection_record):
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
-
-
-SQLALCHEMY_DATABASE_URI = "sqlite:///" + str(database_path)
-SQLALCHEMY_TRACK_MODIFICATIONS = False
+SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}" \
+    .format(server_username, server_password, server_ipaddress, server_port, db_name)
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URI,
     connect_args={
-        "check_same_thread": SQLALCHEMY_TRACK_MODIFICATIONS,
-        "timeout": 30
+        "connect_timeout": 30
     },
 )
 
