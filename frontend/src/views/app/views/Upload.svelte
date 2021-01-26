@@ -17,26 +17,31 @@
   }
 
   async function upload() {
-    error = null
-    if (contents.files.length !== 1 || features.files.length !== 1) {
-      error = 'No files selected'
-      return
-    }
-    const fd = new FormData()
-    fd.append('name', form.name)
-    fd.append('sample_type', form.sample_type)
-    fd.append('features', features.files[0])
-    fd.append('contents', contents.files[0])
+    try {
+      error = null
+      if (contents.files.length !== 1 || features.files.length !== 1) {
+        error = 'No files selected'
+        return
+      }
+      const fd = new FormData()
+      fd.append('name', form.name)
+      fd.append('sample_type', form.sample_type)
+      fd.append('features', features.files[0])
+      fd.append('contents', contents.files[0])
 
-    const { data } = await axios({
-      url: '/datasets',
-      method: 'post',
-      data: fd,
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    console.log(data)
+      const { data } = await axios({
+        url: '/datasets',
+        method: 'post',
+        data: fd,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      console.log(data)
+    } catch (e) {
+      console.error(e)
+      error = e
+    }
   }
 </script>
 
