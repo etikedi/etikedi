@@ -1,12 +1,12 @@
 from datetime import timedelta
-from typing import Optional, List
+from typing import List
 
 from email_validator import validate_email, EmailNotValidError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 from ..config import ACCESS_TOKEN_EXPIRE_MINUTES, app, db, MINIMAL_PASSWORD_LENGTH
-from ..models import User, Token, UserInDB, UserNewPW, BaseUserSchema, UserWithRole, NewRole
+from ..models import User, Token, UserNewPW, BaseUserSchema
 from ..utils import (
     authenticate_user,
     create_access_token,
@@ -37,21 +37,18 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@user_router.get("", response_model=List[UserWithRole])
+@user_router.get("", response_model=List[BaseUserSchema])
 async def get_all_users(current_user: User = Depends(get_current_active_user)):
     return db.query(User).all()
 
 
-@user_router.get("/me", response_model=UserWithRole)
+@user_router.get("/me", response_model=BaseUserSchema)
 async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
 @user_router.post("", response_model=UserNewPW)
-async def add_user(username: str,
-                   email: str,
-                   full_name: Optional[str] = None,
-                   current_user: User = Depends(get_current_active_admin)):
+async def add_user(dto: BaseUserSchema, current_user: User = Depends(get_current_active_admin)):
     """
     Add new user. New user is automatically set active and as role worker. A random password is assigned.
 
@@ -60,20 +57,19 @@ async def add_user(username: str,
     :str username: intended username for new user\\
     :return User and random PW in cleartext
     """
-    users = db.query(User).filter(User.username == username).count()
+    users = db.query(User).filter(User.username == dto.username).count()
     if users > 0:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="The user name {} already exists. Choose another username!".format(username),
+            detail="The user name {} already exists. Choose another username!".format(dto.username),
         )
 
     try:
-        valid = validate_email(email, check_deliverability=False)
-        email = valid.email
+        validate_email(dto.email, check_deliverability=False)
     except EmailNotValidError as e:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="The e-mail {} is not valid. Reason: {}".format(email, e),
+            detail="The e-mail {} is not valid. Reason: {}".format(dto.email, e),
         )
 
     # set random PW
@@ -81,16 +77,18 @@ async def add_user(username: str,
     hashed_password = get_password_hash(password)
 
     # automatically active and worker
-    new_user = User(username=username, email=email, roles='worker', password=hashed_password, fullname=full_name)
+    new_user = User(
+        username=dto.username,
+        email=dto.email,
+        roles=dto.roles,
+        password=hashed_password,
+        fullname=dto.fullname
+    )
     db.add(new_user)
     db.commit()
 
-    user = db.query(User).filter(User.username == username).first()
-    return {"username": user.username,
-            "email": user.email,
-            "fullname": user.fullname,
-            "is_active": user.is_active,
-            "new_password": password}
+    new_user.new_password = password
+    return new_user
 
 
 @user_router.post("/{user_id}/reset_password", response_model=UserNewPW)
@@ -101,7 +99,6 @@ async def reset_password(user_id: int, current_user: User = Depends(get_current_
     :int user_id: \\
     :return user and new cleartext pw
     """
-
     user = get_user_by_id(user_id)
     if not user:
         raise HTTPException(
@@ -114,12 +111,9 @@ async def reset_password(user_id: int, current_user: User = Depends(get_current_
 
     user.password = hashed_password
     db.commit()
+    user.new_password = new_password
 
-    return {"username": user.username,
-            "email": user.email,
-            "fullname": user.fullname,
-            "is_active": user.is_active,
-            "new_password": new_password}
+    return user
 
 
 @user_router.post("/change_password", response_model=BaseUserSchema)
@@ -137,20 +131,15 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
                 MINIMAL_PASSWORD_LENGTH),
         )
 
-    hashed_password = get_password_hash(new_password)
-    current_user.password = hashed_password
+    current_user.password = get_password_hash(new_password)
     db.commit()
 
     return current_user
 
 
-@user_router.put("/{user_id}", response_model=UserWithRole)
+@user_router.put("/{user_id}", response_model=BaseUserSchema)
 async def change_user_data(user_id: int,
-                           username: str,
-                           email: str,
-                           fullname: str,
-                           is_active: bool,
-                           new_role: NewRole,
+                           dto: BaseUserSchema,
                            current_user: User = Depends(get_current_active_admin)):
     """
     Changes user data, activation status or roles of user with user id.
@@ -161,7 +150,6 @@ async def change_user_data(user_id: int,
     :str fullname: \\
     :bool is_active: \\
     :str new_role: role or new role to be set, Parameter in Request Body
-
     """
     user = get_user_by_id(user_id)
     if not user:
@@ -171,15 +159,14 @@ async def change_user_data(user_id: int,
         )
 
     # Change activation status
-    if user.is_active != is_active:
-        if not is_active:
-            if 'admin' in user.roles:
-                can_disable_admin(user)
+    if user.is_active != dto.is_active:
+        if not dto.is_active and 'admin' in user.roles:
+            can_disable_admin(user)
 
-        user.is_active = is_active
+        user.is_active = dto.is_active
 
     # Change status of another user to new role
-    if user.roles != new_role.roles:
+    if user.roles != dto.roles:
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
@@ -189,36 +176,34 @@ async def change_user_data(user_id: int,
         if 'admin' in user.roles:
             can_disable_admin(user)
 
-        user.roles = new_role.roles
+        user.roles = dto.roles
 
     # Change username
-    if user.username != username:
-        username_in_db = db.query(User).filter(User.username == username).count()
+    if user.username != dto.username:
+        username_in_db = db.query(User).filter(User.username == dto.username).count()
         if username_in_db:
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail="The username {} already exists. Please choose another username".format(username),
+                detail="The username {} already exists. Please choose another username".format(dto.username),
             )
 
-        user.username = username
+        user.username = dto.username
 
     # Change fullname
-    if User.fullname != fullname:
-        user.fullname = fullname
+    if dto.fullname:
+        user.fullname = dto.fullname
 
     # Change email
-    if User.email != email:
+    if dto.email is not None and user.email != dto.email:
         try:
-            valid = validate_email(email, check_deliverability=False)
-            email = valid.email
+            valid = validate_email(dto.email, check_deliverability=False)
+            user.email = valid.email
         except EmailNotValidError as e:
             raise HTTPException(
                 status_code=status.HTTP_406_NOT_ACCEPTABLE,
-                detail="The e-mail {} is not valid. Reason: {}".format(email, e),
+                detail="The e-mail {} is not valid. Reason: {}".format(dto.email, e),
             )
-        user.email = email
 
     db.commit()
 
-    user = get_user_by_id(user_id)
-    return user
+    return get_user_by_id(user_id)
