@@ -211,4 +211,7 @@ def get_filtered_samples(
         upper_limit = page * limit + limit
         query = query.order_by(Sample.id).slice(lower_limit, upper_limit)
 
-    return query.all()
+    samples = query.all()
+    for sample in samples:
+        sample.ensure_string_content()
+    return samples
