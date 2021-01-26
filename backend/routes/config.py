@@ -35,6 +35,7 @@ async def change_dataset_config(dataset_id: int, config: ActiveLearningConfig):
     dataset.set_config(config)
     db.commit()
 
-    manager.restart_with_config(dataset, json.loads(dataset.config))
+    worker = manager.get(dataset_id)
+    worker.restart_process(json.loads(dataset.config))
 
     return dataset.get_config()

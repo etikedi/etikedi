@@ -22,6 +22,7 @@ passlib = "*"
 seaborn = "*"
 sqlalchemy = "*"
 json-tricks = "*"
+numba = "*"
 
 [dev-packages]
 pylint = "*"

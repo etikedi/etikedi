@@ -45,12 +45,12 @@
 <div class="mb3">
   <label>
     {label}
-    <select {...$$restProps} bind:value>
+    <select {...$$restProps} bind:value on:change>
       {#if emptyFirst}
         <option disabled selected value style="display: none"></option>
       {/if}
       {#each values as v}
-        <option value={v}>{v}</option>
+        <option value={v.id || v}>{v.name || v}</option>
       {/each}
     </select>
   </label>

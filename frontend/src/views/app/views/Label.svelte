@@ -15,11 +15,11 @@
 
   const mappings = {
     table: Table,
-    image: Image
+    image: Image,
+    text: Table,
   }
 
   const { id } = router.params()
-
 
   let sample = null
   let grid = false
@@ -31,8 +31,8 @@
   onMount(() => {
     axios({
       method: 'get',
-      url: `/datasets/${id}/first_sample`
-    }).then(response => sample = response.data)
+      url: `/datasets/${id}/first_sample`,
+    }).then((response) => (sample = response.data))
 
     window.document.addEventListener('keypress', keyPress)
     return () => {
@@ -50,39 +50,18 @@
 
   async function send(selected: string) {
     if (!ready) return
-    console.log(selected)
     const id = sample.id
     sample = null
     const { data } = await axios({
       method: 'post',
       url: `/samples/${id}`,
       params: {
-        label_id: selected
-      }
+        label_id: selected,
+      },
     })
     sample = data
   }
 </script>
-
-<style>
-    .data {
-        max-height: calc(100vh - 23em);
-        overflow: auto;
-    }
-
-    .labels {
-        margin-top: 2em;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .labels > :global(*) {
-        margin: 0.5em;
-    }
-</style>
 
 {#if ready}
   <div class="flex justify-between items-center">
@@ -91,7 +70,7 @@
   </div>
 
   {#if grid}
-    <Grid labels={dataset.labels} datasetId={id} />
+    <Grid />
   {:else}
     <Card>
       <div class="data tc">
@@ -109,10 +88,29 @@
       </div>
     </Card>
   {/if}
-
 {:else}
   <div class="text-center">
     <div class="loading loading-lg" />
     <p>Waiting for server</p>
   </div>
 {/if}
+
+<style>
+  .data {
+    max-height: calc(100vh - 23em);
+    overflow: auto;
+  }
+
+  .labels {
+    margin-top: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .labels > :global(*) {
+    margin: 0.5em;
+  }
+</style>

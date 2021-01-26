@@ -1,6 +1,8 @@
 import { writable } from 'svelte/store'
 import axios from 'axios'
 
+export const DATASET_TYPES = ['table', 'image', 'text']
+
 export const data = writable({})
 
 export async function load() {
