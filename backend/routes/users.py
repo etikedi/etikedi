@@ -47,7 +47,7 @@ async def read_users_me(current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@user_router.post("/add_user", response_model=UserNewPW)
+@user_router.post("", response_model=UserNewPW)
 async def add_user(username: str,
                    email: str,
                    full_name: Optional[str] = None,
@@ -93,52 +93,6 @@ async def add_user(username: str,
             "new_password": password}
 
 
-@user_router.post("/{user_id}/disable_user", response_model=BaseUserSchema)
-async def disable_user(user_id: int, current_user: User = Depends(get_current_active_admin)):
-    """
-    Disable user through admin.
-
-    :int user_id:\\
-    :return user
-    """
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The User {} does not exist.".format(user_id),
-        )
-
-    if 'admin' in user.roles:
-        can_disable_admin(user)
-
-    user.is_active = False
-    db.commit()
-
-    return db.query(User).filter(User.id == user_id).first()
-
-
-@user_router.post("/{user_id}/activate_user", response_model=BaseUserSchema)
-async def activate_user(user_id: int, current_user: User = Depends(get_current_active_admin)):
-    """
-    Enable user through admin.
-
-    :int user_id:\\
-    :return user
-    """
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The User {} does not exist.".format(user_id),
-        )
-
-    user.is_active = True
-    db.commit()
-
-    user = db.query(User).filter(User.id == user_id).first()
-    return user
-
-
 @user_router.post("/{user_id}/reset_password", response_model=UserNewPW)
 async def reset_password(user_id: int, current_user: User = Depends(get_current_active_admin)):
     """
@@ -179,7 +133,8 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     if len(new_password) < MINIMAL_PASSWORD_LENGTH:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="Your Password is too short. Please choose a password with at least {} characters".format(MINIMAL_PASSWORD_LENGTH),
+            detail="Your Password is too short. Please choose a password with at least {} characters".format(
+                MINIMAL_PASSWORD_LENGTH),
         )
 
     hashed_password = get_password_hash(new_password)
@@ -189,51 +144,24 @@ async def change_password(new_password: str, current_user: User = Depends(get_cu
     return current_user
 
 
-@user_router.post("/{user_id}/roles", response_model=UserWithRole)
-async def make_user_admin(user_id: int, new_role: NewRole, current_user: User = Depends(get_current_active_admin)):
-    """
-    Change status of another user to admin
-
-    :int user_id: Id of User to be made admin
-    :return user and its new role
-    """
-    user = get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="The User {} does not exist.".format(user_id),
-        )
-
-    if not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="The User {} is not active. Please activate the user first".format(user_id),
-        )
-
-    if 'admin' in user.roles:
-        can_disable_admin(user)
-
-    user.roles = new_role.roles
-    db.commit()
-
-    user = get_user_by_id(user_id)
-    return user
-
-
-@user_router.post("/{user_id}/change_data", response_model=BaseUserSchema)
+@user_router.put("/{user_id}", response_model=UserWithRole)
 async def change_user_data(user_id: int,
-                           current_user: User = Depends(get_current_active_admin),
-                           username: Optional[str] = None,
-                           fullname: Optional[str] = None,
-                           email: Optional[str] = None):
+                           username: str,
+                           email: str,
+                           fullname: str,
+                           is_active: bool,
+                           new_role: NewRole,
+                           current_user: User = Depends(get_current_active_admin)):
     """
-    Change data for a user. Changeable data includes username, fullname and email, or a combination of them.
+    Changes user data, activation status or roles of user with user id.
 
-    :int user_id: user_id of user whose data is to be changed\\
-    :str username: Optional: new username for user with user_id\\
-    :str fullname: Optional: new fullname for user with user_id\\
-    :str email: Optional: new email for user with user_id\\
-    :return user
+    :str user_id: id of the user whose data is to be changed\\
+    :str username: \\
+    :str email: \\
+    :str fullname: \\
+    :bool is_active: \\
+    :str new_role: role or new role to be set, Parameter in Request Body
+
     """
     user = get_user_by_id(user_id)
     if not user:
@@ -242,8 +170,29 @@ async def change_user_data(user_id: int,
             detail="The User {} does not exist.".format(user_id),
         )
 
-    # change username
-    if username:
+    # Change activation status
+    if user.is_active != is_active:
+        if not is_active:
+            if 'admin' in user.roles:
+                can_disable_admin(user)
+
+        user.is_active = is_active
+
+    # Change status of another user to new role
+    if user.roles != new_role.roles:
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_406_NOT_ACCEPTABLE,
+                detail="The User {} is not active. Please activate the user first".format(user_id),
+            )
+
+        if 'admin' in user.roles:
+            can_disable_admin(user)
+
+        user.roles = new_role.roles
+
+    # Change username
+    if user.username != username:
         username_in_db = db.query(User).filter(User.username == username).count()
         if username_in_db:
             raise HTTPException(
@@ -253,12 +202,12 @@ async def change_user_data(user_id: int,
 
         user.username = username
 
-    # change fullname
-    if fullname:
+    # Change fullname
+    if User.fullname != fullname:
         user.fullname = fullname
 
-    # change email
-    if email:
+    # Change email
+    if User.email != email:
         try:
             valid = validate_email(email, check_deliverability=False)
             email = valid.email
