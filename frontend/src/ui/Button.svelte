@@ -3,7 +3,16 @@
   export let icon: string | null = null
   export let full = false
   export let small = false
+  export let danger = false
 </script>
+
+<button class:danger class:full class:small {...$$restProps} on:click>
+  {#if icon}
+    <ion-icon name={icon} />
+  {/if}
+  {label}
+  <slot />
+</button>
 
 <style>
   button {
@@ -33,17 +42,13 @@
     font-size: 0.8em;
   }
 
+  button.danger {
+    background-color: var(--clr-danger);
+  }
+
   ion-icon {
     font-size: 1em;
     transform: translateY(0.1em) scale(1.75);
     margin-right: 0.5em;
   }
 </style>
-
-<button class:full class:small {...$$restProps} on:click>
-  {#if icon}
-    <ion-icon name={icon} />
-  {/if}
-  {label}
-  <slot />
-</button>

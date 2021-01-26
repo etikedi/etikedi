@@ -4,6 +4,8 @@
   import File from '../../../ui/File.svelte'
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
+  import Select from '../../../ui/Select.svelte'
+  import { DATASET_TYPES } from '../../../store/datasets'
 
   let error: null | string = null
 
@@ -38,19 +40,11 @@
   }
 </script>
 
-<style>
-  .uploads {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    column-gap: 1em;
-  }
-</style>
-
 <h1>Upload</h1>
 
 <form on:submit|preventDefault={upload}>
   <Input label="Name" bind:value={form.name} />
-  <Input label="Type" bind:value={form.sample_type} />
+  <Select label="Type" bind:value={form.sample_type} values={DATASET_TYPES} />
   <div class="uploads">
     <File type="file" label="Data" accept="application/zip" bind:element={contents} />
     <File type="file" label="Features" accept="text/comma-separated-values" bind:element={features} />
@@ -60,3 +54,11 @@
     <p>{error}</p>
   {/if}
 </form>
+
+<style>
+  .uploads {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 1em;
+  }
+</style>

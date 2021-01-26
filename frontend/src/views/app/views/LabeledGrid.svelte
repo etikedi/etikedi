@@ -15,7 +15,7 @@
   const mappings = {
     table: Table,
     image: Image,
-    text: Table
+    text: Table,
   }
 
   const { id } = router.params()
@@ -31,20 +31,19 @@
 
   // Select options
   let filterOptions
-  $: if (ready) filterOptions = [
-    { name: 'Label', label: 'labels', options: labels},
-    // TODO: Fetch existing users for options
-    { name: 'User', label: 'users', options: [] },
-    { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
-  ]
+  $: if (ready)
+    filterOptions = [
+      { name: 'Label', label: 'labels', options: labels },
+      // TODO: Fetch existing users for options
+      { name: 'User', label: 'users', options: [] },
+      { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] },
+    ]
 
   onMount(() => {
     filterData()
   })
 
   async function filterData() {
-    console.log('Params', filterParams)
-    console.log(samples)
     samples = []
 
     // Find filled filter options
@@ -61,20 +60,20 @@
         page: 0,
         limit: 3,
         labeled: true,
-        ...params
-      }
+        ...params,
+      },
     })
-      .then(response => {
+      .then((response) => {
         samples.push(...response.data)
         // Remove empty entries (caused by backend error) from array
-        samples = samples.filter(el => el != null)
+        samples = samples.filter((el) => el != null)
       })
-      .catch(err => console.log(err))
+      .catch((err) => console.log(err))
   }
 
   async function send(sample_id, label_id) {
-    console.log("SampleID", sample_id)
-    console.log("LabelID", label_id)
+    console.log('SampleID', sample_id)
+    console.log('LabelID', label_id)
     /*
     await axios({
       method: 'post',
@@ -92,46 +91,20 @@
   }
 </script>
 
-<style>
-    .wrapper {
-        display: flex;
-        flex-direction: row;
-
-    }
-
-    .menu {
-        display: flex;
-        flex-direction: column;
-    }
-
-    ul {
-        padding: 0;
-        margin: 0;
-        width: 150px;
-    }
-
-    .samples {
-        display: grid;
-        justify-content: center;
-        margin: 8px;
-        border-radius: 10px;
-    }
-
-    .w-third-ns {
-        width: 30.33333%;
-    }
-</style>
-
 {#if ready}
   <Card>
     <div class="wrapper">
       <div class="menu">
         <ul>
           {#each filterOptions as filterOption, i}
-            <Select bind:value={filterParams[filterOption.label]} emptyFirst={true} label={filterOption.name}
-                    values={filterOption.options} />
+            <Select
+              bind:value={filterParams[filterOption.label]}
+              emptyFirst={true}
+              label={filterOption.name}
+              values={filterOption.options}
+            />
           {/each}
-          <Input bind:value={filterParams["free_text"]} type="text" label="Free text" />
+          <Input bind:value={filterParams['free_text']} type="text" label="Free text" />
         </ul>
         <Button label="Filter" on:click={filterData} />
       </div>
@@ -141,8 +114,16 @@
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
                 {#if Object.keys(mappings).includes(sample.type)}
-                  <Select value={sample.label} emptyFirst={true} label="New label" values={labels} on:change={(el) => {send(sample.id, el)}}/>
-                  <svelte:component this={mappings[sample.type]} data={sample.content} toDecode={false}/>
+                  <Select
+                    value={sample.label}
+                    emptyFirst={true}
+                    label="New label"
+                    values={labels}
+                    on:change={(el) => {
+                      send(sample.id, el)
+                    }}
+                  />
+                  <svelte:component this={mappings[sample.type]} data={sample.content} toDecode={false} />
                 {:else}
                   <p>Unsupported type {sample.type}</p>
                 {/if}
@@ -154,3 +135,32 @@
     </div>
   </Card>
 {/if}
+
+<style>
+  .wrapper {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .menu {
+    display: flex;
+    flex-direction: column;
+  }
+
+  ul {
+    padding: 0;
+    margin: 0;
+    width: 150px;
+  }
+
+  .samples {
+    display: grid;
+    justify-content: center;
+    margin: 8px;
+    border-radius: 10px;
+  }
+
+  .w-third-ns {
+    width: 30.33333%;
+  }
+</style>

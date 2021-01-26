@@ -9,7 +9,7 @@
   import Checkbox from '../../../ui/Checkbox.svelte'
   import Select from '../../../ui/Select.svelte'
 
-  import { data } from '../../../store/datasets'
+  import { data, load } from '../../../store/datasets'
 
   const { id } = router.params()
 
@@ -70,6 +70,20 @@
     }
   }
 
+  async function del() {
+    try {
+      loading = true
+      await axios({
+        method: 'delete',
+        url: `/datasets/${id}/`,
+      })
+      await load()
+      back()
+    } finally {
+      loading = false
+    }
+  }
+
   function back() {
     router.goto('/app')
   }
@@ -93,6 +107,8 @@
       <Button type="button" on:click={back} label="Cancel" />
       <Button type="submit" {loading} disabled={loading} label="Update" icon="save-sharp" />
     </form>
+    <br />
+    <Button on:click={del} danger label="Delete" icon="trash-outline" />
   {:else}
     <div class="loading loading-lg" />
   {/if}
