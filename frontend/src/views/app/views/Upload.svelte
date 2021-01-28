@@ -1,13 +1,12 @@
 <script lang="ts">
   import axios from 'axios'
+  import { notifier } from '@beyonk/svelte-notifications'
 
   import File from '../../../ui/File.svelte'
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
   import Select from '../../../ui/Select.svelte'
   import { DATASET_TYPES } from '../../../store/datasets'
-
-  let error: null | string = null
 
   let contents: HTMLInputElement | null = null
   let features: HTMLInputElement | null = null
@@ -18,9 +17,8 @@
 
   async function upload() {
     try {
-      error = null
       if (contents.files.length !== 1 || features.files.length !== 1) {
-        error = 'No files selected'
+        notifier.danger('No files selected')
         return
       }
       const fd = new FormData()
@@ -40,7 +38,7 @@
       console.log(data)
     } catch (e) {
       console.error(e)
-      error = e
+      notifier.danger(e)
     }
   }
 </script>
@@ -55,9 +53,6 @@
     <File type="file" label="Features" accept="text/comma-separated-values" bind:element={features} />
   </div>
   <Button full label="Upload" type="submit" />
-  {#if error}
-    <p>{error}</p>
-  {/if}
 </form>
 
 <style>
