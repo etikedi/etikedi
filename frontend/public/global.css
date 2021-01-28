@@ -42,3 +42,7 @@ code {
     font-size: 16px;
   }
 }
+
+ul.toasts li.toast {
+  border-radius: var(--round);
+}
