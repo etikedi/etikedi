@@ -9,6 +9,7 @@
   import { data as datasets } from '../../../store/datasets'
   import Table from '../components/labeling/Table.svelte'
   import Input from '../../../ui/Input.svelte'
+  import CheckboxList from '../../../ui/CheckboxList.svelte'
 
   export let sampleCount = 9
 
@@ -24,7 +25,8 @@
 
   $: dataset = $datasets[id]
   $: ready = dataset && samples.length !== 0
-  $: if (ready) labels = dataset.labels
+  $: if (ready)
+    labels = dataset.labels
 
   // Filter html elements
   let filterParams = {}
@@ -114,15 +116,8 @@
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
                 {#if Object.keys(mappings).includes(sample.type)}
-                  <Select
-                    value={sample.label}
-                    emptyFirst={true}
-                    label="New label"
-                    values={labels}
-                    on:change={(el) => {
-                      send(sample.id, el)
-                    }}
-                  />
+                  <CheckboxList values="{labels}">
+                  </CheckboxList>
                   <svelte:component this={mappings[sample.type]} data={sample.content} />
                 {:else}
                   <p>Unsupported type {sample.type}</p>
@@ -137,30 +132,30 @@
 {/if}
 
 <style>
-  .wrapper {
-    display: flex;
-    flex-direction: row;
-  }
+    .wrapper {
+        display: flex;
+        flex-direction: row;
+    }
 
-  .menu {
-    display: flex;
-    flex-direction: column;
-  }
+    .menu {
+        display: flex;
+        flex-direction: column;
+    }
 
-  ul {
-    padding: 0;
-    margin: 0;
-    width: 150px;
-  }
+    ul {
+        padding: 0;
+        margin: 0;
+        width: 150px;
+    }
 
-  .samples {
-    display: grid;
-    justify-content: center;
-    margin: 8px;
-    border-radius: 10px;
-  }
+    .samples {
+        display: grid;
+        justify-content: center;
+        margin: 8px;
+        border-radius: 10px;
+    }
 
-  .w-third-ns {
-    width: 30.33333%;
-  }
+    .w-third-ns {
+        width: 30.33333%;
+    }
 </style>
