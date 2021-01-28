@@ -115,7 +115,7 @@
 {/if}
 
 {#if last}
-  <Button on:click={undo} danger label="Undo last" icon="trash-outline" />
+  <Button on:click={undo} danger label="Undo last" icon="arrow-undo-circle" />
 {/if}
 
 <style>
