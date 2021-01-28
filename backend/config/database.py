@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -5,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 # set access parameters for server and database
 server_username = "root"
 server_password = "admin"
-server_ipaddress = "localhost"
+server_ipaddress = os.getenv('DATABASE_URL', default='localhost')
 server_port = "5432"
 db_name = "aergia"
 

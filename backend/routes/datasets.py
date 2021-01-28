@@ -41,6 +41,9 @@ def create_dataset(
         raise HTTPException(status_code=400, detail="Not a valid sample type")
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
 
+    features.file.rollover()
+    contents.file.rollover()
+
     dataset, number_of_samples = import_dataset(
         name=name,
         sample_class=sample_class,
