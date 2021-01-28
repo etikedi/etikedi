@@ -72,3 +72,8 @@ class SampleDTO(Schema):
 
 class SampleDTOwLabel(SampleDTO):
     labels: Optional[List[LabelDTO]] = None
+
+
+class UnlabelDTO(Schema):
+    label_id: int
+    all: bool = True

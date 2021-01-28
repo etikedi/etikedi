@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
   import { Route } from 'tinro'
+  import { NotificationDisplay } from '@beyonk/svelte-notifications'
 
   import Home from './views/Home.svelte'
   import About from './views/About.svelte'
@@ -25,6 +26,7 @@
   <Route path="/app/*">
     <AppWrapper />
   </Route>
+  <NotificationDisplay />
 </main>
 
 <style>
