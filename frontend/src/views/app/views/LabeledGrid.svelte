@@ -123,7 +123,7 @@
                       send(sample.id, el)
                     }}
                   />
-                  <svelte:component this={mappings[sample.type]} data={sample.content} toDecode={false} />
+                  <svelte:component this={mappings[sample.type]} data={sample.content} />
                 {:else}
                   <p>Unsupported type {sample.type}</p>
                 {/if}
