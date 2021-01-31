@@ -35,12 +35,17 @@ def import_dataset(
         df = pd.read_csv(feature_file).set_index("ID")
         feature_file.close()
     elif isinstance(features, SpooledTemporaryFile):
-        df = pd.read_csv(features).set_index("ID")
+        features.rollover()
+        df = pd.read_csv(features._file).set_index("ID")
     else:
         raise ValueError("The features argument must be either a Path or FileStorage")
 
     try:
-        zip_file = ZipFile(content, "r")
+        if isinstance(content, SpooledTemporaryFile):
+            content.rollover()
+            zip_file = ZipFile(content._file, "r")
+        else:
+            zip_file = ZipFile(content, "r")
     except AttributeError:
         raise ValueError("The content argument must be either a Path or FileStorage")
 

@@ -5,6 +5,8 @@ services:
     image: tu-dresden/aergia-backend
     build:
       context: ./backend
+    environment:
+      DATABASE_URL: db
     ports:
       - 8000:8000
     volumes:

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { router } from 'tinro'
   import axios from 'axios'
+  import { notifier } from '@beyonk/svelte-notifications'
 
   import Button from '../../../ui/Button.svelte'
   import Table from '../components/labeling/Table.svelte'
@@ -11,7 +12,6 @@
 
   import { data as datasets } from '../../../store/datasets'
   import Grid from '../components/labeling/Grid.svelte'
-  import Select from '../../../ui/Select.svelte'
 
   const mappings = {
     table: Table,
@@ -24,6 +24,7 @@
   let sample = null
   let grid = false
   let dataset, ready
+  let last = null
 
   $: dataset = $datasets[id]
   $: ready = dataset && sample != null
@@ -59,7 +60,25 @@
         label_id: selected,
       },
     })
+    last = [id, selected]
     sample = data
+  }
+
+  async function undo() {
+    try {
+      if (!last) return
+      const [id, label_id] = last
+      await axios({
+        method: 'delete',
+        url: `/samples/${id}`,
+        data: { label_id },
+      })
+      notifier.success('Deleted')
+    } catch (e) {
+      console.error(e)
+    } finally {
+      last = null
+    }
   }
 </script>
 
@@ -93,6 +112,10 @@
     <div class="loading loading-lg" />
     <p>Waiting for server</p>
   </div>
+{/if}
+
+{#if last}
+  <Button on:click={undo} danger label="Undo last" icon="arrow-undo-circle" />
 {/if}
 
 <style>

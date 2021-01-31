@@ -3,6 +3,7 @@
   import axios from 'axios'
   import { router } from 'tinro'
   import { sentenceCase } from 'change-case'
+  import { notifier } from '@beyonk/svelte-notifications'
 
   import Button from '../../../ui/Button.svelte'
   import Input from '../../../ui/Input.svelte'
@@ -65,6 +66,10 @@
         url: `/datasets/${id}/config/`,
         data: config,
       })
+      notifier.success('Saved')
+    } catch (e) {
+      console.error(e)
+      notifier.danger(e.message)
     } finally {
       loading = false
     }
@@ -78,7 +83,11 @@
         url: `/datasets/${id}/`,
       })
       await load()
+      notifier.success('Deleted')
       back()
+    } catch (e) {
+      console.error(e)
+      notifier.danger(e.message)
     } finally {
       loading = false
     }
