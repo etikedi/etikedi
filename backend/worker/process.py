@@ -11,69 +11,17 @@ from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
 from ..active_learning.dataStorage import DataStorage
 from ..config import db, logger
-from ..models import Dataset
+from ..models import Dataset, ActiveLearningConfig
 from .types import *
 
 
-default_config = {
-    "SAMPLING": "uncertainty_max_margin",
-    "CLASSIFIER": "RF",
-    "CLUSTER": "dummy",
-    "NR_QUERIES_PER_ITERATION": 5,
-    "WITH_UNCERTAINTY_RECOMMENDATION": False,
-    "WITH_CLUSTER_RECOMMENDATION": False,
-    "WITH_SNUBA_LITE": False,
-    "MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS": 0,
-    "UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD": 0.99,
-    "UNCERTAINTY_RECOMMENDATION_RATIO": 0.01,
-    "CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED": 0.8,
-    "CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE": 0.3,
-    "ALLOW_RECOMMENDATIONS_AFTER_STOP": True,
-    "STOPPING_CRITERIA_UNCERTAINTY": 1.0,
-    "STOPPING_CRITERIA_ACC": 1.0,
-    "STOPPING_CRITERIA_STD": 1.0,
-    "USER_QUERY_BUDGET_LIMIT": 2000,
-    "RANDOM_SEED": 10,
-    "N_JOBS": -1,
-    "NR_LEARNING_ITERATIONS": 200000,
-    "PLOT_EVOLUTION": False,
-    "TEST_FRACTION": 0.3,
-    "DATASET_NAME": "iris",
-    "NEW_SYNTHETIC_PARAMS": False,
-    "VARIABLE_DATASET": True,
-    "AMOUNT_OF_FEATURES": -1,
-    "GENERATE_NOISE": True,
-    "HYPERCUBE": True,
-    "STATE_DIFF_PROBAS": False,
-    "STATE_ARGSECOND_PROBAS": True,
-    "STATE_ARGTHIRD_PROBAS": True,
-    "STATE_DISTANCES_LAB": True,
-    "STATE_DISTANCES_UNLAB": True,
-    "STATE_PREDICTED_CLASS": False,
-    "STATE_PREDICTED_UNITY": False,
-    "STATE_DISTANCES": False,
-    "STATE_UNCERTAINTIES": False,
-    "BATCH_MODE": False,
-    "DISTANCE_METRIC": "euclidean",
-    "STATE_INCLUDE_NR_FEATURES": True,
-    "INITIAL_BATCH_SAMPLING_METHOD": "furthest",
-    "INITIAL_BATCH_SAMPLING_ARG": 10,
-    "INITIAL_BATCH_SAMPLING_HYBRID_UNCERT": 0.4,
-    "INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST": 0.4,
-    "INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST_LAB": 0,
-    "INITIAL_BATCH_SAMPLING_HYBRID_PRED_UNITY": 0,
-    "STOP_AFTER_MAXIMUM_ACCURACY_REACHED": False,
-}
-
-
-# @dataclass
 class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     """
     Extension of multiprocessing. Process as a wrapper class for asynchronous execution of active-learning
     code lifecycle.
     """
     dataset_id: int
-    config: Dict
+    config: ActiveLearningConfig
     pipe_endpoint: Connection
     storage: DataStorage = None
 
@@ -86,7 +34,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     def __init__(self, dataset_id: int, config: Dict, pipe_endpoint: Connection):
         super().__init__()
         self.dataset_id = dataset_id
-        self.config = config
+        self.config = ActiveLearningConfig(**config)
         self.pipe_endpoint = pipe_endpoint
 
     def run(self):
@@ -105,11 +53,10 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         dataset = db.query(Dataset).filter_by(id=self.dataset_id).first()
         df, self.sample_mapping, self.reverse_sample_mapping = prepare_dataset_for_active_learning(dataset)
 
-        # TODO: Load from database
-        self.config = default_config
+        self.config.add_default_options(self.dataset_id)
 
         (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
-            hyper_parameters=self.config,
+            hyper_parameters=self.config.dict(),
             df=df,
             oracle=self
         )
