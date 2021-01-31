@@ -15,14 +15,7 @@ dataset_router = APIRouter()
 
 
 @dataset_router.get("", response_model=List[DatasetDTO])
-def get_datasets(current_user: User = Depends(get_current_active_user)):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You may not be logged in or your account is deactivated.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
+def get_datasets(user: User = Depends(get_current_active_user)):
     datasets = db.query(Dataset).all()
 
     for dataset in datasets:
@@ -42,15 +35,8 @@ def create_dataset(
         sample_type: str = Form(...),
         features: UploadFile = File(...),
         contents: UploadFile = File(...),
-        current_user: User = Depends(get_current_active_user),
+        user: User = Depends(get_current_active_user),
 ):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You may not be logged in or your account is deactivated.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     if sample_type not in ["table", "image", "text"]:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
@@ -68,14 +54,7 @@ def create_dataset(
 
 
 @dataset_router.get("/{dataset_id}/first_sample", response_model=SampleDTO)
-def get_first_sample(dataset_id: int, current_user: User = Depends(get_current_active_user)):
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You may not be logged in or your account is deactivated.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
+def get_first_sample(dataset_id: int, user: User = Depends(get_current_active_user)):
     dataset = db.query(Dataset).get(dataset_id)
     if not dataset:
         raise HTTPException(
@@ -83,7 +62,6 @@ def get_first_sample(dataset_id: int, current_user: User = Depends(get_current_a
             detail="Dataset not found for id: {}.".format(dataset_id)
         )
 
-    # first_sample = get_next_sample(dataset)
     worker = manager.get_or_else_load(dataset)
     first_sample = worker.get_next_sample()
     if not first_sample:
@@ -107,7 +85,7 @@ def get_filtered_samples(
         labeled: Optional[bool] = None,
         free_text: Optional[Union[str, bytes]] = None,
         divided_labels: Optional[bool] = None,
-        current_user: User = Depends(get_current_active_user)):
+        user: User = Depends(get_current_active_user)):
     """
     NOT for usage in connection with Active Learning!
 
@@ -130,13 +108,6 @@ def get_filtered_samples(
     :param current_user:        the currently active user -> needed for authentication-check\\
     :return:                    list of samples
     """
-    if not current_user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You may not be logged in or your account is deactivated.",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
 
     if not dataset:
