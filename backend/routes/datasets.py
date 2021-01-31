@@ -105,7 +105,7 @@ def get_filtered_samples(
 
     :param free_text:           freetext search (only one word)\\
 
-    :param current_user:        the currently active user -> needed for authentication-check\\
+    :param user:                the currently active user -> needed for authentication-check\\
     :return:                    list of samples
     """
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)

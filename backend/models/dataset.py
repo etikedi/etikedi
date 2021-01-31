@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 from typing import List, Optional
 from pydantic import BaseModel as Schema
-from sqlalchemy import Column, Text, String, Integer
+from sqlalchemy import Column, Text, String, Integer, JSON
 from sqlalchemy.orm import relationship
 
 from . import default_al_config, ActiveLearningConfig
@@ -28,7 +28,7 @@ class Dataset(Base):
     feature_names = Column(String(), nullable=True)
     features = Column(Text(), nullable=True)
     config = Column(
-        Text(),
+        JSON,
         nullable=True,
         default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
