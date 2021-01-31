@@ -1,16 +1,17 @@
 from typing import List
 
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Depends
 from starlette import status
 
 from ..config import db
-from ..models import Label, CreateLabelDTO, LabelDTO
+from ..models import Label, CreateLabelDTO, LabelDTO, User
+from ..utils import get_current_active_user
 
 label_router = APIRouter()
 
 
 @label_router.get("/", response_model=List[LabelDTO])
-async def get_labels(dataset_id: int):
+async def get_labels(dataset_id: int, user: User = Depends(get_current_active_user)):
     """
     This function responds to a request for /api/int:dataset_id/labels
     with the complete lists of data sets
@@ -29,7 +30,7 @@ async def get_labels(dataset_id: int):
 
 
 @label_router.post("/", response_model=LabelDTO)
-async def post_labels(dataset_id: int, label: CreateLabelDTO):
+async def post_labels(dataset_id: int, label: CreateLabelDTO, user: User = Depends(get_current_active_user)):
     """ Create a new label for the given dataset. """
     new_label = Label(name=label.name, dataset_id=dataset_id)
     db.add(new_label)

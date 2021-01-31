@@ -1,17 +1,16 @@
+from fastapi import status, APIRouter, HTTPException, Depends
 from sqlalchemy.exc import IntegrityError
 
-from fastapi import status, APIRouter, HTTPException, Depends
-
-from ..worker import manager
 from ..config import db
 from ..models import Sample, SampleDTO, User, UnlabelDTO, Label, Association, Dataset
-from ..utils import get_current_user, can_assign, get_current_active_user
+from ..utils import can_assign, get_current_active_user
+from ..worker import manager
 
 sample_router = APIRouter()
 
 
 @sample_router.get("/{sample_id}", response_model=SampleDTO)
-def get_sample(sample_id: int):
+def get_sample(sample_id: int, user: User = Depends(get_current_active_user)):
     sample = db.query(Sample).filter_by(id=sample_id).first()
     if sample is None:
         raise HTTPException(
@@ -24,7 +23,7 @@ def get_sample(sample_id: int):
 
 
 @sample_router.post("/{sample_id}", response_model=SampleDTO)
-def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_user)):
+def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_active_user)):
     """
     Associate a sample with a label and return the next label.
 

@@ -15,7 +15,7 @@ dataset_router = APIRouter()
 
 
 @dataset_router.get("", response_model=List[DatasetDTO])
-def get_datasets():
+def get_datasets(user: User = Depends(get_current_active_user)):
     datasets = db.query(Dataset).all()
 
     for dataset in datasets:
@@ -35,7 +35,7 @@ def create_dataset(
         sample_type: str = Form(...),
         features: UploadFile = File(...),
         contents: UploadFile = File(...),
-        current_user: User = Depends(get_current_active_user),
+        user: User = Depends(get_current_active_user),
 ):
     if sample_type not in ["table", "image", "text"]:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
@@ -54,7 +54,7 @@ def create_dataset(
 
 
 @dataset_router.get("/{dataset_id}/first_sample", response_model=SampleDTO)
-def get_first_sample(dataset_id: int):
+def get_first_sample(dataset_id: int, user: User = Depends(get_current_active_user)):
     dataset = db.query(Dataset).get(dataset_id)
     if not dataset:
         raise HTTPException(
@@ -62,7 +62,6 @@ def get_first_sample(dataset_id: int):
             detail="Dataset not found for id: {}.".format(dataset_id)
         )
 
-    # first_sample = get_next_sample(dataset)
     worker = manager.get_or_else_load(dataset)
     first_sample = worker.get_next_sample()
     if not first_sample:
@@ -85,7 +84,8 @@ def get_filtered_samples(
         users: Optional[List[int]] = Query(None),
         labeled: Optional[bool] = None,
         free_text: Optional[Union[str, bytes]] = None,
-        divided_labels: Optional[bool] = None):
+        divided_labels: Optional[bool] = None,
+        user: User = Depends(get_current_active_user)):
     """
     NOT for usage in connection with Active Learning!
 
@@ -104,6 +104,8 @@ def get_filtered_samples(
     :param users:               list of user_ids to filter for add each user with users = user_id\\
 
     :param free_text:           freetext search (only one word)\\
+
+    :param current_user:        the currently active user -> needed for authentication-check\\
     :return:                    list of samples
     """
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
