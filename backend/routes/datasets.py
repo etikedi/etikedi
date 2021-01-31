@@ -46,7 +46,7 @@ def create_dataset(
         sample_class=sample_class,
         features=features.file,
         content=contents.file,
-        user=current_user,
+        user=user,
         ensure_incomplete=True,
     )
 

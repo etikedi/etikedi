@@ -1,18 +1,19 @@
 <script lang="ts">
   import axios from 'axios'
   import { notifier } from '@beyonk/svelte-notifications'
+  import { router } from 'tinro'
 
   import File from '../../../ui/File.svelte'
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
   import Select from '../../../ui/Select.svelte'
-  import { DATASET_TYPES } from '../../../store/datasets'
+  import { DATASET_TYPES, load } from '../../../store/datasets'
 
   let contents: HTMLInputElement | null = null
   let features: HTMLInputElement | null = null
   const form = {
     name: '',
-    sample_type: '',
+    sample_type: DATASET_TYPES[0],
   }
 
   async function upload() {
@@ -35,7 +36,9 @@
           'Content-Type': 'multipart/form-data',
         },
       })
-      console.log(data)
+      notifier.success('Uploaded')
+      await load()
+      router.goto('/app')
     } catch (e) {
       console.error(e)
       notifier.danger(e)
