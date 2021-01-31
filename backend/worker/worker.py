@@ -24,8 +24,8 @@ class ActiveLearningWorker:
     pipe: Connection
     state: WorkerState
 
-    # The values are the time the sample was sent to a user
-    requested_samples: Dict[int, Union[datetime, None]]
+    # The values are the time the sample was sent to a user or the given label
+    requested_samples: Dict[int, Union[int, datetime, None]]
 
     # Time the user has to label before sample gets unlocked
     # TODO: Refactor to config option
@@ -62,11 +62,11 @@ class ActiveLearningWorker:
 
         :param config:      configuration for active-learning code the process is restarted with
         """
-        self.state = WorkerState.STARTING
         if self.process.is_alive():
             self.process.kill()
         del self.process
         self.config = config
+        self.state = WorkerState.STARTING
         self.create_process()
         self.start_process()
 
@@ -75,7 +75,7 @@ class ActiveLearningWorker:
 
     def add_sample_label(self, sample_id: int, label_id: int) -> None:
         if sample_id in self.requested_samples:
-            del self.requested_samples[sample_id]
+            self.requested_samples[sample_id] = label_id
 
         self.pipe.send({
             "event": "add_sample",
@@ -87,6 +87,9 @@ class ActiveLearningWorker:
             self.state = WorkerState.TRAINING
 
     def remove_sample_label(self, sample_id: int, label_id) -> None:
+        if sample_id in self.requested_samples:
+            self.requested_samples[sample_id] = None
+
         self.pipe.send({
             "event": "remove_sample",
             "sample_id": sample_id,
@@ -114,7 +117,10 @@ class ActiveLearningWorker:
     def get_requested_sample(self) -> Sample:
         self.unlock_samples()
 
-        sample_id = next(sample_id for sample_id, sent_to_user in self.requested_samples.items() if sent_to_user is None)
+        sample_id = next(
+            sample_id for sample_id, sent_to_user
+            in self.requested_samples.items() if sent_to_user is None
+        )
         self.requested_samples[sample_id] = datetime.now()
 
         return db.query(Sample).filter(Sample.id == sample_id).first()
@@ -130,7 +136,7 @@ class ActiveLearningWorker:
         now = datetime.now()
 
         for sample_id, sent_to_user in self.requested_samples.items():
-            if not sent_to_user:
+            if sent_to_user is None or isinstance(sent_to_user, int):
                 continue
 
             if sent_to_user + self.user_time_to_label <= now:

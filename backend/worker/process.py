@@ -154,7 +154,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     def new_labels_ordered_by_samples(self, requested_samples: List[SampleID]) -> List[LabelID]:
         return [self.current_samples[sample_id] for sample_id in requested_samples]
 
-    def get_labeled_samples(self, requested_sample_ids: List[InternalSampleID], data_storage: DataStorage):
+    def get_labeled_samples(self, requested_sample_ids: List[InternalSampleID], data_storage: DataStorage, metrics: Dict[str, List[float]]):
         """
         As this function is the only interface between backend and active-learning code, two tasks have to be done:
             1)  Resolving the query indices into queried sample_ids and send them to backend
@@ -191,7 +191,8 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
                 self.add_sample(sample_id=message['sample_id'], label_id=message['label_id'])
 
             if message['event'] == 'remove_sample':
-                self.remove_sample(sample_id=message['sample_id'], label_id=message['label_id'])
+                # self.remove_sample(sample_id=message['sample_id'], label_id=message['label_id'])
+                self.remove_sample(sample_id=message['sample_id'])
 
             if self.remaining_samples:
                 logger.debug(f"ALProcess.Oracle:\tWaiting for remaining labels of samples {self.remaining_samples}")

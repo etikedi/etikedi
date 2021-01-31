@@ -1,7 +1,5 @@
-from multiprocessing import Pipe
-from typing import Dict
+from typing import Dict, Optional
 
-from ..config import logger
 from ..models import Dataset
 from .worker import ActiveLearningWorker
 
@@ -28,8 +26,8 @@ class ProcessManager:
         else:
             return self.create_worker(dataset)
 
-    def get(self, dataset: Dataset) -> ActiveLearningWorker:
-        return self.workers[dataset.id]
+    def get(self, dataset: Dataset) -> Optional[ActiveLearningWorker]:
+        return self.workers.get(dataset.id)
 
     def create_worker(self, dataset: Dataset) -> ActiveLearningWorker:
         worker = ActiveLearningWorker(dataset)
