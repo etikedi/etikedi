@@ -13,10 +13,12 @@ class Association(Base):
     sample = relationship("Sample", back_populates="associations")
 
     label_id = Column(Integer, ForeignKey("label.id"), primary_key=True)
-    label = relationship("Label",   backref="associations")
+    label = relationship("Label", backref="associations")
 
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
     user = relationship("User", backref="associations")
+
+    __mapper_args__ = {"confirm_deleted_rows": False}
 
 
 class AssociationBase(Schema):
