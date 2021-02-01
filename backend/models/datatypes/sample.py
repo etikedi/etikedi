@@ -18,27 +18,25 @@ class Sample(Base):
     this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
     """
 
-    # TODO: Add associations as backref?
 
     __tablename__ = "sample"
 
     id = Column(Integer, primary_key=True)
 
-    dataset_id = Column(Integer, ForeignKey(
-        "dataset.id", ondelete="CASCADE"), nullable=False)
-    dataset = relationship("Dataset", backref=backref("items", lazy=True))
+    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
+    dataset = relationship("Dataset", back_populates="samples", lazy = True)
 
     labels = relationship(
         "Label",
         lazy="subquery",
         secondary="association",
         back_populates="samples",
-        cascade="all, delete",
         passive_deletes=True
     )
 
     associations = relationship(
         "Association",
+        cascade="all, delete",
         back_populates='sample'
     )
 

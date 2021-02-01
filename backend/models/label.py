@@ -10,8 +10,7 @@ class Label(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String(), nullable=False)
 
-    dataset_id = Column(Integer, ForeignKey(
-        "dataset.id", ondelete="CASCADE"), nullable=False)
+    dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
     dataset = relationship("Dataset", back_populates="labels")
 
     samples = relationship(
