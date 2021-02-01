@@ -11,35 +11,31 @@
   import Input from '../../../ui/Input.svelte'
   import CheckboxList from '../../../ui/CheckboxList.svelte'
 
-  export let sampleCount = 9
+  export let sampleCount = 3
 
   const mappings = {
     table: Table,
     image: Image,
-    text: Table,
+    text: Table
   }
 
   const { id } = router.params()
-  let dataset, labels, ready
+  let dataset, labels, ready, filterOptions
   let samples = []
+  let filterParams = {}
 
   $: dataset = $datasets[id]
   $: ready = dataset && samples.length !== 0
-  $: if (ready)
+
+  $: if (ready) {
     labels = dataset.labels
-
-  // Filter html elements
-  let filterParams = {}
-
-  // Select options
-  let filterOptions
-  $: if (ready)
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
       // TODO: Fetch existing users for options
       { name: 'User', label: 'users', options: [] },
-      { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] },
+      { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
     ]
+  }
 
   onMount(() => {
     filterData()
@@ -62,8 +58,8 @@
         page: 0,
         limit: 3,
         labeled: true,
-        ...params,
-      },
+        ...params
+      }
     })
       .then((response) => {
         samples.push(...response.data)
@@ -116,7 +112,7 @@
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
                 {#if Object.keys(mappings).includes(sample.type)}
-                  <CheckboxList values="{labels}">
+                  <CheckboxList values="{labels}" checked={sample.labels}>
                   </CheckboxList>
                   <svelte:component this={mappings[sample.type]} data={sample.content} />
                 {:else}

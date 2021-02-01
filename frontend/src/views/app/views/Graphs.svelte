@@ -17,16 +17,19 @@
   let userChart, distPie, distBar, classDistPie, classDistBar
 
   $: if (ready) {
-    Chartkick.use(Chart)
     labels = dataset.labels
     stats = dataset.statistics
+  }
+
+  onMount(() => {
+    Chartkick.use(Chart)
     let labelDist = []
     labelDist.push(['labeled', stats.labelled_samples])
     labelDist.push(['features', stats.features])
     labelDist.push(['unlabeled', stats.total_samples - stats.features - stats.labelled_samples])
     new Chartkick.PieChart(classDistPie, labelDist, { legend: 'bottom', donut: true })
     new Chartkick.BarChart(classDistBar, labelDist)
-  }
+  })
 
 </script>
 

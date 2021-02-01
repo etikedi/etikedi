@@ -1,11 +1,26 @@
 <script lang="ts">
   export let values: any
-  export let label: string = ''
   export let selected = []
+  export let checked
 
   let items
 
-  $: console.log(values)
+  selected = values
+
+  // Delete eventually set checked
+  values = values.map(label => {
+    delete label.checked
+    return label
+  })
+
+  // Check current
+  $: values.forEach(label => {
+    checked.forEach(current => {
+      if (label.id === current.id) {
+        label.checked = true
+      }
+    })
+  })
 
   function dropList() {
     if (items.classList.contains('visible')) {
