@@ -8,7 +8,8 @@ from ..config import db
 from ..importing import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
     Label, SampleDTOwLabel
-from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
+from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user, \
+    get_current_active_admin
 from ..worker import manager
 
 dataset_router = APIRouter()
@@ -17,7 +18,7 @@ dataset_router = APIRouter()
 @dataset_router.delete("/{id}", response_model=DatasetDTO)
 def delete_dataset(
     id: int,
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_active_admin)
 ):
     dataset = db.query(Dataset).get(id)
     if not dataset:
@@ -26,7 +27,6 @@ def delete_dataset(
             detail="Dataset not found for id: {}.".format(id)
         )
 
-    # db.query(Label).filter(Label.dataset_id == id).delete()
     db.delete(dataset)
     db.commit()
     return dataset
