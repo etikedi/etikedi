@@ -24,6 +24,7 @@
   let samples = []
   let filterParams = {}
 
+
   $: dataset = $datasets[id]
   $: ready = dataset && samples.length !== 0
 
@@ -69,9 +70,12 @@
       .catch((err) => console.log(err))
   }
 
-  async function send(sample_id, label_id) {
+  async function send(sample_id) {
     console.log('SampleID', sample_id)
-    console.log('LabelID', label_id)
+    const current = samples.find(sample => sample.id = sample_id)
+    console.log('New labels:', current.labels)
+
+    // console.log("checked labels:", samples)
     /*
     await axios({
       method: 'post',
@@ -112,8 +116,13 @@
             {#if sample}
               <div class="fl w-100 w-third-ns pa2 samples">
                 {#if Object.keys(mappings).includes(sample.type)}
-                  <CheckboxList values="{labels}" checked={sample.labels}>
-                  </CheckboxList>
+                  <div class="reassign">
+                    <CheckboxList values="{labels}" bind:checked={sample.labels}>
+                    </CheckboxList>
+                    <button class="mb3" on:click={send(sample.id)}>
+                      <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
+                    </button>
+                  </div>
                   <svelte:component this={mappings[sample.type]} data={sample.content} />
                 {:else}
                   <p>Unsupported type {sample.type}</p>
@@ -153,5 +162,19 @@
 
     .w-third-ns {
         width: 30.33333%;
+    }
+
+    .reassign {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+    }
+
+    .reassign button {
+        background-color: transparent;
+        border: none;
+    }
+
+    .icon {
+        font-size: 25px;
     }
 </style>

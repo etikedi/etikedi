@@ -4,7 +4,6 @@
   export let checked
 
   let items
-
   selected = values
 
   // Delete eventually set checked
@@ -13,8 +12,8 @@
     return label
   })
 
-  // Check current
-  $: values.forEach(label => {
+  // Set initial checked
+  values.forEach(label => {
     checked.forEach(current => {
       if (label.id === current.id) {
         label.checked = true
@@ -35,6 +34,10 @@
 </script>
 
 <style>
+    .anchor {
+        height: 25px;
+    }
+
     .dropdown-check-list {
         display: inline-block;
     }
@@ -82,11 +85,12 @@
 </style>
 
 <div on:click={dropList} class="mb3 dropdown-check-list">
-  <span class="anchor">Select Fruits</span>
+  <span class="anchor">Labels...</span>
   <ul bind:this={items} class="items">
     {#each values as v, i}
       <li>
-        <input type="checkbox" bind:checked={values[i].checked}>
+        <input type="checkbox" bind:checked={values[i].checked}
+               on:change={() => {console.log(values); checked = values.filter(label => label.checked === true)}}>
         {v.name}
       </li>
     {/each}
