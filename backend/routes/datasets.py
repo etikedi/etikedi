@@ -8,10 +8,28 @@ from ..config import db
 from ..importing import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
     Label, SampleDTOwLabel
-from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
+from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user, \
+    get_current_active_admin
 from ..worker import manager
 
 dataset_router = APIRouter()
+
+
+@dataset_router.delete("/{id}", response_model=DatasetDTO)
+def delete_dataset(
+    id: int,
+    current_user: User = Depends(get_current_active_admin)
+):
+    dataset = db.query(Dataset).get(id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(id)
+        )
+
+    db.delete(dataset)
+    db.commit()
+    return dataset
 
 
 @dataset_router.get("", response_model=List[DatasetDTO])
@@ -40,6 +58,9 @@ def create_dataset(
     if sample_type not in ["table", "image", "text"]:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
+
+    features.file.rollover()
+    contents.file.rollover()
 
     dataset, number_of_samples = import_dataset(
         name=name,
