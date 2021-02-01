@@ -72,24 +72,24 @@
 
   async function send(sample_id) {
     console.log('SampleID', sample_id)
-    const current = samples.find(sample => sample.id = sample_id)
+    const current = samples.find(sample => sample.id === sample_id)
+    console.log(current)
     console.log('New labels:', current.labels)
-
-    // console.log("checked labels:", samples)
-    /*
+    if (current.labels.length > 1) {
+      alert(`It's not allowed to reassign more than one label.`)
+      return
+    }
     await axios({
       method: 'post',
       url: `/samples/${sample_id}`,
       params: {
-        label_id
+        label_id: current.labels[0].id
       }
     })
       .then(res => {
         // Do something with next sample
       })
       .catch(err => console.log(err))
-
-     */
   }
 </script>
 
