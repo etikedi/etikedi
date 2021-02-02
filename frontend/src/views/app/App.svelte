@@ -14,6 +14,8 @@
   import LabeledGrid from './views/LabeledGrid.svelte'
   import Graphs from './views/Graphs.svelte'
   import Users from './users/Users.svelte'
+  import Nav from './components/Nav.svelte'
+  import Me from './users/Me.svelte'
 
   $: if ($token) {
     load()
@@ -23,6 +25,9 @@
 
 {#if $token !== null}
   {#if $token}
+    <Nav />
+    <hr />
+
     <Route path="/upload">
       <Upload />
     </Route>
@@ -40,15 +45,18 @@
         <Graphs />
       </Route>
     </Route>
+    <Route path="/me">
+      <Me />
+    </Route>
     <Route path="/users/*">
       <Users />
     </Route>
     <Route path="/">
       <Dashboard />
     </Route>
-    <Route path="/app/*">
+    <!-- <Route path="/app/*">
       {router.goto($router.path.replace('/app', ''))}
-    </Route>
+    </Route> -->
   {:else}
     <Login />
   {/if}
