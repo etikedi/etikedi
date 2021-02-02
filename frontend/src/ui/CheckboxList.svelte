@@ -27,7 +27,7 @@
       items.style.display = 'none'
     } else {
       items.classList.add('visible')
-      items.style.display = 'block'
+      items.style.display = 'grid'
     }
   }
 
@@ -71,21 +71,27 @@
     }
 
     .dropdown-check-list ul.items {
+        position: absolute;
+        background-color: white;
         padding: 2px;
         display: none;
-        margin: 0;
+        margin: -1px 0 0 0;
         border: 1px solid #ccc;
-        border-top: none;
     }
 
     .dropdown-check-list ul.items li {
         list-style: none;
+        overflow: hidden;
+    }
+
+    .dropdown-check-list ul.items li input {
+        overflow: hidden;
     }
 
 </style>
 
-<div on:click={dropList} class="mb3 dropdown-check-list">
-  <span class="anchor">Labels...</span>
+<div class="mb3 dropdown-check-list">
+  <span on:click={dropList} class="anchor">Labels...</span>
   <ul bind:this={items} class="items">
     {#each values as v, i}
       <li>
