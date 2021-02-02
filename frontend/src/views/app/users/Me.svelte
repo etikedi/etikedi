@@ -3,8 +3,7 @@
   import { notifier } from '@beyonk/svelte-notifications'
 
   import type { User } from '../../../store/users'
-  import { changePassword } from '../../../store/users'
-  import { data, load } from '../../../store/me'
+  import { data, load, changePassword } from '../../../store/me'
 
   import Button from '../../../ui/Button.svelte'
   import Input from '../../../ui/Input.svelte'
@@ -18,8 +17,7 @@
       password = ''
       notifier.success('Password changed')
     } catch (e) {
-      console.error(e)
-      notifier.danger(e)
+      notifier.danger(`Error ${e?.response?.data?.detail}`)
     }
   }
 

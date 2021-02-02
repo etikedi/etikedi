@@ -72,14 +72,6 @@ export async function generateNewPassword(id: number | string): Promise<string> 
   return d.new_password
 }
 
-export async function changePassword(new_password: string) {
-  await axios({
-    url: `/users/change_password`,
-    method: 'post',
-    data: { new_password },
-  })
-}
-
 export function empty(): UserWithoutID {
   return {
     email: '',

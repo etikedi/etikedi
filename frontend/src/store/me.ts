@@ -14,3 +14,11 @@ export async function load() {
   })
   data.set(d)
 }
+
+export async function changePassword(new_password: string) {
+  await axios({
+    url: `/users/change_password`,
+    method: 'post',
+    params: { new_password },
+  })
+}
