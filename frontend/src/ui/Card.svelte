@@ -1,5 +1,10 @@
 <script lang="ts">
+  export let disabled = false
 </script>
+
+<div class:disabled class="mb2">
+  <slot />
+</div>
 
 <style>
   div {
@@ -9,8 +14,8 @@
     border: 2px solid var(--clr-primary-light);
     background-color: var(--clr-white);
   }
-</style>
 
-<div class="mb2">
-  <slot />
-</div>
+  div.disabled {
+    filter: brightness(0.95);
+  }
+</style>

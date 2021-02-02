@@ -4,7 +4,7 @@
   export let user
 </script>
 
-<Card>
+<Card disabled={!user.is_active}>
   <h2 class="ma0 mb2">
     {user.fullname}
     {#if user.roles === 'admin'}<span class="admin">Admin</span>{/if}
@@ -17,7 +17,7 @@
       </span>
     </div>
     <div class="actions flex items-center">
-      <a href="app/users/1">
+      <a href={user.id}>
         <ion-icon class="settings" name="cog-outline" />
       </a>
     </div>

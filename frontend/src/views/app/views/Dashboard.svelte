@@ -7,7 +7,7 @@
 </script>
 
 {#if $isAdmin}
-  <a href="/app/users">
+  <a href="/app/users/">
     <Button label="User management" icon="people-circle-sharp" />
   </a>
 {/if}

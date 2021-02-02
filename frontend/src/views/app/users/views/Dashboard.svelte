@@ -20,7 +20,6 @@
 {#if $loading === false}
   {#each $data as user}
     <UserPreview {user} />
-    <!-- <div>{JSON.stringify(user)}</div> -->
   {/each}
 {:else}
   <div class="loading loading-lg" />
