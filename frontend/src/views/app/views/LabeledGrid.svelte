@@ -124,7 +124,9 @@
                         <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
                       </button>
                     </div>
-                    <svelte:component this={mappings[sample.type]} data={sample.content} />
+                    <div class="content">
+                      <svelte:component this={mappings[sample.type]} data={sample.content} />
+                    </div>
                   {:else}
                     <p>Unsupported type {sample.type}</p>
                   {/if}
@@ -178,5 +180,9 @@
 
     .icon {
         font-size: 25px;
+    }
+
+    .content {
+        overflow: auto;
     }
 </style>
