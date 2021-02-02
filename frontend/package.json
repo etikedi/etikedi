@@ -12,7 +12,6 @@
     "validate": "svelte-check"
   },
   "devDependencies": {
-    "@beyonk/svelte-notifications": "^3.1.0",
     "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-replace": "^2.3.4",
@@ -32,6 +31,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
+    "@beyonk/svelte-notifications": "^3.1.0",
     "axios": "^0.21.0",
     "change-case": "^4.1.2",
     "chart.js": "^2.9.4",

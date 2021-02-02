@@ -1,20 +1,23 @@
 <script>
   import { onMount } from 'svelte'
   import axios from 'axios'
-  import Image from '../components/labeling/Image.svelte'
+  import { router } from 'tinro'
+
   import Select from '../../../ui/Select.svelte'
   import Button from '../../../ui/Button.svelte'
   import Card from '../../../ui/Card.svelte'
-  import { router } from 'tinro'
-  import { data as datasets, users } from '../../../store/datasets'
-  import Table from '../components/labeling/Table.svelte'
   import Input from '../../../ui/Input.svelte'
   import CheckboxList from '../../../ui/CheckboxList.svelte'
+  import Image from '../components/labeling/Image.svelte'
+  import Table from '../components/labeling/Table.svelte'
+
+  import { data as datasets } from '../../../store/datasets'
+  import { data as users } from '../../../store/users'
 
   const mappings = {
     table: Table,
     image: Image,
-    text: Table
+    text: Table,
   }
 
   const { id } = router.params()
@@ -31,7 +34,7 @@
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
       { name: 'User', label: 'users', options: $users },
-      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] }
+      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] },
     ]
   }
 
@@ -55,8 +58,8 @@
       url: `/datasets/${id}/samples`,
       params: {
         labeled: true,
-        ...params
-      }
+        ...params,
+      },
     })
       .then((response) => {
         samples.push(...response.data)
@@ -67,7 +70,7 @@
   }
 
   async function send(sample_id) {
-    const current = samples.find(sample => sample.id === sample_id)
+    const current = samples.find((sample) => sample.id === sample_id)
     if (current.labels.length > 1) {
       alert(`It's not allowed to reassign more than one label.`)
       return
@@ -76,13 +79,13 @@
       method: 'post',
       url: `/samples/${sample_id}`,
       params: {
-        label_id: current.labels[0].id
-      }
+        label_id: current.labels[0].id,
+      },
     })
-      .then(res => {
+      .then((res) => {
         // Do something with next sample
       })
-      .catch(err => console.log(err))
+      .catch((err) => console.log(err))
   }
 </script>
 
@@ -103,7 +106,12 @@
           <Input bind:value={filterParams['page']} type="text" label="Page number" />
           <Input bind:value={filterParams['limit']} type="text" label="Samples per page" />
         </ul>
-        <Button label="Filter" on:click={() => {filterData()}} />
+        <Button
+          label="Filter"
+          on:click={() => {
+            filterData()
+          }}
+        />
       </div>
       <div class="samples">
         {#if samplesReady}
@@ -115,13 +123,12 @@
                     <svelte:component this={mappings[sample.type]} data={sample.content} />
                   </div>
                   <div class="reassign">
-                    <CheckboxList values="{labels}" bind:checked={sample.labels}>
-                    </CheckboxList>
+                    <CheckboxList values={labels} bind:checked={sample.labels} />
                     <button class="mb3" on:click={send(sample.id)}>
-                      <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
+                      <ion-icon class="icon" name="checkmark-circle-outline" />
                     </button>
                   </div>
-                  <hr>
+                  <hr />
                 {:else}
                   <p>Unsupported type {sample.type}</p>
                 {/if}
@@ -130,12 +137,24 @@
           {/each}
           <div class="page">
             {#if filterParams.page > 0}
-              <ion-icon class="icon" name="arrow-back-outline"
-                        on:click={() => {filterParams.page = filterParams.page -1; filterData()}}></ion-icon>
+              <ion-icon
+                class="icon"
+                name="arrow-back-outline"
+                on:click={() => {
+                  filterParams.page = filterParams.page - 1
+                  filterData()
+                }}
+              />
             {/if}
             <Card>Current page: {filterParams.page}</Card>
-            <ion-icon class="icon" name="arrow-forward-outline"
-                      on:click={() => {filterParams.page = filterParams.page +1; filterData()}}></ion-icon>
+            <ion-icon
+              class="icon"
+              name="arrow-forward-outline"
+              on:click={() => {
+                filterParams.page = filterParams.page + 1
+                filterData()
+              }}
+            />
           </div>
         {/if}
       </div>
@@ -144,63 +163,63 @@
 {/if}
 
 <style>
-    .wrapper {
-        display: grid;
-        grid-template-columns: 1fr 5fr;
-    }
+  .wrapper {
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+  }
 
-    .menu {
-        display: flex;
-        flex-direction: column;
-    }
+  .menu {
+    display: flex;
+    flex-direction: column;
+  }
 
-    ul {
-        padding: 0;
-        margin: 0;
-        width: 150px;
-    }
+  ul {
+    padding: 0;
+    margin: 0;
+    width: 150px;
+  }
 
-    .samples {
-        padding-left: 15px;
-        align-self: center;
-        display: grid;
-    }
+  .samples {
+    padding-left: 15px;
+    align-self: center;
+    display: grid;
+  }
 
-    .sample {
-        display: grid;
-        justify-self: center;
-    }
+  .sample {
+    display: grid;
+    justify-self: center;
+  }
 
-    .sample hr {
-        border: 1px solid grey;
-    }
+  .sample hr {
+    border: 1px solid grey;
+  }
 
-    .reassign {
-        margin-top: 30px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-    }
+  .reassign {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .reassign button {
-        background-color: transparent;
-        border: none;
-    }
+  .reassign button {
+    background-color: transparent;
+    border: none;
+  }
 
-    .icon {
-        font-size: 30px;
-        cursor: pointer;
-    }
+  .icon {
+    font-size: 30px;
+    cursor: pointer;
+  }
 
-    .content {
-        overflow: auto;
-    }
+  .content {
+    overflow: auto;
+  }
 
-    .page {
-        justify-self: center;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
+  .page {
+    justify-self: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 </style>
