@@ -1,5 +1,5 @@
 from pydantic import BaseModel as Schema
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
 from ..config import Base
@@ -17,6 +17,8 @@ class Association(Base):
 
     user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
     user = relationship("User", backref="associations")
+
+    is_current = Column(Boolean, default=True, server_default="true", nullable=False)
 
     __mapper_args__ = {"confirm_deleted_rows": False}
 
