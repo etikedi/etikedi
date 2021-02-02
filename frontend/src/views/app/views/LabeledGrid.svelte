@@ -6,7 +6,7 @@
   import Button from '../../../ui/Button.svelte'
   import Card from '../../../ui/Card.svelte'
   import { router } from 'tinro'
-  import { data as datasets } from '../../../store/datasets'
+  import { data as datasets, users } from '../../../store/datasets'
   import Table from '../components/labeling/Table.svelte'
   import Input from '../../../ui/Input.svelte'
   import CheckboxList from '../../../ui/CheckboxList.svelte'
@@ -20,21 +20,20 @@
   }
 
   const { id } = router.params()
-  let dataset, labels, ready, filterOptions
+  let dataset, labels, samplesReady, filterOptions, ready
   let samples = []
   let filterParams = {}
 
-
   $: dataset = $datasets[id]
-  $: ready = dataset && samples.length !== 0
+  $: ready = dataset && $users
+  $: samplesReady = samples.length !== 0
 
   $: if (ready) {
     labels = dataset.labels
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
-      // TODO: Fetch existing users for options
-      { name: 'User', label: 'users', options: [] },
-      { name: 'Divided  labels', label: 'divided_labels', options: ['True', 'False'] }
+      { name: 'User', label: 'users', options: $users },
+      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] }
     ]
   }
 
@@ -52,6 +51,7 @@
         params[key] = value
       }
     }
+    console.log(params)
     await axios({
       method: 'get',
       url: `/datasets/${id}/samples`,
@@ -112,24 +112,26 @@
       </div>
       <div class="mw9 center ph3-ns">
         <div class="cf ph2-ns">
-          {#each samples as sample}
-            {#if sample}
-              <div class="fl w-100 w-third-ns pa2 samples">
-                {#if Object.keys(mappings).includes(sample.type)}
-                  <div class="reassign">
-                    <CheckboxList values="{labels}" bind:checked={sample.labels}>
-                    </CheckboxList>
-                    <button class="mb3" on:click={send(sample.id)}>
-                      <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
-                    </button>
-                  </div>
-                  <svelte:component this={mappings[sample.type]} data={sample.content} />
-                {:else}
-                  <p>Unsupported type {sample.type}</p>
-                {/if}
-              </div>
-            {/if}
-          {/each}
+          {#if samplesReady}
+            {#each samples as sample}
+              {#if sample}
+                <div class="fl w-100 w-third-ns pa2 samples">
+                  {#if Object.keys(mappings).includes(sample.type)}
+                    <div class="reassign">
+                      <CheckboxList values="{labels}" bind:checked={sample.labels}>
+                      </CheckboxList>
+                      <button class="mb3" on:click={send(sample.id)}>
+                        <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
+                      </button>
+                    </div>
+                    <svelte:component this={mappings[sample.type]} data={sample.content} />
+                  {:else}
+                    <p>Unsupported type {sample.type}</p>
+                  {/if}
+                </div>
+              {/if}
+            {/each}
+          {/if}
         </div>
       </div>
     </div>
