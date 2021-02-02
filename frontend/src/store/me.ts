@@ -1,7 +1,9 @@
 import { writable, derived } from 'svelte/store'
 import axios from 'axios'
 
-export const data = writable(null)
+import type { User } from './users'
+
+export const data = writable<User | null>(null)
 
 export const isAdmin = derived(data, (data) => data && data.roles === 'admin')
 
