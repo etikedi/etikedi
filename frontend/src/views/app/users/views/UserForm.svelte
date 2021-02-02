@@ -9,7 +9,7 @@
   import Checkbox from '../../../../ui/Checkbox.svelte'
   import Select from '../../../../ui/Select.svelte'
 
-  import type { User, UserWithoutID } from '../../../../store/users'
+  import type { UserWithoutID } from '../../../../store/users'
   import { data, loading, load, empty, add, update, generateNewPassword } from '../../../../store/users'
 
   const { id } = router.params()
@@ -20,7 +20,13 @@
   $: if (!user) {
     if (edit) {
       const tmp = parseInt(id)
-      user = $data.find((user) => user.id === tmp)
+      const found = $data.find((user) => user.id === tmp)
+      if (!found) {
+        notifier.danger('User not found')
+        router.goto('./')
+      } else {
+        user = found
+      }
     } else {
       user = empty()
     }
@@ -49,7 +55,6 @@
 
   async function gen() {
     const password = await generateNewPassword(id)
-    console.log(password)
     showAndCopyPassword(password)
   }
 
