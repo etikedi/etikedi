@@ -1,6 +1,7 @@
 <script lang="ts">
   import Card from '../../../ui/Card.svelte'
   import DatasetStats from '../components/DatasetStats.svelte'
+  import { isAdmin } from '../../../store/me'
 
   export let dataset
 </script>
@@ -10,15 +11,19 @@
   <div class="flex justify-between">
     <DatasetStats statistics={dataset.statistics} />
     <div class="actions flex items-center">
-      <a href="./dataset/{dataset.id}/config">
-        <ion-icon class="settings" name="cog-sharp" />
-      </a>
+      {#if $isAdmin}
+        <a href="./dataset/{dataset.id}/config">
+          <ion-icon class="settings" name="cog-sharp" />
+        </a>
+      {/if}
       <a href="./dataset/{dataset.id}/graphs">
         <ion-icon name="analytics-sharp" />
       </a>
-      <a href="./dataset/{dataset.id}/labeled">
-        <ion-icon class="labeled" name="grid-sharp" />
-      </a>
+      {#if $isAdmin}
+        <a href="./dataset/{dataset.id}/labeled">
+          <ion-icon class="labeled" name="grid-sharp" />
+        </a>
+      {/if}
       <a href="./dataset/{dataset.id}/label">
         <ion-icon class="play" name="play-circle-sharp" />
       </a>
