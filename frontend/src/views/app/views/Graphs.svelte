@@ -4,6 +4,7 @@
   import { onMount } from 'svelte'
   import { router } from 'tinro'
   import { data as datasets } from '../../../store/datasets'
+  import axios from 'axios'
 
   const { id } = router.params()
 
@@ -22,6 +23,11 @@
   }
 
   onMount(() => {
+    axios({
+      method: 'get',
+      url: `/datasets/${id}/metrics`
+    })
+      .then(response => console.log(response))
     Chartkick.use(Chart)
     let labelDist = []
     labelDist.push(['labeled', stats.labelled_samples])
