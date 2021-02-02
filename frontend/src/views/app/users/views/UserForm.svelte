@@ -35,7 +35,6 @@
     try {
       if (edit) {
         await update(id, user)
-        console.log('Update')
       } else {
         const password = await add(user)
         showAndCopyPassword(password)
@@ -76,11 +75,11 @@
       <Checkbox bind:value={user.is_active} label="Active" />
 
       <Button type="submit" label={edit ? 'Update' : 'Create'} icon="checkmark-circle-sharp" />
-      {#if edit}
-        <hr />
-        <Button type="button" label="Regenerate Password" icon="refresh-circle-sharp" on:click={gen} />
-      {/if}
     </form>
+    {#if edit}
+      <hr />
+      <Button type="button" label="Regenerate Password" icon="refresh-circle-sharp" on:click={gen} />
+    {/if}
   {:else}
     <div class="loading loading-lg" />
   {/if}

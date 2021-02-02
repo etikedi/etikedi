@@ -53,8 +53,8 @@ export async function add(user: UserWithoutID): Promise<string> {
 export async function update(id: number | string, user: UserWithoutID) {
   try {
     loading.set(true)
-    const { data: d } = await axios({
-      url: `/users/${id}/reset_password`,
+    await axios({
+      url: `/users/${id}`,
       method: 'put',
       data: user,
     })
