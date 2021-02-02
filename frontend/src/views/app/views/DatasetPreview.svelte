@@ -3,7 +3,9 @@
   import DatasetStats from '../components/DatasetStats.svelte'
   import { isAdmin } from '../../../store/me'
 
-  export let dataset
+  import type { Dataset } from '../../../store/datasets'
+
+  export let dataset: Dataset
 </script>
 
 <Card>

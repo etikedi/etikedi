@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import axios from 'axios'
   import { router } from 'tinro'
   import { sentenceCase } from 'change-case'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -10,12 +9,12 @@
   import Checkbox from '../../../ui/Checkbox.svelte'
   import Select from '../../../ui/Select.svelte'
 
-  import { data, load } from '../../../store/datasets'
+  import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
+  import { get, save, loading as loadingConfig } from '../../../store/config'
 
   const { id } = router.params()
 
   let config = null
-  let loading = false
 
   const ZeroToOne = { type: 'number', min: 0, max: 1, step: 'any' }
   const OneHalfToOne = { type: 'number', min: 0.5, max: 1, step: 'any' }
@@ -48,48 +47,30 @@
   }
 
   $: dataset = $data[id]
+  $: loading = $loadingConfig || $loadingDatasets
 
   onMount(async () => {
-    const { data } = await axios({
-      method: 'get',
-      url: `/datasets/${id}/config/`,
-    })
-    config = data
+    config = await get(id)
   })
 
   async function submit() {
     try {
-      if (loading) return
-      loading = true
-      await axios({
-        method: 'post',
-        url: `/datasets/${id}/config/`,
-        data: config,
-      })
+      await save(id, config)
       notifier.success('Saved')
     } catch (e) {
       console.error(e)
       notifier.danger(e.message)
-    } finally {
-      loading = false
     }
   }
 
   async function del() {
     try {
-      loading = true
-      await axios({
-        method: 'delete',
-        url: `/datasets/${id}/`,
-      })
-      await load()
+      await remove(id)
       notifier.success('Deleted')
       back()
     } catch (e) {
       console.error(e)
       notifier.danger(e.message)
-    } finally {
-      loading = false
     }
   }
 
@@ -116,7 +97,14 @@
       <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
     </form>
     <br />
-    <Button on:click={del} danger label="Delete dataset and all the trained data" icon="remove-circle-sharp" />
+    <Button
+      on:click={del}
+      danger
+      label="Delete dataset and all the trained data"
+      icon="remove-circle-sharp"
+      {loading}
+      disabled={loading}
+    />
   {:else}
     <div class="loading loading-lg" />
   {/if}

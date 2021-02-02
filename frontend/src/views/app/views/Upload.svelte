@@ -1,5 +1,4 @@
 <script lang="ts">
-  import axios from 'axios'
   import { notifier } from '@beyonk/svelte-notifications'
   import { router } from 'tinro'
 
@@ -7,7 +6,8 @@
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
   import Select from '../../../ui/Select.svelte'
-  import { DATASET_TYPES, load } from '../../../store/datasets'
+
+  import { create, DATASET_TYPES, loading } from '../../../store/datasets'
 
   let contents: HTMLInputElement | null = null
   let features: HTMLInputElement | null = null
@@ -28,17 +28,9 @@
       fd.append('features', features.files[0])
       fd.append('contents', contents.files[0])
 
-      const { data } = await axios({
-        url: '/datasets',
-        method: 'post',
-        data: fd,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      })
+      await create(fd)
       notifier.success('Uploaded')
-      await load()
-      router.goto('/app')
+      router.goto('./')
     } catch (e) {
       console.error(e)
       notifier.danger(e)
@@ -49,13 +41,19 @@
 <h1>Upload</h1>
 
 <form on:submit|preventDefault={upload}>
-  <Input label="Name" bind:value={form.name} />
-  <Select label="Type" bind:value={form.sample_type} values={DATASET_TYPES} />
+  <Input label="Name" bind:value={form.name} disabled={$loading} />
+  <Select label="Type" bind:value={form.sample_type} values={DATASET_TYPES} disabled={$loading} />
   <div class="uploads">
-    <File type="file" label="Data" accept="application/zip" bind:element={contents} />
-    <File type="file" label="Features" accept="text/comma-separated-values" bind:element={features} />
+    <File type="file" label="Data" accept="application/zip" bind:element={contents} disabled={$loading} />
+    <File
+      type="file"
+      label="Features"
+      accept="text/comma-separated-values"
+      bind:element={features}
+      disabled={$loading}
+    />
   </div>
-  <Button full label="Upload" type="submit" />
+  <Button full label="Upload" type="submit" disabled={$loading} />
 </form>
 
 <style>
