@@ -47,10 +47,10 @@
     {label}
     <select {...$$restProps} bind:value on:change>
       {#if emptyFirst}
-        <option disabled selected value style="display: none"></option>
+        <option selected value="{undefined}"></option>
       {/if}
       {#each values as v}
-        <option value={v.id || v}>{v.name || v}</option>
+        <option value={v.id || v}>{v.name || v.fullname || v}</option>
       {/each}
     </select>
   </label>

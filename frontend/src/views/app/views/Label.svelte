@@ -16,7 +16,7 @@
   const mappings = {
     table: Table,
     image: Image,
-    text: Table,
+    text: Table
   }
 
   const { id } = router.params()
@@ -32,7 +32,7 @@
   onMount(() => {
     axios({
       method: 'get',
-      url: `/datasets/${id}/first_sample`,
+      url: `/datasets/${id}/first_sample`
     }).then((response) => (sample = response.data))
 
     window.document.addEventListener('keypress', keyPress)
@@ -57,8 +57,8 @@
       method: 'post',
       url: `/samples/${id}`,
       params: {
-        label_id: selected,
-      },
+        label_id: selected
+      }
     })
     last = [id, selected]
     sample = data
@@ -71,7 +71,7 @@
       await axios({
         method: 'delete',
         url: `/samples/${id}`,
-        data: { label_id },
+        data: { label_id }
       })
       notifier.success('Deleted')
     } catch (e) {
@@ -85,7 +85,9 @@
 {#if ready}
   <div class="flex justify-between items-center">
     <h1 class="mb4">Dataset {id}</h1>
-    <Checkbox bind:value={grid} label="Grid view" />
+    {#if sample.type === "image"}
+      <Checkbox bind:value={grid} label="Grid view" />
+    {/if}
   </div>
 
   {#if grid}
@@ -119,21 +121,21 @@
 {/if}
 
 <style>
-  .data {
-    max-height: calc(100vh - 23em);
-    overflow: auto;
-  }
+    .data {
+        max-height: calc(100vh - 23em);
+        overflow: auto;
+    }
 
-  .labels {
-    margin-top: 2em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    flex-wrap: wrap;
-  }
+    .labels {
+        margin-top: 2em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        flex-wrap: wrap;
+    }
 
-  .labels > :global(*) {
-    margin: 0.5em;
-  }
+    .labels > :global(*) {
+        margin: 0.5em;
+    }
 </style>
