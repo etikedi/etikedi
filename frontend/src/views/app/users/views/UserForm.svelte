@@ -49,7 +49,7 @@
       back()
     } catch (e) {
       console.error(e)
-      notifier.error(e)
+      notifier.danger(e)
     }
   }
 
