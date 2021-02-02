@@ -20,6 +20,7 @@ class User(Base):
 
 
 class BaseUserSchema(Schema):
+    id: int
     username: str
     email: Optional[str] = None
     fullname: Optional[str] = None
