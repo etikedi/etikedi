@@ -40,6 +40,7 @@
 
     .dropdown-check-list {
         display: inline-block;
+        position: relative;
     }
 
     .dropdown-check-list .anchor {
@@ -71,8 +72,10 @@
     }
 
     .dropdown-check-list ul.items {
+        width: 100%;
         position: absolute;
         background-color: white;
+        z-index: 1000;
         padding: 2px;
         display: none;
         margin: -1px 0 0 0;
@@ -81,17 +84,17 @@
 
     .dropdown-check-list ul.items li {
         list-style: none;
-        overflow: hidden;
+        overflow: auto;
     }
 
     .dropdown-check-list ul.items li input {
-        overflow: hidden;
+        overflow: auto;
     }
 
 </style>
 
 <div class="mb3 dropdown-check-list">
-  <span on:click={dropList} class="anchor">Labels...</span>
+  <span on:click={dropList} class="anchor">Reassign label...</span>
   <ul bind:this={items} class="items">
     {#each values as v, i}
       <li>

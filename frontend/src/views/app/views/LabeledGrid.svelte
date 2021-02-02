@@ -11,8 +11,6 @@
   import Input from '../../../ui/Input.svelte'
   import CheckboxList from '../../../ui/CheckboxList.svelte'
 
-  export let sampleCount = 3
-
   const mappings = {
     table: Table,
     image: Image,
@@ -22,7 +20,7 @@
   const { id } = router.params()
   let dataset, labels, samplesReady, filterOptions, ready
   let samples = []
-  let filterParams = {}
+  let filterParams = { page: 0, limit: 15 }
 
   $: dataset = $datasets[id]
   $: ready = dataset && $users
@@ -56,8 +54,6 @@
       method: 'get',
       url: `/datasets/${id}/samples`,
       params: {
-        page: 0,
-        limit: 3,
         labeled: true,
         ...params
       }
@@ -104,34 +100,44 @@
             />
           {/each}
           <Input bind:value={filterParams['free_text']} type="text" label="Free text" />
+          <Input bind:value={filterParams['page']} type="text" label="Page number" />
+          <Input bind:value={filterParams['limit']} type="text" label="Samples per page" />
         </ul>
-        <Button label="Filter" on:click={filterData} />
+        <Button label="Filter" on:click={() => {filterData()}} />
       </div>
-      <div class="mw9 center ph3-ns">
-        <div class="cf ph2-ns">
-          {#if samplesReady}
-            {#each samples as sample}
-              {#if sample}
-                <div class="fl w-100 w-third-ns pa2 samples">
-                  {#if Object.keys(mappings).includes(sample.type)}
-                    <div class="reassign">
-                      <CheckboxList values="{labels}" bind:checked={sample.labels}>
-                      </CheckboxList>
-                      <button class="mb3" on:click={send(sample.id)}>
-                        <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
-                      </button>
-                    </div>
-                    <div class="content">
-                      <svelte:component this={mappings[sample.type]} data={sample.content} />
-                    </div>
-                  {:else}
-                    <p>Unsupported type {sample.type}</p>
-                  {/if}
-                </div>
-              {/if}
-            {/each}
-          {/if}
-        </div>
+      <div class="samples">
+        {#if samplesReady}
+          {#each samples as sample}
+            {#if sample}
+              <div class="sample">
+                {#if Object.keys(mappings).includes(sample.type)}
+                  <div class="content">
+                    <svelte:component this={mappings[sample.type]} data={sample.content} />
+                  </div>
+                  <div class="reassign">
+                    <CheckboxList values="{labels}" bind:checked={sample.labels}>
+                    </CheckboxList>
+                    <button class="mb3" on:click={send(sample.id)}>
+                      <ion-icon class="icon" name="checkmark-circle-outline"></ion-icon>
+                    </button>
+                  </div>
+                  <hr>
+                {:else}
+                  <p>Unsupported type {sample.type}</p>
+                {/if}
+              </div>
+            {/if}
+          {/each}
+          <div class="page">
+            {#if filterParams.page > 0}
+              <ion-icon class="icon" name="arrow-back-outline"
+                        on:click={() => {filterParams.page = filterParams.page -1; filterData()}}></ion-icon>
+            {/if}
+            <Card>Current page: {filterParams.page}</Card>
+            <ion-icon class="icon" name="arrow-forward-outline"
+                      on:click={() => {filterParams.page = filterParams.page +1; filterData()}}></ion-icon>
+          </div>
+        {/if}
       </div>
     </div>
   </Card>
@@ -139,8 +145,8 @@
 
 <style>
     .wrapper {
-        display: flex;
-        flex-direction: row;
+        display: grid;
+        grid-template-columns: 1fr 5fr;
     }
 
     .menu {
@@ -155,19 +161,26 @@
     }
 
     .samples {
+        padding-left: 15px;
+        align-self: center;
         display: grid;
-        justify-content: center;
-        margin: 8px;
-        border-radius: 10px;
     }
 
-    .w-third-ns {
-        width: 30.33333%;
+    .sample {
+        display: grid;
+        justify-self: center;
+    }
+
+    .sample hr {
+        border: 1px solid grey;
     }
 
     .reassign {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
+        margin-top: 30px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
     }
 
     .reassign button {
@@ -176,10 +189,18 @@
     }
 
     .icon {
-        font-size: 25px;
+        font-size: 30px;
+        cursor: pointer;
     }
 
     .content {
         overflow: auto;
+    }
+
+    .page {
+        justify-self: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
     }
 </style>
