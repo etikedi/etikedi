@@ -96,7 +96,7 @@
     {#each values as v, i}
       <li>
         <input type="checkbox" bind:checked={values[i].checked}
-               on:change={() => {console.log(values); checked = values.filter(label => label.checked === true)}}>
+               on:change={() => {checked = values.filter(label => label.checked === true)}}>
         {v.name}
       </li>
     {/each}

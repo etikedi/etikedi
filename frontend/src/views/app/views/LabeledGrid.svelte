@@ -51,7 +51,7 @@
         params[key] = value
       }
     }
-    console.log(params)
+
     await axios({
       method: 'get',
       url: `/datasets/${id}/samples`,
@@ -71,10 +71,7 @@
   }
 
   async function send(sample_id) {
-    console.log('SampleID', sample_id)
     const current = samples.find(sample => sample.id === sample_id)
-    console.log(current)
-    console.log('New labels:', current.labels)
     if (current.labels.length > 1) {
       alert(`It's not allowed to reassign more than one label.`)
       return
