@@ -94,12 +94,12 @@
   }
 
   function back() {
-    router.goto('/app')
+    router.goto('./')
   }
 </script>
 
 <div>
-  <Button icon="arrow-back-sharp" label="Back" on:click={back} />
+  <Button icon="arrow-back-circle-sharp" label="Back" on:click={back} />
   <br />
   {#if dataset && config}
     <h2><b>{dataset.name}</b> Config</h2>
@@ -113,11 +113,10 @@
           <Checkbox bind:value={config[key]} disabled={loading} label={sentenceCase(key)} />
         {/if}
       {/each}
-      <Button type="button" on:click={back} label="Cancel" />
-      <Button type="submit" {loading} disabled={loading} label="Update" icon="save-sharp" />
+      <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
     </form>
     <br />
-    <Button on:click={del} danger label="Delete" icon="trash-outline" />
+    <Button on:click={del} danger label="Delete" icon="remove-circle-sharp" />
   {:else}
     <div class="loading loading-lg" />
   {/if}

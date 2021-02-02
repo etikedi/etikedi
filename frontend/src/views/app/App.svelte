@@ -5,17 +5,19 @@
 
   import { token } from '../../store/auth'
   import { load } from '../../store/datasets'
+  import { load as loadMe, isAdmin } from '../../store/me'
 
   import Dashboard from './views/Dashboard.svelte'
   import Config from './views/Config.svelte'
   import Label from './views/Label.svelte'
   import Upload from './views/Upload.svelte'
-  import Grid from './components/labeling/Grid.svelte'
   import LabeledGrid from './views/LabeledGrid.svelte'
   import Graphs from './views/Graphs.svelte'
+  import Users from './users/Users.svelte'
 
   $: if ($token) {
     load()
+    loadMe()
   }
 </script>
 
@@ -23,9 +25,6 @@
   {#if $token}
     <Route path="/upload">
       <Upload />
-    </Route>
-    <Route path="/">
-      <Dashboard />
     </Route>
     <Route path="/dataset/:id/*">
       <Route path="/config">
@@ -40,6 +39,12 @@
       <Route path="/graphs">
         <Graphs />
       </Route>
+    </Route>
+    <Route path="/users/*">
+      <Users />
+    </Route>
+    <Route path="/">
+      <Dashboard />
     </Route>
     <Route path="/app/*">
       {router.goto($router.path.replace('/app', ''))}

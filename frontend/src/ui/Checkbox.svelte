@@ -1,11 +1,18 @@
 <script lang="ts">
-  export let value: any
+  export let value: boolean
   export let label: string = ''
-  export let disabled = false
+  export let disabled: boolean = false
 
-  //$: name = value ? 'checkmark-sharp' : 'close-sharp'
-  $: name = value ? 'close-sharp' : 'checkmark-sharp'
+  $: name = value ? 'checkmark-sharp' : 'close-sharp'
 </script>
+
+<div class="mb3">
+  <label class:disabled>
+    <ion-icon {name} />
+    {label}
+    <input type="checkbox" {...$$restProps} {disabled} bind:checked={value} />
+  </label>
+</div>
 
 <style>
   label {
@@ -40,11 +47,3 @@
     margin-right: 0.75em;
   }
 </style>
-
-<div class="mb3">
-  <label class:disabled>
-    <ion-icon {name} />
-    {label}
-    <input type="checkbox" {...$$restProps} {disabled} bind:checked={value} />
-  </label>
-</div>
