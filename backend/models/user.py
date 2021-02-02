@@ -10,8 +10,8 @@ class User(Base):
     __tablename__ = "user"
 
     id = Column(Integer, primary_key=True)
-    username = Column(VARCHAR(255))
-    fullname = Column(VARCHAR(255), nullable=False)
+    username = Column(VARCHAR(255), unique=True, nullable=False)
+    fullname = Column(VARCHAR(255))
     email = Column(VARCHAR(255))
     roles = Column(Text)
     password = Column(Text)
@@ -20,7 +20,6 @@ class User(Base):
 
 
 class BaseUserSchema(Schema):
-    id: int
     username: str
     email: Optional[str] = None
     fullname: Optional[str] = None
@@ -29,6 +28,10 @@ class BaseUserSchema(Schema):
 
     class Config:
         orm_mode = True
+
+
+class BaseUserWithIDSchema(BaseUserSchema):
+    id: int
 
 
 class UserInDB(BaseUserSchema):
