@@ -10,16 +10,16 @@
   <div class="flex justify-between">
     <DatasetStats statistics={dataset.statistics} />
     <div class="actions flex items-center">
-      <a href="app/dataset/{dataset.id}/config">
+      <a href="./dataset/{dataset.id}/config">
         <ion-icon class="settings" name="cog-sharp" />
       </a>
-      <a href="app/dataset/{dataset.id}/graphs">
+      <a href="./dataset/{dataset.id}/graphs">
         <ion-icon name="analytics-sharp" />
       </a>
-      <a href="app/dataset/{dataset.id}/labeled">
+      <a href="./dataset/{dataset.id}/labeled">
         <ion-icon class="labeled" name="grid-sharp" />
       </a>
-      <a href="app/dataset/{dataset.id}/label">
+      <a href="./dataset/{dataset.id}/label">
         <ion-icon class="play" name="play-circle-sharp" />
       </a>
     </div>

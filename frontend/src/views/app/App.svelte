@@ -25,9 +25,19 @@
 
 {#if $token !== null}
   {#if $token}
+    <!-- NAV -->
     <Nav />
     <hr />
 
+    <!-- USERS -->
+    <Route path="/me">
+      <Me />
+    </Route>
+    <Route path="/users/*">
+      <Users />
+    </Route>
+
+    <!-- DATASETS -->
     <Route path="/upload">
       <Upload />
     </Route>
@@ -45,18 +55,11 @@
         <Graphs />
       </Route>
     </Route>
-    <Route path="/me">
-      <Me />
-    </Route>
-    <Route path="/users/*">
-      <Users />
-    </Route>
+
+    <!-- DASHBOARD -->
     <Route path="/">
       <Dashboard />
     </Route>
-    <!-- <Route path="/app/*">
-      {router.goto($router.path.replace('/app', ''))}
-    </Route> -->
   {:else}
     <Login />
   {/if}

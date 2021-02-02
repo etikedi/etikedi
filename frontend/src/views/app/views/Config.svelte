@@ -94,7 +94,7 @@
   }
 
   function back() {
-    router.goto('./')
+    router.goto('../../')
   }
 </script>
 
@@ -116,7 +116,7 @@
       <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
     </form>
     <br />
-    <Button on:click={del} danger label="Delete" icon="remove-circle-sharp" />
+    <Button on:click={del} danger label="Delete dataset and all the trained data" icon="remove-circle-sharp" />
   {:else}
     <div class="loading loading-lg" />
   {/if}
