@@ -9,15 +9,14 @@ export const users = writable([])
 export async function load() {
   const { data: d } = await axios({
     method: 'get',
-    url: '/datasets'
+    url: '/datasets',
   })
   const obj = d.reduce((acc, cur) => ({ ...acc, [cur.id]: cur }), {})
   data.set(obj)
 
   const { data: u } = await axios({
     method: 'get',
-    url: '/users'
+    url: '/users',
   })
-  // const obj = d.reduce((acc, cur) => ({ ...acc, [cur.id]: cur }), {})
   users.set(u)
 }
