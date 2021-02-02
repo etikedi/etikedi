@@ -70,3 +70,4 @@ Generally we organize by routes. And whitin those routes we use `views` and `com
 
 Data stores are handled by the native svelte stores.
 The basic concept is to expose a `data` store and add `acions` as functions that write to that store.
+Also stores should expose a `loading` store that indicates if api calls are running.
