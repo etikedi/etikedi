@@ -30,6 +30,7 @@
   $: samplesReady = samples.length !== 0
 
   $: if (ready) {
+    console.log(dataset)
     labels = dataset.labels
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
@@ -72,8 +73,8 @@
 
   async function send(sample_id) {
     const current = samples.find((sample) => sample.id === sample_id)
-    console.log(current.labels)
-    if (current.labels.length > 1) {
+    console.log(current.associations)
+    if (current.associations.length > 1) {
       alert(`It's not allowed to reassign more than one label.`)
       return
     }
@@ -82,7 +83,7 @@
       method: 'post',
       url: `/samples/${sample_id}`,
       params: {
-        label_id: current.labels[0].id
+        label_id: current.associations[0].id
       }
     })
       .then((res) => {
@@ -126,7 +127,7 @@
                     <svelte:component this={mappings[sample.type]} data={sample.content} />
                   </div>
                   <div class="reassign">
-                    <CheckboxList values={labels} bind:checked={sample.labels} />
+                    <CheckboxList values={labels} bind:checked={sample.associations} />
                     <button class="mb3" on:click={send(sample.id)}>
                       <ion-icon class="icon" name="checkmark-circle-outline" />
                     </button>

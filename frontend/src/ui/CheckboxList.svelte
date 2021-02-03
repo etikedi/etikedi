@@ -11,6 +11,10 @@
     return { name: label.name, id: label.id }
   })
 
+  checked = checked.filter(x => x.is_current === true).map(association => {
+    return { name: association.label.name, id: association.label.id }
+  })
+
   // Set checked labels
   checked.forEach(check => {
     labels.find(sample => sample.id === check.id).checked = true
