@@ -1,24 +1,19 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
+
   export let values: any
-  export let selected = []
   export let checked
 
-  let items
-  selected = values
+  let labels, items
 
-  // Delete eventually set checked
-  values = values.map(label => {
-    delete label.checked
-    return label
+  // Remove probably set checked value
+  labels = values.map(label => {
+    return { name: label.name, id: label.id }
   })
 
-  // Set initial checked
-  values.forEach(label => {
-    checked.forEach(current => {
-      if (label.id === current.id) {
-        label.checked = true
-      }
-    })
+  // Set checked labels
+  checked.forEach(check => {
+    labels.find(sample => sample.id === check.id).checked = true
   })
 
   function dropList() {
@@ -48,27 +43,17 @@
         cursor: pointer;
         display: inline-block;
         padding: 5px 50px 5px 10px;
-        border: 1px solid #ccc;
+        border-radius: var(--round);
+        border: 2px solid var(--clr-primary-light);
     }
 
-    .dropdown-check-list .anchor:after {
+    .dropdown-check-list ion-icon {
         position: absolute;
-        content: "";
-        border-left: 2px solid black;
-        border-top: 2px solid black;
-        padding: 5px;
         right: 10px;
-        top: 20%;
-        -moz-transform: rotate(-135deg);
-        -ms-transform: rotate(-135deg);
-        -o-transform: rotate(-135deg);
-        -webkit-transform: rotate(-135deg);
-        transform: rotate(-135deg);
-    }
-
-    .dropdown-check-list .anchor:active:after {
-        right: 8px;
-        top: 21%;
+        top: 5px;
+        font-size: 1.75em;
+        color: var(--clr-primary-light);
+        cursor: pointer;
     }
 
     .dropdown-check-list ul.items {
@@ -79,7 +64,8 @@
         padding: 2px;
         display: none;
         margin: -1px 0 0 0;
-        border: 1px solid #ccc;
+        border-radius: var(--round);
+        border: 2px solid var(--clr-primary-light);
     }
 
     .dropdown-check-list ul.items li {
@@ -95,11 +81,12 @@
 
 <div class="mb3 dropdown-check-list">
   <span on:click={dropList} class="anchor">Reassign label...</span>
+  <ion-icon on:click={dropList} name="caret-down-circle-sharp" />
   <ul bind:this={items} class="items">
     {#each values as v, i}
       <li>
-        <input type="checkbox" bind:checked={values[i].checked}
-               on:change={() => {checked = values.filter(label => label.checked === true)}}>
+        <input type="checkbox" bind:checked={labels[i].checked}
+               on:change={() => {checked = labels.filter(label => label.checked === true)}}>
         {v.name}
       </li>
     {/each}
