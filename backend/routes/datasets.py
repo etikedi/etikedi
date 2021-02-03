@@ -8,10 +8,28 @@ from ..config import db
 from ..importing import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
     Label, SampleDTOwLabel
-from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user
+from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user, \
+    get_current_active_admin
 from ..worker import manager
 
 dataset_router = APIRouter()
+
+
+@dataset_router.delete("/{id}", response_model=DatasetDTO)
+def delete_dataset(
+    id: int,
+    current_user: User = Depends(get_current_active_admin)
+):
+    dataset = db.query(Dataset).get(id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(id)
+        )
+
+    db.delete(dataset)
+    db.commit()
+    return dataset
 
 
 @dataset_router.get("", response_model=List[DatasetDTO])
@@ -40,6 +58,9 @@ def create_dataset(
     if sample_type not in ["table", "image", "text"]:
         raise HTTPException(status_code=400, detail="Not a valid sample type")
     sample_class = {"table": Table, "image": Image, "text": Text}[sample_type]
+
+    features.file.rollover()
+    contents.file.rollover()
 
     dataset, number_of_samples = import_dataset(
         name=name,
@@ -108,6 +129,10 @@ def get_filtered_samples(
     :param user:                the currently active user -> needed for authentication-check\\
     :return:                    list of samples
     """
+
+    # return only current associations, if changed code needs to be adapted
+    only_current_associations = True
+
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
 
     if not dataset:
@@ -187,7 +212,9 @@ def get_filtered_samples(
         base_query = db.query(Sample) \
             .filter(Sample.dataset_id == dataset_id) \
             .join(association1, Sample.id == association1.sample_id) \
-            .join(association2, Sample.id == association2.sample_id)
+            .join(association2, Sample.id == association2.sample_id) \
+            .filter(association1.is_current == only_current_associations) \
+            .filter(association1.is_current == only_current_associations)
 
         # use query as subquery to apply other filters (eg. for labels or users)
         sub_query = query.with_entities(Sample.id).subquery()
@@ -198,6 +225,23 @@ def get_filtered_samples(
             .filter(Sample.id.in_(sub_query)) \
             .group_by(Sample.id).having(func.count(association1.label_id) > 1) \
             .order_by(func.count(association1.label_id).desc())
+
+    # only return samples with no label or a current label
+    # All Samples with a current label
+    with_current_association = db.query(Sample.id)\
+        .join(Association, Sample.id == Association.sample_id)\
+        .filter(Association.is_current == only_current_associations)
+    # All Samples with a label
+    with_association = db.query(Sample.id)\
+        .join(Association, Sample.id == Association.sample_id)\
+        .subquery()
+    # All Samples without any labels
+    without_association = db.query(Sample.id)\
+        .filter(Sample.id.notin_(with_association))
+
+    valid_samples = with_current_association.union(without_association)
+
+    query = query.filter(Sample.id.in_(valid_samples))
 
     # limit number of returned elements and paging, return total_elements in header
     if page is not None and limit:
@@ -217,3 +261,27 @@ def get_filtered_samples(
     for sample in samples:
         sample.ensure_string_content()
     return samples
+
+
+@dataset_router.get('/{dataset_id}/metrics/')
+def get_worker_metrics(dataset_id: int, user=Depends(get_current_active_user)):
+    """
+    Returns a dictionary of lists.
+
+    The ith-entry in every list represents the value of this metric for the ith-run of the active learning worker.
+    """
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(dataset_id)
+        )
+
+    worker = manager.get(dataset)
+    if not worker:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="No worker found for the dataset"
+        )
+
+    return worker.metrics

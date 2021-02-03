@@ -23,6 +23,7 @@ class ActiveLearningWorker:
     process: ActiveLearningProcess
     pipe: Connection
     state: WorkerState
+    metrics: Dict = {}
 
     # The values are the time the sample was sent to a user or the given label
     requested_samples: Dict[int, Union[int, datetime, None]]
@@ -83,7 +84,7 @@ class ActiveLearningWorker:
             "label_id": label_id
         })
 
-        if len(self.requested_samples.keys()) == 0:
+        if all(isinstance(value, int) for value in self.requested_samples.values()):
             self.state = WorkerState.TRAINING
 
     def remove_sample_label(self, sample_id: int, label_id) -> None:
@@ -112,6 +113,8 @@ class ActiveLearningWorker:
                 raise RuntimeError('No idea what to do next')
 
             self.requested_samples = {sample_id: None for sample_id in message['sample_ids']}
+            if 'metrics' in message:
+                self.metrics = message['metrics']
             self.state = WorkerState.WAITING
 
     def get_requested_sample(self) -> Sample:

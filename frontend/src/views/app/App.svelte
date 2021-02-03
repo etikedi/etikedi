@@ -5,27 +5,41 @@
 
   import { token } from '../../store/auth'
   import { load } from '../../store/datasets'
+  import { load as loadMe, isAdmin } from '../../store/me'
 
   import Dashboard from './views/Dashboard.svelte'
   import Config from './views/Config.svelte'
   import Label from './views/Label.svelte'
   import Upload from './views/Upload.svelte'
-  import Grid from './components/labeling/Grid.svelte'
   import LabeledGrid from './views/LabeledGrid.svelte'
   import Graphs from './views/Graphs.svelte'
+  import Users from './users/Users.svelte'
+  import Nav from './components/Nav.svelte'
+  import Me from './users/Me.svelte'
 
   $: if ($token) {
     load()
+    loadMe()
   }
 </script>
 
 {#if $token !== null}
   {#if $token}
+    <!-- NAV -->
+    <Nav />
+    <hr />
+
+    <!-- USERS -->
+    <Route path="/me">
+      <Me />
+    </Route>
+    <Route path="/users/*">
+      <Users />
+    </Route>
+
+    <!-- DATASETS -->
     <Route path="/upload">
       <Upload />
-    </Route>
-    <Route path="/">
-      <Dashboard />
     </Route>
     <Route path="/dataset/:id/*">
       <Route path="/config">
@@ -41,8 +55,10 @@
         <Graphs />
       </Route>
     </Route>
-    <Route path="/app/*">
-      {router.goto($router.path.replace('/app', ''))}
+
+    <!-- DASHBOARD -->
+    <Route path="/">
+      <Dashboard />
     </Route>
   {:else}
     <Login />

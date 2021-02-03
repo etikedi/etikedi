@@ -33,8 +33,8 @@ class Dataset(Base):
         default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
 
-    samples = relationship("Sample", cascade="all, delete", passive_deletes=True)
-    labels = relationship("Label", cascade="all, delete", passive_deletes=True)
+    samples = relationship("Sample", cascade="all, delete", back_populates="dataset")
+    labels = relationship("Label", cascade="all, delete", back_populates="dataset")
 
     statistics: DatasetStatistics
 
@@ -63,7 +63,6 @@ class DatasetDTO(BaseDatasetSchema):
 
     class Config:
         orm_mode = True
-
 
 # class DatasetWithStatisticsDTO(DatasetDTO):
 #     statistics: DatasetStatistics

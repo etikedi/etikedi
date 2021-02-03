@@ -101,7 +101,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     def new_labels_ordered_by_samples(self, requested_samples: List[SampleID]) -> List[LabelID]:
         return [self.current_samples[sample_id] for sample_id in requested_samples]
 
-    def get_labeled_samples(self, requested_sample_ids: List[InternalSampleID], data_storage: DataStorage, metrics: Dict[str, List[float]] = None):
+    def get_labeled_samples(self, requested_sample_ids: List[InternalSampleID], data_storage: DataStorage, metrics: Dict = None):
         """
         As this function is the only interface between backend and active-learning code, two tasks have to be done:
             1)  Resolving the query indices into queried sample_ids and send them to backend
@@ -114,7 +114,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
             -   Messages received by this class represent updated label data.
 
         :param requested_sample_ids    indices of data points which have to get labeled by frontend
-        :param data_storage            data points the active-learning code was started with
+        :param data_https://gitlab.hrz.tu-chemnitz.de/ddsg/aergia/aergia/-/issues/64storage            data points the active-learning code was started with
         :return                        List of labels, retrieved from frontend
         """
         self.storage = data_storage
@@ -127,7 +127,8 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         self.current_samples = {sample_id: None for sample_id in requested_sample_db_ids}
         self.pipe_endpoint.send({
             'event': 'request_samples',
-            'sample_ids': [int(sample_id) for sample_id in requested_sample_db_ids]
+            'sample_ids': [int(sample_id) for sample_id in requested_sample_db_ids],
+            'metrics': metrics
         })
 
         while self.remaining_samples:

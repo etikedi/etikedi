@@ -4,7 +4,8 @@ import JWTDecode from 'jwt-decode'
 
 import { devProdSwitch } from '../lib/utils'
 
-axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', 'backend')
+// TODO: Add prod url
+axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', 'http://localhost:8000/')
 axios.defaults.headers['Accept'] = 'application/json'
 axios.defaults.withCredentials = false
 
@@ -20,14 +21,18 @@ function save(tkn, persist = true) {
 
 function load() {
   const saved = window.localStorage.getItem(STORAGE_KEY)
-  if (saved) {
-    const decoded: any = JWTDecode(saved)
-    if (decoded.exp > ((Date.now() / 1000) | 0)) {
-      save(saved, false)
-      return
+  try {
+    if (saved) {
+      const decoded: any = JWTDecode(saved)
+      if (decoded.exp > ((Date.now() / 1000) | 0)) {
+        save(saved, false)
+        return
+      }
     }
+    save('', false)
+  } catch {
+    save('', false)
   }
-  save('', false)
 }
 
 export type LoginForm = {

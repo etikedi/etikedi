@@ -38,7 +38,8 @@ def import_dataset(
         features.rollover()
         df = pd.read_csv(features._file).set_index("ID")
     else:
-        raise ValueError("The features argument must be either a Path or FileStorage")
+        raise ValueError(
+            "The features argument must be either a Path or FileStorage")
 
     try:
         if isinstance(content, SpooledTemporaryFile):
@@ -47,7 +48,8 @@ def import_dataset(
         else:
             zip_file = ZipFile(content, "r")
     except AttributeError:
-        raise ValueError("The content argument must be either a Path or FileStorage")
+        raise ValueError(
+            "The content argument must be either a Path or FileStorage")
 
     feature_df = df.drop(["LABEL"], axis=1)
 
@@ -81,12 +83,14 @@ def import_dataset(
 
         if label_name and label_name in all_labels:
             associations.append(
-                Association(sample=sample, label=all_labels[label_name], user=user)
+                Association(sample=sample,
+                            label=all_labels[label_name], user=user)
             )
 
         if index % 1000 == 0:
             print(
-                "{:.2f}% imported ({}/{})".format((index / total) * 100, index, total)
+                "{:.2f}% imported ({}/{})".format((index /
+                                                   total) * 100, index, total)
             )
             db.add_all(samples)
             db.commit()
@@ -101,7 +105,8 @@ def import_dataset(
     db.add_all(associations)
     db.commit()
 
-    number_of_samples = db.query(Sample).filter(Sample.dataset == dataset).count()
+    number_of_samples = db.query(Sample).filter(
+        Sample.dataset == dataset).count()
     if ensure_incomplete:
         number_of_associations = (
             db.query(Association.sample_id)

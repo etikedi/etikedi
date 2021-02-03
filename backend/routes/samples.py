@@ -69,7 +69,7 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
     return next_sample
 
 
-@sample_router.delete("/{sample_id}", response_model=int)
+@sample_router.delete("/{sample_id}", response_model=None)
 def unlabel(sample_id: int, data: UnlabelDTO, user=Depends(get_current_active_user)):
     if 'admin' not in user.roles and data.all:
         raise HTTPException(
@@ -91,15 +91,20 @@ def unlabel(sample_id: int, data: UnlabelDTO, user=Depends(get_current_active_us
             detail=f'No label {data.label_id}'
         )
 
-    associations = db.query(Association).filter(Association.sample_id == sample_id, Association.label_id == data.label_id)
+    associations = db.query(Association).filter(Association.sample_id == sample_id,
+                                                Association.label_id == data.label_id)
 
     if not data.all:
         associations = associations.filter(Association.user_id == user.id)
 
+    associations = associations.all()
+    for association in associations:
+        association.is_current = False
+
+    db.commit()
+
     worker = manager.get_or_else_load(sample.dataset)
     worker.remove_sample_label(sample_id=sample_id, label_id=data.label_id)
-
-    return associations.delete()
 
 
 

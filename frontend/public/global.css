@@ -46,3 +46,9 @@ code {
 ul.toasts li.toast {
   border-radius: var(--round);
 }
+
+hr {
+  border: 1px solid var(--clr-primary-light-alt);
+  border-radius: 16px;
+  margin: 2em 0;
+}

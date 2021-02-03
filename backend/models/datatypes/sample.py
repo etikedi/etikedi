@@ -1,11 +1,11 @@
 import base64
 from typing import Union, Optional, List
 
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel as Schema, validator
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
-from .. import LabelDTO
+from .. import AssociationCurrentLabel
 from ...config import Base
 
 
@@ -18,26 +18,25 @@ class Sample(Base):
     this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
     """
 
-    # TODO: Add associations as backref?
 
     __tablename__ = "sample"
 
     id = Column(Integer, primary_key=True)
 
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
-    dataset = relationship("Dataset", backref=backref("items", lazy=True))
+    dataset = relationship("Dataset", back_populates="samples", lazy = True)
 
     labels = relationship(
         "Label",
         lazy="subquery",
         secondary="association",
         back_populates="samples",
-        cascade="all, delete",
         passive_deletes=True
     )
 
     associations = relationship(
         "Association",
+        cascade="all, delete",
         back_populates='sample'
     )
 
@@ -46,7 +45,8 @@ class Sample(Base):
 
     content: Union[str, bytes]
 
-    __mapper_args__ = {"polymorphic_identity": "sample", "polymorphic_on": "type"}
+    __mapper_args__ = {"polymorphic_identity": "sample",
+                       "polymorphic_on": "type"}
 
     def ensure_string_content(self) -> None:
         """ Converts the content to a base64 encoded string if it is binary """
@@ -71,7 +71,16 @@ class SampleDTO(Schema):
 
 
 class SampleDTOwLabel(SampleDTO):
-    labels: Optional[List[LabelDTO]] = None
+    associations: Optional[List[AssociationCurrentLabel]] = None
+
+    # only return current labels for filtered Samples, remove old labels
+    @validator("associations")
+    def current_associations(cls, associations):
+        current_associations = associations
+        for association in associations:
+            if not association.is_current:
+                current_associations.remove(association)
+        return current_associations
 
 
 class UnlabelDTO(Schema):
