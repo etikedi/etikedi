@@ -261,3 +261,27 @@ def get_filtered_samples(
     for sample in samples:
         sample.ensure_string_content()
     return samples
+
+
+@dataset_router.get('/{dataset_id}/metrics/')
+def get_worker_metrics(dataset_id: int, user=Depends(get_current_active_user)):
+    """
+    Returns a dictionary of lists.
+
+    The ith-entry in every list represents the value of this metric for the ith-run of the active learning worker.
+    """
+    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(dataset_id)
+        )
+
+    worker = manager.get(dataset)
+    if not worker:
+        raise HTTPException(
+            status_code=status.HTTP_204_NO_CONTENT,
+            detail="No worker found for the dataset"
+        )
+
+    return worker.metrics
