@@ -2,6 +2,7 @@ from pydantic import BaseModel as Schema
 from sqlalchemy import Column, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
+from . import LabelDTO
 from ..config import Base
 
 
@@ -27,3 +28,11 @@ class AssociationBase(Schema):
     sample_id: int
     label_id: int
     user_id: int
+
+
+class AssociationCurrentLabel(Schema):
+    label: LabelDTO
+    is_current: bool
+
+    class Config:
+        orm_mode = True
