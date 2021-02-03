@@ -1,7 +1,7 @@
 import base64
 from typing import Union, Optional, List
 
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel as Schema, validator
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
 from sqlalchemy.orm import relationship
 
@@ -72,6 +72,15 @@ class SampleDTO(Schema):
 
 class SampleDTOwLabel(SampleDTO):
     associations: Optional[List[AssociationCurrentLabel]] = None
+
+    # only return current labels for filtered Samples, remove old labels
+    @validator("associations")
+    def current_associations(cls, associations):
+        current_associations = associations
+        for association in associations:
+            if not association.is_current:
+                current_associations.remove(association)
+        return current_associations
 
 
 class UnlabelDTO(Schema):
