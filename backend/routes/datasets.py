@@ -129,6 +129,10 @@ def get_filtered_samples(
     :param user:                the currently active user -> needed for authentication-check\\
     :return:                    list of samples
     """
+
+    # return only current associations, if changed code needs to be adapted
+    only_current_associations = True
+
     dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
 
     if not dataset:
@@ -208,7 +212,9 @@ def get_filtered_samples(
         base_query = db.query(Sample) \
             .filter(Sample.dataset_id == dataset_id) \
             .join(association1, Sample.id == association1.sample_id) \
-            .join(association2, Sample.id == association2.sample_id)
+            .join(association2, Sample.id == association2.sample_id) \
+            .filter(association1.is_current == only_current_associations) \
+            .filter(association1.is_current == only_current_associations)
 
         # use query as subquery to apply other filters (eg. for labels or users)
         sub_query = query.with_entities(Sample.id).subquery()
@@ -219,6 +225,23 @@ def get_filtered_samples(
             .filter(Sample.id.in_(sub_query)) \
             .group_by(Sample.id).having(func.count(association1.label_id) > 1) \
             .order_by(func.count(association1.label_id).desc())
+
+    # only return samples with no label or a current label
+    # All Samples with a current label
+    with_current_association = db.query(Sample.id)\
+        .join(Association, Sample.id == Association.sample_id)\
+        .filter(Association.is_current == only_current_associations)
+    # All Samples with a label
+    with_association = db.query(Sample.id)\
+        .join(Association, Sample.id == Association.sample_id)\
+        .subquery()
+    # All Samples without any labels
+    without_association = db.query(Sample.id)\
+        .filter(Sample.id.notin_(with_association))
+
+    valid_samples = with_current_association.union(without_association)
+
+    query = query.filter(Sample.id.in_(valid_samples))
 
     # limit number of returned elements and paging, return total_elements in header
     if page is not None and limit:

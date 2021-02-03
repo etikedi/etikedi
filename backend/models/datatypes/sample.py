@@ -3,9 +3,9 @@ from typing import Union, Optional, List
 
 from pydantic import BaseModel as Schema
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import relationship
 
-from .. import LabelDTO
+from .. import AssociationCurrentLabel
 from ...config import Base
 
 
@@ -71,7 +71,7 @@ class SampleDTO(Schema):
 
 
 class SampleDTOwLabel(SampleDTO):
-    labels: Optional[List[LabelDTO]] = None
+    associations: Optional[List[AssociationCurrentLabel]] = None
 
 
 class UnlabelDTO(Schema):
