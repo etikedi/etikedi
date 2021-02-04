@@ -32,11 +32,9 @@
   }
 
   $: if (loaded) {
-    if (metrics.length > 0) {
-      metricGraphs.forEach((el, index) => {
-        new Chartkick.ScatterChart(metricGraphs[index], metrics[index].values)
-      })
-    }
+    metricGraphs.forEach((el, index) => {
+      new Chartkick.ScatterChart(metricGraphs[index], metrics[index].values)
+    })
   }
 
   onMount(() => {
