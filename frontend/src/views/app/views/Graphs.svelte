@@ -8,7 +8,7 @@
 
   const { id } = router.params()
 
-  let dataset, labels, ready, stats
+  let dataset, labels, ready, stats, rendered
 
   $: dataset = $datasets[id]
   $: ready = dataset
@@ -19,19 +19,28 @@
   let metrics = []
   let metricGraphs = []
 
-  $: if (ready && loaded) {
+  $: if (ready) {
     labels = dataset.labels
     stats = dataset.statistics
     Chartkick.use(Chart)
     labelDist.push(['labeled', stats.labelled_samples])
-    labelDist.push(['unlabeled', stats.total_samples - stats.features - stats.labelled_samples])
+    labelDist.push(['unlabeled', stats.total_samples - stats.labelled_samples])
+  }
+
+  $: if (ready && rendered) {
     new Chartkick.BarChart(classDistBar, labelDist)
-    metricGraphs.forEach((el, index) => {
-      new Chartkick.ScatterChart(metricGraphs[index], metrics[index].values)
-    })
+  }
+
+  $: if (loaded) {
+    if (metrics.length > 0) {
+      metricGraphs.forEach((el, index) => {
+        new Chartkick.ScatterChart(metricGraphs[index], metrics[index].values)
+      })
+    }
   }
 
   onMount(() => {
+    rendered = true
     axios({
       method: 'get',
       url: `/datasets/${id}/metrics`
@@ -67,7 +76,11 @@
 {/if}
 <div class="graph" bind:this={classDistBar}></div>
 {#if loaded}
-  <h2 class="mb4">AL Metrics</h2>
+  {#if metrics.length > 0}
+    <h2 class="mb4">AL Metrics</h2>
+  {:else}
+    <h3 class="mb4">AL metrics will show up here, if available... Let's keep labelling!</h3>
+  {/if}
   {#each metrics as metric, i}
     <h3 class="mb4">Metric name: {metric.name}</h3>
     <div class="graph" bind:this={metricGraphs[i]}></div>
