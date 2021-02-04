@@ -1,9 +1,14 @@
 import os
+
+from fastapi import HTTPException, status
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # set access parameters for server and database
+from starlette.requests import Request
+
 server_username = "root"
 server_password = "admin"
 server_ipaddress = os.getenv('DATABASE_URL', default='localhost')
@@ -34,3 +39,18 @@ def get_db():
 
 
 db: SessionLocal = next(get_db())
+
+
+async def automatic_transaction(request: Request, call_next):
+    """Wrap all data-modifying requests in transaction"""
+    if request.method.lower() in ("post", "put", "patch", "delete"):
+        try:
+            response = await call_next(request)
+        except SQLAlchemyError as e:
+            print('Rollback of current transaction')
+            db.rollback()
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    else:
+        response = await call_next(request)
+
+    return response
