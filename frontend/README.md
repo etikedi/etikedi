@@ -1,4 +1,4 @@
-# Aergia Frontend
+# Etikedi Frontend
 
 ## Tech Stack
 

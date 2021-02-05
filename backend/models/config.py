@@ -95,7 +95,7 @@ class ActiveLearningConfig(Schema):
     WITH_SNUBA_LITE: bool = False
     WITH_UNCERTAINTY_RECOMMENDATION: bool = True
 
-    # Aergia config options
+    # Etikedi config options
     RANDOM_SAMPLE_EVERY: PositiveInt = 10
     TIMEOUT_FOR_WORKER: PositiveInt = 60
 

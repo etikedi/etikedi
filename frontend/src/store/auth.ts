@@ -9,7 +9,7 @@ axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', 'http://localho
 axios.defaults.headers['Accept'] = 'application/json'
 axios.defaults.withCredentials = false
 
-const STORAGE_KEY = 'aergia:token'
+const STORAGE_KEY = 'etikedi:token'
 
 export const token = writable(null)
 
