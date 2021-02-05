@@ -1,12 +1,28 @@
-# AERGIA
-`Note` after cloning this repo you first need to initialize the git submodules, which you can in laymen terms think of as including the active learning code from a different git repository.
-
-```
-git submodule init
-git submodule update
-```
+# Etikedi
 
 Open-source active-learning backed multipurpose labeling tool.
 Inspired by [prodigy](https://prodi.gy/demo) and [Labelobx](https://labelbox.com/).
 
-Photo by [Holger Link](https://unsplash.com/@photoholgic) on [Unsplash](https://unsplash.com/).
+## Installation
+
+`Note` after cloning this repo you first need to initialize the git submodules, which you can in laymen terms think of as including the active learning code from a different git repository.
+
+```bash
+# Git
+git submodule init
+git submodule update
+
+# Frontend
+cd frontend
+npm i
+```
+
+## Developing
+
+We use docker for the backend.
+Both backend and frontend have hot reloading out of the box.
+
+1. Backend: `docker-compose up --build`.
+2. Frontend: `cd frontend` then `npm run dev`
+
+For further information check the related `README.md` in the `./frontend` and `./backend` directory.
