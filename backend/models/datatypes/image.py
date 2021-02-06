@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, BLOB
+from sqlalchemy import Column, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import BYTEA
 
 from .sample import Sample

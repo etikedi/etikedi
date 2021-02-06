@@ -18,7 +18,6 @@ def get_sample(sample_id: int, user: User = Depends(get_current_active_user)):
             detail="Sample not found for id: {}.".format(sample_id),
         )
 
-    sample.ensure_string_content()
     return sample
 
 
@@ -39,17 +38,11 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
         )
 
     try:
-        # TODO: Investigate how this can be done using a method other than a raw query
-        # It seems like SQLAlchemy tries to load the sample and then tries to save it again
-        # However, while loading it converts the content of the sample to text and fails to save it again
-        # because it expects a byte-like object.
-
-        # new_association = Association(
-        #     sample_id=sample_id, label_id=label_id, user_id=user.id
-        # )
-        # db.add(new_association)
-        # db.commit()
-        db.execute(f'INSERT INTO association (sample_id, label_id, user_id) VALUES ({sample_id}, {label_id}, {user.id})')
+        new_association = Association(
+             sample_id=sample_id, label_id=label_id, user_id=user.id
+        )
+        db.add(new_association)
+        db.commit()
     except IntegrityError:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT)
 
@@ -65,7 +58,6 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="There was an error retrieving the next sample.",
         )
-    next_sample.ensure_string_content()
     return next_sample
 
 

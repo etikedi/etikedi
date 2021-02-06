@@ -90,7 +90,6 @@ def get_first_sample(dataset_id: int, user: User = Depends(get_current_active_us
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="There was an error retrieving the first sample.",
         )
-    first_sample.ensure_string_content()
 
     return first_sample
 
@@ -258,8 +257,6 @@ def get_filtered_samples(
         query = query.order_by(Sample.id).slice(lower_limit, upper_limit)
 
     samples = query.all()
-    for sample in samples:
-        sample.ensure_string_content()
     return samples
 
 
