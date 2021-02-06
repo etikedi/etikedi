@@ -99,9 +99,8 @@ class ActiveLearningConfig(Schema):
     RANDOM_SAMPLE_EVERY: PositiveInt = 10
     TIMEOUT_FOR_WORKER: PositiveInt = 60
 
-    def add_default_options(self, dataset_id: int):
-        self.DATASET_NAME = str(dataset_id)
-        self.AMOUNT_OF_FEATURES = -1
+    DATASET_NAME: str = 'Dataset'
+    AMOUNT_OF_FEATURES: int = -1
 
 
 default_al_config = ActiveLearningConfig()

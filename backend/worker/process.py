@@ -21,7 +21,8 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     code lifecycle.
     """
     dataset_id: int
-    config: ActiveLearningConfig
+    # config: ActiveLearningConfig
+    config: dict
     pipe_endpoint: Connection
     storage: DataStorage = None
 
@@ -34,7 +35,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     def __init__(self, dataset_id: int, config: Dict, pipe_endpoint: Connection):
         super().__init__()
         self.dataset_id = dataset_id
-        self.config = ActiveLearningConfig(**config)
+        self.config = config
         self.pipe_endpoint = pipe_endpoint
 
     def run(self):
@@ -53,10 +54,10 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         dataset = db.query(Dataset).filter_by(id=self.dataset_id).first()
         df, self.sample_mapping, self.reverse_sample_mapping = prepare_dataset_for_active_learning(dataset)
 
-        self.config.add_default_options(self.dataset_id)
+        self.config['DATASET_NAME'] = f'Dataset {self.dataset_id}'
 
         (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
-            hyper_parameters=self.config.dict(),
+            hyper_parameters=self.config,
             df=df,
             oracle=self
         )
