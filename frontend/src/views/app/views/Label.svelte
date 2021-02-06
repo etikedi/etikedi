@@ -14,7 +14,7 @@
   import Grid from '../components/labeling/Grid.svelte'
 
   const mappings = {
-    table: Table,
+    tables: Table,
     image: Image,
     text: Table,
   }
