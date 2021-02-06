@@ -20,6 +20,12 @@ def delete_dataset(
     id: int,
     current_user: User = Depends(get_current_active_admin)
 ):
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the authorization to delete a dataset!"
+        )
+
     dataset = db.query(Dataset).get(id)
     if not dataset:
         raise HTTPException(

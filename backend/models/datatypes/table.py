@@ -50,12 +50,12 @@ class Table(Sample):
         [Table 1 in dataset "Lorem"]
     """
 
-    __tablename__ = "table"
+    __tablename__ = "tables"
 
     id = Column(Integer, ForeignKey("sample.id"), primary_key=True)
     content = Column(Text())
 
-    __mapper_args__ = {"polymorphic_identity": "table"}
+    __mapper_args__ = {"polymorphic_identity": "tables"}
 
     def __str__(self):
         return 'Table {} in dataset "{}"'.format(self.id, self.dataset)

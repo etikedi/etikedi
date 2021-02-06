@@ -16,7 +16,7 @@ class Association(Base):
     label_id = Column(Integer, ForeignKey("label.id"), primary_key=True)
     label = relationship("Label", backref="associations")
 
-    user_id = Column(Integer, ForeignKey("user.id"), primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
     user = relationship("User", backref="associations")
 
     is_current = Column(Boolean, default=True, server_default="true", nullable=False)
