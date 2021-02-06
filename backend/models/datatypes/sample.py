@@ -18,13 +18,12 @@ class Sample(Base):
     this works can be found in the [docs](https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html)
     """
 
-
     __tablename__ = "sample"
 
     id = Column(Integer, primary_key=True)
 
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
-    dataset = relationship("Dataset", back_populates="samples", lazy = True)
+    dataset = relationship("Dataset", back_populates="samples", lazy=True)
 
     labels = relationship(
         "Label",
@@ -48,10 +47,6 @@ class Sample(Base):
     __mapper_args__ = {"polymorphic_identity": "sample",
                        "polymorphic_on": "type"}
 
-    def ensure_string_content(self) -> None:
-        """ Converts the content to a base64 encoded string if it is binary """
-        if not isinstance(self.content, str):
-            self.content = base64.b64encode(self.content).decode()
 
     def __str__(self):
         return "Sample {} in {}".format(self.id, self.dataset)
@@ -68,6 +63,13 @@ class SampleDTO(Schema):
 
     class Config:
         orm_mode = True
+
+    @validator("content", pre=True)
+    def ensure_string_content(cls, content):
+        """ Converts the content to a base64 encoded string if it is binary """
+        if not isinstance(content, str):
+            content = base64.b64encode(content).decode()
+        return content
 
 
 class SampleDTOwLabel(SampleDTO):
