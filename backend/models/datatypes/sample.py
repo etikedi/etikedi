@@ -85,4 +85,4 @@ class SampleDTOwLabel(SampleDTO):
 
 class UnlabelDTO(Schema):
     label_id: int
-    all: bool = True
+    all: bool = False
