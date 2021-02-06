@@ -15,29 +15,6 @@ from ..worker import manager
 dataset_router = APIRouter()
 
 
-@dataset_router.delete("/{id}", response_model=DatasetDTO)
-def delete_dataset(
-    id: int,
-    current_user: User = Depends(get_current_active_admin)
-):
-    if current_user.roles != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You do not have the authorization to delete a dataset!"
-        )
-
-    dataset = db.query(Dataset).get(id)
-    if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found for id: {}.".format(id)
-        )
-
-    db.delete(dataset)
-    db.commit()
-    return dataset
-
-
 @dataset_router.get("", response_model=List[DatasetDTO])
 def get_datasets(user: User = Depends(get_current_active_user)):
     datasets = db.query(Dataset).all()
@@ -77,6 +54,29 @@ def create_dataset(
         ensure_incomplete=True,
     )
 
+    return dataset
+
+
+@dataset_router.delete("/{dataset_id}", response_model=DatasetDTO)
+def delete_dataset(
+        dataset_id: int,
+        current_user: User = Depends(get_current_active_admin)
+):
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the authorization to delete a dataset!"
+        )
+
+    dataset = db.query(Dataset).get(dataset_id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(dataset_id)
+        )
+
+    db.delete(dataset)
+    db.commit()
     return dataset
 
 
