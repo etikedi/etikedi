@@ -30,6 +30,13 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="The useraccount you try to use is not active. Please ask your admin!"
+        )
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires
@@ -39,6 +46,12 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 @user_router.get("", response_model=List[BaseUserWithIDSchema])
 async def get_all_users(current_user: User = Depends(get_current_active_user)):
+    if current_user.roles != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have the authorization to request this! Ask your admin!"
+        )
+
     return db.query(User).all()
 
 
