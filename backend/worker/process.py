@@ -15,6 +15,57 @@ from ..models import Dataset, ActiveLearningConfig
 from .types import *
 
 
+default_config = {
+    "ALLOW_RECOMMENDATIONS_AFTER_STOP": True,
+    "AMOUNT_OF_FEATURES": -1,
+    "BATCH_MODE": False,
+    "CLASSIFIER": "RF",
+    "CLUSTER": "dummy",
+    "CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE": 0.3,
+    "CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED": 0.8,
+    "DATASET_NAME": "Trolololo",
+    "DISTANCE_METRIC": "euclidean",
+    "GENERATE_NOISE": True,
+    "HYPERCUBE": True,
+    "INITIAL_BATCH_SAMPLING_ARG": 10,
+    "INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST": 0.4,
+    "INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST_LAB": 0,
+    "INITIAL_BATCH_SAMPLING_HYBRID_PRED_UNITY": 0,
+    "INITIAL_BATCH_SAMPLING_HYBRID_UNCERT": 0.4,
+    "INITIAL_BATCH_SAMPLING_METHOD": "furthest",
+    "MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS": 0,
+    "NEW_SYNTHETIC_PARAMS": False,
+    "NR_LEARNING_ITERATIONS": 200000,
+    "NR_QUERIES_PER_ITERATION": 5,
+    "N_JOBS": -1,
+    "PLOT_EVOLUTION": False,
+    "RANDOM_SEED": 10,
+    "SAMPLING": "uncertainty_max_margin",
+    "STATE_ARGSECOND_PROBAS": True,
+    "STATE_ARGTHIRD_PROBAS": True,
+    "STATE_DIFF_PROBAS": False,
+    "STATE_DISTANCES": False,
+    "STATE_DISTANCES_LAB": True,
+    "STATE_DISTANCES_UNLAB": True,
+    "STATE_INCLUDE_NR_FEATURES": True,
+    "STATE_PREDICTED_CLASS": False,
+    "STATE_PREDICTED_UNITY": False,
+    "STATE_UNCERTAINTIES": False,
+    "STOPPING_CRITERIA_ACC": 1.0,
+    "STOPPING_CRITERIA_STD": 1.0,
+    "STOPPING_CRITERIA_UNCERTAINTY": 1.0,
+    "STOP_AFTER_MAXIMUM_ACCURACY_REACHED": False,
+    "TEST_FRACTION": 0.3,
+    "UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD": 0.99,
+    "UNCERTAINTY_RECOMMENDATION_RATIO": 0.01,
+    "USER_QUERY_BUDGET_LIMIT": 2000,
+    "VARIABLE_DATASET": True,
+    "WITH_CLUSTER_RECOMMENDATION": False,
+    "WITH_SNUBA_LITE": False,
+    "WITH_UNCERTAINTY_RECOMMENDATION": False,
+}
+
+
 class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
     """
     Extension of multiprocessing. Process as a wrapper class for asynchronous execution of active-learning
@@ -54,6 +105,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         dataset = db.query(Dataset).filter_by(id=self.dataset_id).first()
         df, self.sample_mapping, self.reverse_sample_mapping = prepare_dataset_for_active_learning(dataset)
 
+        self.config = default_config
         self.config['DATASET_NAME'] = f'Dataset {self.dataset_id}'
 
         (_, _, metrics_per_al_cycle, data_storage, _) = train_al(

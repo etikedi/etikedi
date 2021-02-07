@@ -17,7 +17,7 @@
   const mappings = {
     tables: Table,
     image: Image,
-    text: Table,
+    text: Table
   }
 
   const { id } = router.params()
@@ -35,7 +35,7 @@
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
       { name: 'User', label: 'users', options: $users },
-      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] },
+      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] }
     ]
   }
 
@@ -60,8 +60,8 @@
       url: `/datasets/${id}/samples`,
       params: {
         labeled: true,
-        ...params,
-      },
+        ...params
+      }
     })
       .then((response) => {
         samples.push(...response.data)
@@ -79,12 +79,26 @@
       return
     }
 
+    // Delete current labels
+    await axios({
+      method: 'delete',
+      url: `/samples/${sample_id}`,
+      data: {
+        all: true
+      }
+    })
+      .then((res) => {
+        // Do something with next sample
+      })
+      .catch((err) => console.log(err))
+
+    // Write new labels
     await axios({
       method: 'post',
       url: `/samples/${sample_id}`,
       params: {
-        label_id: current.associations[0].id,
-      },
+        label_id: current.associations[0].id
+      }
     })
       .then((res) => {
         // Do something with next sample
@@ -167,64 +181,64 @@
 {/if}
 
 <style>
-  .wrapper {
-    display: grid;
-    grid-template-columns: 1fr 5fr;
-  }
+    .wrapper {
+        display: grid;
+        grid-template-columns: 1fr 5fr;
+    }
 
-  .menu {
-    display: flex;
-    flex-direction: column;
-  }
+    .menu {
+        display: flex;
+        flex-direction: column;
+    }
 
-  ul {
-    padding: 0;
-    margin: 0;
-    width: 150px;
-  }
+    ul {
+        padding: 0;
+        margin: 0;
+        width: 150px;
+    }
 
-  .samples {
-    padding-left: 15px;
-    align-self: center;
-    display: grid;
-  }
+    .samples {
+        padding-left: 15px;
+        align-self: center;
+        display: grid;
+    }
 
-  .sample {
-    display: grid;
-    justify-self: center;
-  }
+    .sample {
+        display: grid;
+        justify-self: center;
+    }
 
-  .sample hr {
-    border: 1px solid grey;
-  }
+    .sample hr {
+        border: 1px solid grey;
+    }
 
-  .reassign {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-  }
+    .reassign {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+    }
 
-  .reassign button {
-    background-color: transparent;
-    border: none;
-  }
+    .reassign button {
+        background-color: transparent;
+        border: none;
+    }
 
-  .icon {
-    font-size: 1.75em;
-    cursor: pointer;
-  }
+    .icon {
+        font-size: 1.75em;
+        cursor: pointer;
+    }
 
-  .content {
-    justify-self: center;
-    overflow: auto;
-  }
+    .content {
+        justify-self: center;
+        overflow: auto;
+    }
 
-  .page {
-    justify-self: center;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-  }
+    .page {
+        justify-self: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
 </style>
