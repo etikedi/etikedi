@@ -3,7 +3,7 @@ from sqlalchemy.exc import IntegrityError
 
 from ..config import db
 from ..models import Sample, SampleDTO, User, UnlabelDTO, Label, Association, Dataset
-from ..utils import can_assign, get_current_active_user
+from ..utils import can_assign, get_current_active_user, get_current_active_admin
 from ..worker import manager
 
 sample_router = APIRouter()
@@ -76,28 +76,39 @@ def unlabel(sample_id: int, data: UnlabelDTO, user=Depends(get_current_active_us
             detail=f'No sample {sample_id}'
         )
 
-    label = db.query(Label).filter(Label.id == data.label_id).first()
-    if not label:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f'No label {data.label_id}'
-        )
+    associations = db.query(Association).filter(Association.sample_id == sample_id)
+    label_ids = set()
 
-    associations = db.query(Association).filter(Association.sample_id == sample_id,
-                                                Association.label_id == data.label_id)
-
-    if not data.all:
-        associations = associations.filter(Association.user_id == user.id)
+    if not data.label_id:
+        if not data.all:
+            # error, needs at least label_id or all = True to delete something
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail='Cannot remove association if label_id or all is not set.'
+            )
+    else:
+        label = db.query(Label).filter(Label.id == data.label_id).first()
+        if not label:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f'No label {data.label_id}'
+            )
+        label_ids.add(data.label_id)
+        associations = associations.filter(Association.label_id == data.label_id)
+        if not data.all:
+            associations = associations.filter(Association.user_id == user.id)
 
     associations = associations.all()
+
+    # deactivate all associations
     for association in associations:
         association.is_current = False
+        if association.label_id not in label_ids:
+            label_ids.add(association.label_id)
 
     db.commit()
 
+    # remove association from AL
     worker = manager.get_or_else_load(sample.dataset)
-    worker.remove_sample_label(sample_id=sample_id, label_id=data.label_id)
-
-
-
-
+    for label_id in label_ids:
+        worker.remove_sample_label(sample_id=sample_id, label_id=label_id)
