@@ -42,10 +42,10 @@ makes the setup a lot easier and more deterministic. The only thing needed is ru
 While the first start will take some time, future runs will be a lot faster. Further docker commands to control the backend are:
 
 ```
-> docker-compose up -d      # Would start the frontend too
+> docker-compose up -d      # Stars the backend and database in the background
 > docker-compose down       # Shutsdown the backend
 > docker-compose down -v    # Shutsdown and removes all volumes (all persisted data), convenient for starting all over
-> docker-compose logs -f    # Shows the logs of the backend
+> docker-compose logs -f    # Shows the logs and follows them
 > docker-compose ps         # Check if the container is running
 > docker-compose build      # Force a rebuilding the images
 ```
@@ -87,6 +87,15 @@ Worker1
 Worker2
 - Username: mario_nette
 - Password: very_secret
+
+
+## ➕➕ Adding datasets
+
+Datasets can come in any form imaginable. In order to import them, the user has to convert it into the one format that Etikedi understands and accepts. Each dataset has to be uploaded as two separate files, one containing the raw data that should be displayed to the person labeling and another containing the features used by the classifier.
+
+Former is uploaded as a zip. Each file should be named `{id}.raw` and could contain a valid png photo, an html table or simple text.
+
+Latter has to be given as a csv file with at least two columns. One column has to be named `ID` and its values have to correspond to the ids given in the already mentioned zip file. The second requried column is `LABEL` and should contain, well, the labels that can be associated to each sample. Please note that Etikedi will present the user with only the set of labels you have given in this column. This requirement exists because when the active learning code starts, it has to know each label and at least one sample for each. All other columns are the features and can be named whatever and contain arbitrary data.
 
 
 ## 🖥 Code overview
