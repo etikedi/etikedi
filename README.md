@@ -1,11 +1,11 @@
 # Etikedi
 
-Open-source active-learning backed multipurpose labeling tool.
+Open-source active-learning backend multipurpose labeling tool.
 Inspired by [prodigy](https://prodi.gy/demo) and [Labelbox](https://labelbox.com/).
 
 ## Installation
 
-`Note` after cloning this repo you first need to initialize the git submodules, which you can in laymen terms think of as including the active learning code from a different git repository.
+After cloning this repo you first need to initialize the git submodules, which you can in laymen terms think of as including the active learning code from a different git repository.
 
 ```bash
 # Git
