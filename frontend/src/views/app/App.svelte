@@ -16,6 +16,7 @@
   import Users from './users/Users.svelte'
   import Nav from './components/Nav.svelte'
   import Me from './users/Me.svelte'
+  import ALComparison from './views/ALComparison.svelte'
 
   $: if ($token) {
     load()
@@ -59,6 +60,11 @@
     <!-- DASHBOARD -->
     <Route path="/">
       <Dashboard />
+    </Route>
+
+    <!-- AL COMPARISON -->
+    <Route path="/al-comparison">
+      <ALComparison />
     </Route>
   {:else}
     <Login />

@@ -15,4 +15,7 @@
       <Button label="User management" icon="people-circle-sharp" />
     </a>
   {/if}
+  <a href="/app/al-comparison">
+    <Button label="AL Comparison" icon="git-compare-outline" />
+  </a>
 </nav>
