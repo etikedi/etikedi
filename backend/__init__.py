@@ -5,6 +5,7 @@ from .routes import (
     sample_router,
     label_router,
     config_router,
+    labeling_functions_router
 )
 
 dataset_router.include_router(
@@ -13,6 +14,10 @@ dataset_router.include_router(
 
 dataset_router.include_router(
     config_router, prefix="/{dataset_id}/config", tags=["Configs"]
+)
+
+dataset_router.include_router(
+    labeling_functions_router, prefix="/{dataset_id}/labelingfunctions", tags=["LabelingFunctions"]
 )
 
 app.include_router(dataset_router, prefix="/datasets", tags=["Datasets"])

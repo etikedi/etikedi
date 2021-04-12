@@ -33,6 +33,7 @@ class Dataset(Base):
         default=json.dumps(default_al_config.dict(), default=lambda x: x.value),
     )
 
+    labeling_functions = relationship("LabelingFunction", cascade="all, delete", back_populates="dataset")
     samples = relationship("Sample", cascade="all, delete", back_populates="dataset")
     labels = relationship("Label", cascade="all, delete", back_populates="dataset")
 

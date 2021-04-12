@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Route, router } from 'tinro'
+  import {Route} from 'tinro'
 
   import Login from '../../components/Login.svelte'
 
-  import { token } from '../../store/auth'
-  import { load } from '../../store/datasets'
-  import { load as loadMe, isAdmin } from '../../store/me'
+  import {token} from '../../store/auth'
+  import {load} from '../../store/datasets'
+  import {load as loadMe} from '../../store/me'
 
   import Dashboard from './views/Dashboard.svelte'
   import Config from './views/Config.svelte'
@@ -17,6 +17,7 @@
   import Nav from './components/Nav.svelte'
   import Me from './users/Me.svelte'
   import ALComparison from './views/ALComparison.svelte'
+  import LabelingFunctions from "./views/LabelingFunctions.svelte";
 
   $: if ($token) {
     load()
@@ -43,6 +44,9 @@
       <Upload />
     </Route>
     <Route path="/dataset/:id/*">
+      <Route path="/labelingfunctions">
+        <LabelingFunctions/>
+      </Route>
       <Route path="/config">
         <Config />
       </Route>
