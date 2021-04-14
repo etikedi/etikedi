@@ -15,7 +15,7 @@
 
   const {id} = router.params()
 
-  let functions= null
+  let functions = null
 
   $: dataset = $data[id]
   $: loading = $loadingConfig || $loadingDatasets
@@ -25,7 +25,7 @@
   })
 
   async function saveToBackend() {
-    if(loading) return
+    if (loading) return
     try {
       await save(id, functions)
       notifier.success('Saved')
@@ -58,7 +58,12 @@
     {#each functions as func}
       <Card>
         <div class="flex justify-between">
-          <AceEditor lang="python" value={func.function_body} theme="chrome" width="90%" height="100px" on:input={(obj)=> func.function_body = obj.detail}/>
+          <div class="editor-container">
+          <AceEditor lang="python" value={func.function_body} theme="chrome"
+                       width="100%" height="100%"
+                       on:input={(obj)=> func.function_body = obj.detail}
+            />
+          </div>
           <Button icon="trash-outline" label="Delete" on:click={()=>removeFunc(func)}/>
         </div>
       </Card>
@@ -72,6 +77,14 @@
 </div>
 
 <style>
+
+    .editor-container{
+        resize: both;
+        overflow: auto;
+        width: 90%;
+        height: 100px;
+    }
+
     .actions > a {
         margin-left: 1.25rem;
     }

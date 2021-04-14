@@ -19,7 +19,6 @@ async def get_dataset_labeling_functions(dataset_id: int):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="No labeling-functions found for data-set: {}.".format(dataset_id)
         )
-    print([fu.function_body for fu in labeling_functions])
     return labeling_functions
 
 
