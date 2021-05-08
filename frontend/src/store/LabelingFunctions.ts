@@ -28,3 +28,19 @@ export async function save(id: number | string, data: any) {
     loading.set(false)
   }
 }
+
+export async function testFunctions(id: number | string, functions: {function_body: string, id: number}[]) {
+  try{
+    loading.set(true)
+
+    let {data} = await axios({
+      method: 'post',
+      url: `/datasets/${id}/labelingfunctions/testrun/`,
+      data: functions
+    })
+    return data
+
+  } finally {
+    loading.set(false)
+  }
+}
