@@ -60,9 +60,7 @@ def convert_cifar(data_path: Path):
     target_zip_path = cifar_path / "cifar.zip"
 
     if not (target_csv_path.exists() and target_zip_path.exists()):
-        with ZipFile(target_zip_path.open("wb"), "w") as zip_file, target_csv_path.open(
-                "w"
-        ) as csv_file:
+        with ZipFile(target_zip_path.open("wb"), "w") as zip_file, target_csv_path.open("w") as csv_file:
             identifier = 1
 
             meta = get_cifar_meta(cifar_path / 'batches.meta')

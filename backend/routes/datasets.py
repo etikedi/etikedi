@@ -5,7 +5,7 @@ from sqlalchemy import func, not_, select
 from sqlalchemy.orm import aliased
 
 from ..config import db
-from ..importing import import_dataset
+from ..importing.generic import import_dataset
 from ..models import DatasetStatistics, Dataset, DatasetDTO, User, Table, Image, Text, SampleDTO, Sample, Association, \
     Label, SampleDTOwLabel
 from ..utils import number_of_labelled_samples, number_of_total_samples, number_of_features, get_current_active_user, \
