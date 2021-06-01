@@ -4,7 +4,7 @@ from sklearn import datasets
 from sklearn.metrics import accuracy_score
 from .active_learning.al_cycle_wrapper import train_al
 from .active_learning.experiment_setup_lib import init_logger
-from .aergia_oracle import AergiaOracle
+from .etikedi_oracle import EtikediOracle
 
 config = {
     "SAMPLING": "uncertainty_max_margin",
@@ -50,7 +50,7 @@ print(df)
 
 (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
     hyper_parameters=config,
-    oracle=AergiaOracle(),  # this class needs to be extended!
+    oracle=EtikediOracle(),  # this class needs to be extended!
     df=df,
 )
 

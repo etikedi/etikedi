@@ -2,7 +2,7 @@ FROM python:3.8-buster
 
 EXPOSE 8000
 
-WORKDIR /aergia
+WORKDIR /etikedi
 RUN pip install pipenv
 COPY Pipfile* ./
 

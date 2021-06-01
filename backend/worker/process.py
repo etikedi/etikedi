@@ -1,17 +1,14 @@
 import multiprocessing
-from dataclasses import dataclass
 from multiprocessing.connection import Connection
 from typing import Dict, Optional, List
 
-import numpy as np
-
-from .prepare import prepare_dataset_for_active_learning, reverse_dict
+from .prepare import prepare_dataset_for_active_learning
 from ..active_learning.BaseOracle import BaseOracle
 from ..active_learning.al_cycle_wrapper import train_al
 from ..active_learning.experiment_setup_lib import init_logger
 from ..active_learning.dataStorage import DataStorage
 from ..config import db, logger
-from ..models import Dataset, ActiveLearningConfig
+from ..models import Dataset
 from .types import *
 
 
@@ -98,7 +95,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         data -  fed to the active learning code.
         """
         init_logger("console")
-        print(f'Running worker for dataset {self.dataset_id}')
+        logger.info(f'Running worker for dataset {self.dataset_id}')
 
         self.current_samples = {}
 
@@ -113,7 +110,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
             df=df,
             oracle=self
         )
-        print(f'Worker for dataset {self.dataset_id} has started')
+        logger.info(f'Worker for dataset {self.dataset_id} has started')
         self.storage = data_storage
 
     def label_to_internal_representation(self, label) -> int:
@@ -167,7 +164,7 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
             -   Messages received by this class represent updated label data.
 
         :param requested_sample_ids    indices of data points which have to get labeled by frontend
-        :param data_https://gitlab.hrz.tu-chemnitz.de/ddsg/aergia/aergia/-/issues/64storage            data points the active-learning code was started with
+        :param data_storage            data points the active-learning code was started with
         :return                        List of labels, retrieved from frontend
         """
         self.storage = data_storage
@@ -175,7 +172,6 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
         requested_sample_db_ids = [self.reverse_sample_mapping[raw_id] for raw_id in requested_sample_ids]
 
         logger.debug(f"ALProcess.Oracle:\tRequesting labels for sample ids: {requested_sample_db_ids}")
-        print(f"ALProcess.Oracle:\tRequesting labels for sample ids: {requested_sample_db_ids}")
 
         self.current_samples = {sample_id: None for sample_id in requested_sample_db_ids}
         self.pipe_endpoint.send({
@@ -192,12 +188,10 @@ class ActiveLearningProcess(multiprocessing.Process, BaseOracle):
                 self.add_sample(sample_id=message['sample_id'], label_id=message['label_id'])
 
             if message['event'] == 'remove_sample':
-                # self.remove_sample(sample_id=message['sample_id'], label_id=message['label_id'])
                 self.remove_sample(sample_id=message['sample_id'])
 
             if self.remaining_samples:
                 logger.debug(f"ALProcess.Oracle:\tWaiting for remaining labels of samples {self.remaining_samples}")
-                print(f"ALProcess.Oracle:\tWaiting for remaining labels of samples {self.remaining_samples}")
 
         logger.debug("ALProcess.Oracle:\tRequested labels complete. Current iteration successfully terminated")
         return self.new_labels_ordered_by_samples(requested_sample_db_ids)

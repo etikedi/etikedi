@@ -88,7 +88,7 @@ def import_dataset(
             )
 
         if index % 1000 == 0:
-            print(
+            logger.info(
                 "{:.2f}% imported ({}/{})".format((index /
                                                    total) * 100, index, total)
             )
@@ -99,7 +99,7 @@ def import_dataset(
             samples = []
             associations = []
 
-    print("Done importing dataset {}".format(dataset))
+    logger.info("Done importing dataset {}".format(dataset))
     db.add_all(samples)
     db.commit()
     db.add_all(associations)

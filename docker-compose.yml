@@ -2,7 +2,7 @@ version: '3'
 
 services:
   backend:
-    image: tu-dresden/aergia-backend
+    image: tu-dresden/etikedi-backend
     build:
       context: ./backend
     environment:
@@ -10,7 +10,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./backend:/aergia/backend
+      - ./backend:/etikedi/backend
 
   db:
     image: postgres:13
@@ -18,7 +18,7 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: aergia
+      POSTGRES_DB: etikedi
     ports:
       - 5432:5432
     volumes:

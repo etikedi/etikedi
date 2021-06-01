@@ -8,12 +8,13 @@ from sqlalchemy.orm import sessionmaker
 
 # set access parameters for server and database
 from starlette.requests import Request
+from .logger import logger
 
 server_username = "root"
 server_password = "admin"
 server_ipaddress = os.getenv('DATABASE_URL', default='localhost')
 server_port = "5432"
-db_name = "aergia"
+db_name = "etikedi"
 
 SQLALCHEMY_DATABASE_URI = "postgresql+psycopg2://{}:{}@{}:{}/{}" \
     .format(server_username, server_password, server_ipaddress, server_port, db_name)
@@ -47,7 +48,7 @@ async def automatic_transaction(request: Request, call_next):
         try:
             response = await call_next(request)
         except SQLAlchemyError as e:
-            print('Rollback of current transaction')
+            logger.warning('Rollback of current transaction')
             db.rollback()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:

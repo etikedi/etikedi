@@ -6,7 +6,7 @@ from sklearn.metrics import accuracy_score
 
 from ..active_learning.al_cycle_wrapper import train_al
 from ..config import db
-from ..example.aergia_oracle import AergiaOracle
+from ..example.etikedi_oracle import EtikediOracle
 from ..models import Dataset, Sample
 from ..worker import manager, prepare_dataset_for_active_learning
 
@@ -65,24 +65,6 @@ def get_iris_for_active_learning() -> DataFrame:
     df.label.replace({0: "a", 1: "b", 2: "d"}, inplace=True)
 
     return df
-
-
-# def test_active_learning_iris():
-#     iris = get_iris_for_active_learning()
-#
-#     (_, _, metrics_per_al_cycle, data_storage, _) = train_al(
-#         hyper_parameters=sample_config,
-#         oracle=AergiaOracle(),  # this class needs to be extended!
-#         df=iris,
-#     )
-#
-#     score = accuracy_score(
-#         y_true=iris["label"],
-#         y_pred=data_storage.train_labeled_Y["label"].to_list()
-#     )
-#
-#     # Score should be around ~0.3333
-#     assert abs(score - 0.3333) < 0.5
 
 
 def test_prepare_cifar():

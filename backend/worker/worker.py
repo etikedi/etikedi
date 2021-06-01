@@ -7,7 +7,7 @@ from sqlalchemy import func as db_functions
 from typing import Dict, Union
 
 from .process import ActiveLearningProcess
-from ..config import db
+from ..config import db, logger
 from ..models import Dataset, Sample, ActiveLearningConfig
 
 
@@ -144,12 +144,6 @@ class ActiveLearningWorker:
 
             if sent_to_user + self.user_time_to_label <= now:
                 difference = now - sent_to_user
-                print(f'Unlock requested sample {sample_id} for dataset {self.dataset} as it was '
+                logger.info(f'Unlock requested sample {sample_id} for dataset {self.dataset} as it was '
                       f'sent to a user {difference.total_seconds()} ago')
                 self.requested_samples[sample_id] = None
-
-        # Shorter version without logging
-        # self.requested_samples = {
-        #     sample_id: sent_to_user if sent_to_user + self.user_time_to_label >= now else None
-        #     for sample_id, sent_to_user in self.requested_samples.items()
-        # }

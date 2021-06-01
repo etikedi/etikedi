@@ -5,9 +5,8 @@ import numpy as np
 import pandas as pd
 from pandas import DataFrame
 
-from backend.models import Dataset
-from ..config import app, db
-from ..models import Association, Sample
+from ..config import db
+from ..models import Association, Sample, Dataset
 from .types import *
 
 

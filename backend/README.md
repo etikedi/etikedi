@@ -1,4 +1,4 @@
-# 🦥 Aergia Backend 
+# 🦥 body Backend 
 
 The backend features a REST API, built using the following technologies
 
@@ -22,7 +22,7 @@ Pipenv is used to resolve, lock and install all dependencies. Create and enter t
 > pipenv shell
 ```
 
-The backend can then be started the `flask` cli. While the `aergia.py` could be launched with the python interpreter, the
+The backend can then be started the `flask` cli. While the `etikedi.py` could be launched with the python interpreter, the
 flask cli provides the advantage of live reloading the running app when your code changes.
 
 ```bash
@@ -100,7 +100,7 @@ Latter has to be given as a csv file with at least two columns. One column has t
 
 ## 🖥 Code overview
 
-`aergia.py` is the entrypoint to the application, starts the backend and ties everything together.
+`etikedi.py` is the entrypoint to the application, starts the backend and ties everything together.
 
 In your editor you can set as code formatter [black](https://github.com/psf/black).
 
@@ -181,7 +181,7 @@ classDiagram
 ### REST API
 
 To communicate with the frontend the backend provides a REST API.
-In `aergia.py` the endpoints are defined, which in turn refer to the specified endpoints in the model.
+In `etikedi.py` the endpoints are defined, which in turn refer to the specified endpoints in the model.
 To test the Api without the frontend you can use e.g. curl:
 
 ```bash
