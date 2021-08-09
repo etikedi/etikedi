@@ -67,30 +67,40 @@ def import_dataset(
     db.commit()
 
     total, samples, associations = len(df.index), [], []
-    for index, (identifier, label_name) in enumerate(df["LABEL"].iteritems()):
+    # iterate over rows in dataframe (identifier = ID Column = index of row
+    for identifier, row in df.iterrows():
+        label_name = row["LABEL"]
         content = zip_file.read(f"{int(identifier)}.raw")
-
         sample = sample_class()
         sample.dataset = dataset
 
-        # get type of content and convert to text if needed
-        content_type = sample_class.content.property.columns[0].type
-        if isinstance(content_type, Text):
-            content = content.decode('utf-8')
+        # get features from dataframe (all columns expect ID and LABEL
+        sample_features = row.drop("LABEL")
+        # test if features exist for sample
+        if sample_features.empty:
+            logger.error(f"Missing sample id in feature set: {identifier}, skipping sample")
+        else:
+            # save as json
+            sample.features = sample_features.to_json()
+            # get type of content and convert to text if needed
+            content_type = sample_class.content.property.columns[0].type
+            if isinstance(content_type, Text):
+                content = content.decode('utf-8')
 
-        sample.content = content
-        samples.append(sample)
+            sample.content = content
+            samples.append(sample)
 
-        if label_name and label_name in all_labels:
-            associations.append(
-                Association(sample=sample,
-                            label=all_labels[label_name], user=user)
-            )
+            if label_name and label_name in all_labels:
+                associations.append(
+                    Association(sample=sample,
+                                label=all_labels[label_name], user=user)
+                )
 
-        if index % 1000 == 0:
+        # save intermediate state
+        if identifier % 1000 == 0:
             logger.info(
-                "{:.2f}% imported ({}/{})".format((index /
-                                                   total) * 100, index, total)
+                "{:.2f}% imported ({}/{})".format((identifier /
+                                                   total) * 100, identifier, total)
             )
             db.add_all(samples)
             db.commit()
