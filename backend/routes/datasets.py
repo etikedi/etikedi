@@ -90,7 +90,8 @@ def get_first_sample(dataset_id: int, user: User = Depends(get_current_active_us
         )
 
     worker = manager.get_or_else_load(dataset)
-    first_sample = worker.get_next_sample()
+    first_sample_id = worker.get_next_sample_id()
+    first_sample = db.get(Sample, first_sample_id)
     if not first_sample:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

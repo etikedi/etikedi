@@ -1,16 +1,17 @@
+import time
 from typing import Dict, Optional
 
 from ..models import Dataset
-from .worker import ActiveLearningWorker
+from .alWorker import AlWorker
 
 
 class ProcessManager:
     """
     Class for management of active-learning process for different data sets.
     """
-    workers: Dict[int, ActiveLearningWorker] = {}
+    workers: Dict[int, AlWorker] = {}
 
-    def get_or_else_load(self, dataset: Dataset) -> ActiveLearningWorker:
+    def get_or_else_load(self, dataset: Dataset) -> AlWorker:
         """
         Retrieves resources of an active-learning process for the specified data set id. Resources being the process
         object itself and the corresponding pipe backend endpoint for communication with said process.
@@ -24,14 +25,14 @@ class ProcessManager:
         if dataset.id in self.workers:
             return self.workers[dataset.id]
         else:
-            return self.create_worker(dataset)
+            return self.create_worker(dataset.id)
 
-    def get(self, dataset: Dataset) -> Optional[ActiveLearningWorker]:
+    def get(self, dataset: Dataset) -> Optional[AlWorker]:
         return self.workers.get(dataset.id)
 
-    def create_worker(self, dataset: Dataset) -> ActiveLearningWorker:
-        worker = ActiveLearningWorker(dataset)
-        self.workers[dataset.id] = worker
+    def create_worker(self, dataset_id: int) -> AlWorker:
+        worker = AlWorker(dataset_id)
+        self.workers[dataset_id] = worker
         return worker
 
 

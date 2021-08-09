@@ -24,6 +24,7 @@ sqlalchemy = "*"
 json-tricks = "*"
 numba = "*"
 psycopg2-binary = "*"
+alipy = "*"
 
 [dev-packages]
 pylint = "*"
