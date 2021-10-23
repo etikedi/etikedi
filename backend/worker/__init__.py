@@ -1,6 +1,5 @@
 from sqlalchemy import func as db_functions
 
-from process_test import *
 from .prepare import *
 from .manager import manager
 from ..config import logger, db
