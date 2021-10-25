@@ -8,12 +8,10 @@ from typing import List, Tuple
 
 from alipy import metrics
 from alipy.index import IndexCollection
-from alipy.query_strategy import QueryInstanceUncertainty
-from sklearn.tree import DecisionTreeClassifier
 
 from .etiTypes import *
 from ..config import db, logger
-from ..models import Dataset, Sample
+from ..models import Dataset, Sample, QueryStrategyAbstraction, ActiveLearningConfig
 
 
 class EventType(Enum):
@@ -41,7 +39,7 @@ class ActiveLearningProcess(multiprocessing.Process):
     """
     dataset_id: int
     # config: ActiveLearningConfig
-    config: dict
+    config: ActiveLearningConfig
     pipe_endpoint: Connection
 
     def __init__(self, dataset_id: int, pipe_endpoint: Connection):
@@ -51,15 +49,14 @@ class ActiveLearningProcess(multiprocessing.Process):
         # everything heavy is done async to keep the main thread clean
 
     def _prepare(self):
-        dataset: Dataset = db.query(Dataset).filter(Dataset.id == self.dataset_id).first()
-        self.config = dataset.config
+        dataset: Dataset = db.get(Dataset, self.dataset_id)
+        self.config = dataset.get_config()
         # split samples
-        unlabeled, labeled = split_by_pred(lambda sample: sample.labels == [], dataset.samples)
+        unlabeled, labeled = split_by_pred(lambda smpl: smpl.labels == [], dataset.samples)
 
         # TODO use configuration
         nbr_of_samples = len(dataset.samples)
         nbr_of_features = len(dataset.feature_names.split(","))
-        # assert that no idx is higher than overall size
 
         self.idx_sample_map = {}
         self.sample_idx_map = {}
@@ -68,19 +65,24 @@ class ActiveLearningProcess(multiprocessing.Process):
             complete_feature_matrix[idx] = sample.extract_feature_list()
             self.idx_sample_map[idx] = sample.id
             self.sample_idx_map[sample.id] = idx
-        # assuming dataset is single labeled
 
+        # assuming dataset is single labeled
         label_list = np.empty(shape=nbr_of_samples, dtype=str)
         for lab_sample in labeled:
             label_list[self.sample_idx_map[lab_sample.id]] = lab_sample.labels[0].name
         # create index collection and query
         self.unlabeled_idx = IndexCollection([self.sample_idx_map[sample.id] for sample in unlabeled])
         self.labeled_idx = IndexCollection([self.sample_idx_map[sample.id] for sample in labeled])
-        self.query_strategy = QueryInstanceUncertainty(X=complete_feature_matrix, y=label_list)
-        self.model = DecisionTreeClassifier()
-        self.batch_size = 5
-        self.counter_until_next_pred = self.batch_size
-        self.counter_until_next_update = self.batch_size
+        self.query_strategy = QueryStrategyAbstraction.build(qs_type=self.config.QUERY_STRATEGY,
+                                                               X=complete_feature_matrix,
+                                                               y=label_list,
+                                                               config=self.config.QUERY_STRATEGY_CONFIG,)
+        model_class = self.config.AL_MODEL.get_class()
+        self.model = model_class()
+        self.batch_size = self.config.BATCH_SIZE
+        self.counter_until_next_eval = self.config.COUNTER_UNTIL_NEXT_EVAL
+        self.counter_until_next_update = self.config.COUNTER_UNTIL_NEXT_MODEL_UPDATE
+        self.evaluation_size = 30  # number of samples used to measure prediction
 
     def run(self):
         """
@@ -192,7 +194,6 @@ class ActiveLearningProcess(multiprocessing.Process):
         selected_id_list: List = self.query_strategy.select(label_index=self.labeled_idx,
                                                             unlabel_index=self.unlabeled_idx,
                                                             model=self.model, batch_size=self.batch_size)
-        # query database by primary key
+        # only work with ids to reduce db-access times
         selected_sample_ids: List[int] = [self.idx_sample_map[sel_id] for sel_id in selected_id_list]
-        # prevent expiring samples after a commit
         return selected_sample_ids

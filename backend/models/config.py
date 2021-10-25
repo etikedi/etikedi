@@ -1,5 +1,22 @@
+from __future__ import annotations  # necessary for self referencing annotations
 from enum import Enum
+from typing import List
 
+from sklearn.cluster import KMeans
+from sklearn.linear_model import LinearRegression
+from sklearn.tree import DecisionTreeClassifier
+
+from al_strategy import (
+    QueryInstanceBMDRHolder,
+    QueryInstanceGraphDensityHolder,
+    QueryInstanceLALHolder,
+    QueryInstanceQBCHolder,
+    QueryInstanceQUIREHolder,
+    QueryInstanceSPALHolder,
+    QueryInstanceUncertaintyHolder,
+    QueryInstanceRandomHolder,
+    QueryExpectedErrorReductionHolder,
+    QueryStrategyType)
 from pydantic import (
     confloat as constrained_float,
     conint as constrained_int,
@@ -9,92 +26,100 @@ from pydantic import (
 )
 
 
-class SamplingMethod(Enum):
-    Random = "random"
-    Uncertainty_lc = "uncertainty_lc"
-    Uncertainty_max_margin = "uncertainty_max_margin"
-    Uncertainty_entropy = "uncertainty_entropy"
+# all model that implement the scikit-learn api
+class ALModel(str, Enum):
+    DECISION_TREE_CLASSIFIER = 'DecisionTreeClassifier',
+    LINEAR_REGRESSION = 'LinearRegression',
+    KMEANS = 'KMeans'
+
+    def get_class(self):
+        if self == ALModel.DECISION_TREE_CLASSIFIER:
+            return DecisionTreeClassifier
+        elif self == ALModel.LINEAR_REGRESSION:
+            return LinearRegression
+        elif self == ALModel.KMEANS:
+            return KMeans
 
 
-class ClusterMethod(Enum):
-    Dummy = "dummy"
-    Random = "random"
-    MostUncertain_lc = "MostUncertain_lc"
-    MostUncertain_max_margin = "MostUncertain_max_margin"
-    MostUncertain_entropy = "MostUncertain_entropy"
+class StoppingCriteria(str, Enum):
+    NONE = 'None',
+    NUM_OF_QUERIES = 'num_of_queries',
+    COST_LIMIT = 'cost_limit',
+    PERCENT_OF_UNLABEL = 'percent_of_unlabel'
 
 
-class InitialBatchSamplingMethod(Enum):
-    Furthest = "furthest"
-    Random = "random"
+class QMeasureType(str, Enum):
+    LEAST_CONFIDENT = 'least_confident',
+    MARGIN = 'margin',
+    ENTROPY = 'entrop',
+    DISTANCE_TO_BOUNDARY = 'distance_to_boundar',
 
 
-class Classifier(Enum):
-    RF = 'RF'
-    SVM = 'SVM'
-    NB = 'NB'
-    MLP = 'MLP'
-    DT = 'DT'
+class QLALMode(str, Enum):
+    LAL_ITERATIVE = 'LAL_iterative',
+    LAL_INDEPENDENT = 'LAL_independent'
 
 
-class DistanceMetric(Enum):
-    Euclidean = 'euclidean'
-    Cosine = 'cosine'
+class QQBCDisagreement(str, Enum):
+    VOTE_ENTROPY = 'vote_entropy',
+    KL_DIVERGENCE = 'KL_divergence'
 
 
-ZeroToOne = constrained_float(ge=0, le=1)
-OneHalfToOne = constrained_float(ge=0.5, le=1)
-LargerNegativeOne = constrained_float(ge=-1)
+class QMetric(str, Enum):
+    EUCLIDEAN = 'euclidean',
+    L2 = 'l2',
+    L1 = 'l1',
+    MANHATTAN = 'manhattan',
+    CITYBLOCK = 'cityblock',
+    BRAYCURTIS = 'braycurtis',
+    CANBERRA = 'canberra',
+    CHEBYSHEV = 'chebyshev',
+    CORRELATION = 'correlation',
+    COSINE = 'cosine',
+    DICE = 'dice',
+    HAMMING = 'hamming',
+    JACCARD = 'jaccard',
+    KULSINSKI = 'kulsinski',
+    MAHALANOBIS = 'mahalanobis',
+    MATCHING = 'matching',
+    MINKOWSKI = 'minkowski',
+    ROGERSTANIMOTO = 'rogerstanimoto',
+    RUSSELLRAO = 'russellrao',
+    SEUCLIDEAN = 'seuclidean',
+    SOKALMICHENER = 'sokalmichener',
+    SOKALSNEATH = 'sokalsneath',
+    SQEUCLIDEAN = 'sqeuclidean',
+    YULE = 'yule',
+    WMINKOWSKI = "wminkowski"
+
+
+class QueryStrategyConfig(Schema):
+    beta = 1000  # QueryInstanceBMDR
+    cls_est: PositiveInt = 50  # LAL
+    data_path = '.'  # LAL
+    disagreement: QQBCDisagreement = QQBCDisagreement.VOTE_ENTROPY  # QueryInstanceQBC
+    gamma = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
+    lambda_init = 0.1  # QueryInstanceSPAL
+    lambda_pace = 0.01  # QueryInstanceSPAL
+    measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
+    method = 'query_by_bagging'  # QueryInstanceQBC
+    metric: QMetric = 'manhattan'  # QueryInstanceGraphDensity
+    mode: QLALMode = QLALMode.LAL_ITERATIVE  # LAL
+    mu = 0.1  # QueryInstanceSPAL
+    rho = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
+    train_idx: List = []  # QueryInstanceGraphDensity, QueryInstanceQUIRE
+    train_slt: bool = True  # LAL
 
 
 class ActiveLearningConfig(Schema):
-    # AL options requried by the `active_learning` module
-    ALLOW_RECOMMENDATIONS_AFTER_STOP: bool = True
-    BATCH_MODE: bool = False
-    CLASSIFIER: Classifier = Classifier.RF
-    CLUSTER: ClusterMethod = ClusterMethod.MostUncertain_max_margin
-    CLUSTER_RECOMMENDATION_MINIMUM_CLUSTER_UNITY_SIZE: ZeroToOne = 0.3
-    CLUSTER_RECOMMENDATION_RATIO_LABELED_UNLABELED: ZeroToOne = 0.8
-    DISTANCE_METRIC: DistanceMetric = DistanceMetric.Euclidean
-    GENERATE_NOISE: bool = True
-    HYPERCUBE: bool = True
-    INITIAL_BATCH_SAMPLING_ARG: constrained_int(ge=0, le=2000) = 10
-    INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST: ZeroToOne = 0.4
-    INITIAL_BATCH_SAMPLING_HYBRID_FURTHEST_LAB: ZeroToOne = 0
-    INITIAL_BATCH_SAMPLING_HYBRID_PRED_UNITY: ZeroToOne = 0
-    INITIAL_BATCH_SAMPLING_HYBRID_UNCERT: ZeroToOne = 0.4
-    INITIAL_BATCH_SAMPLING_METHOD: InitialBatchSamplingMethod = InitialBatchSamplingMethod.Furthest
-    MINIMUM_TEST_ACCURACY_BEFORE_RECOMMENDATIONS: ZeroToOne = 0
-    NEW_SYNTHETIC_PARAMS: bool = False
-    NR_LEARNING_ITERATIONS: PositiveInt = 200000
-    NR_QUERIES_PER_ITERATION: PositiveInt = 100
-    N_JOBS: LargerNegativeOne = -1
-    PLOT_EVOLUTION: bool = False
-    RANDOM_SEED: PositiveInt = 1
-    SAMPLING: SamplingMethod = SamplingMethod.Uncertainty_max_margin
-    STATE_ARGSECOND_PROBAS: bool = True
-    STATE_ARGTHIRD_PROBAS: bool = True
-    STATE_DIFF_PROBAS: bool = False
-    STATE_DISTANCES: bool = False
-    STATE_DISTANCES_LAB: bool = True
-    STATE_DISTANCES_UNLAB: bool = True
-    STATE_INCLUDE_NR_FEATURES: bool = True
-    STATE_PREDICTED_CLASS: bool = False
-    STATE_PREDICTED_UNITY: bool = False
-    STATE_UNCERTAINTIES: bool = False
-    STOPPING_CRITERIA_ACC: ZeroToOne = 0
-    STOPPING_CRITERIA_STD: ZeroToOne = 0
-    STOPPING_CRITERIA_UNCERTAINTY: ZeroToOne = 0
-    STOP_AFTER_MAXIMUM_ACCURACY_REACHED: bool = False
-    TEST_FRACTION: ZeroToOne = 0.3
-    UNCERTAINTY_RECOMMENDATION_CERTAINTY_THRESHOLD: OneHalfToOne = 0.99
-    UNCERTAINTY_RECOMMENDATION_RATIO: ZeroToOne = 0.01
-    USER_QUERY_BUDGET_LIMIT: PositiveFloat = 2000
-    VARIABLE_DATASET: bool = True
-    WITH_CLUSTER_RECOMMENDATION: bool = True
-    WITH_SNUBA_LITE: bool = False
-    WITH_UNCERTAINTY_RECOMMENDATION: bool = True
-
+    QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
+    QUERY_STRATEGY_CONFIG: QueryStrategyConfig = QueryStrategyConfig()
+    AL_MODEL: ALModel = ALModel.KMEANS
+    STOPPING_CRITERIA: StoppingCriteria = StoppingCriteria.NONE
+    BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
+    COUNTER_UNTIL_NEXT_EVAL: PositiveInt = 5  # number of updates (add/remove) until next model evaluation
+    EVALUATION_SIZE: PositiveInt = 5  # number of updates until next model training
+    COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt = 5
     # Etikedi config options
     RANDOM_SAMPLE_EVERY: PositiveInt = 10
     TIMEOUT_FOR_WORKER: PositiveInt = 60

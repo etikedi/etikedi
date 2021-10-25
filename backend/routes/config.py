@@ -52,6 +52,6 @@ async def change_dataset_config(dataset_id: int,
 
     worker = manager.get(dataset)
     if worker:
-        worker.restart_process(json.loads(dataset.config))
+        worker.restart_process()
 
     return dataset.get_config()
