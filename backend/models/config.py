@@ -1,22 +1,12 @@
 from __future__ import annotations  # necessary for self referencing annotations
 from enum import Enum
 from typing import List
+from .al_strategy import QueryStrategyType
 
 from sklearn.cluster import KMeans
 from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeClassifier
 
-from al_strategy import (
-    QueryInstanceBMDRHolder,
-    QueryInstanceGraphDensityHolder,
-    QueryInstanceLALHolder,
-    QueryInstanceQBCHolder,
-    QueryInstanceQUIREHolder,
-    QueryInstanceSPALHolder,
-    QueryInstanceUncertaintyHolder,
-    QueryInstanceRandomHolder,
-    QueryExpectedErrorReductionHolder,
-    QueryStrategyType)
 from pydantic import (
     confloat as constrained_float,
     conint as constrained_int,
@@ -28,9 +18,9 @@ from pydantic import (
 
 # all model that implement the scikit-learn api
 class ALModel(str, Enum):
-    DECISION_TREE_CLASSIFIER = 'DecisionTreeClassifier',
-    LINEAR_REGRESSION = 'LinearRegression',
-    KMEANS = 'KMeans'
+    DECISION_TREE_CLASSIFIER = ("DecisionTreeClassifier",)
+    LINEAR_REGRESSION = ("LinearRegression",)
+    KMEANS = "KMeans"
 
     def get_class(self):
         if self == ALModel.DECISION_TREE_CLASSIFIER:
@@ -42,68 +32,68 @@ class ALModel(str, Enum):
 
 
 class StoppingCriteria(str, Enum):
-    NONE = 'None',
-    NUM_OF_QUERIES = 'num_of_queries',
-    COST_LIMIT = 'cost_limit',
-    PERCENT_OF_UNLABEL = 'percent_of_unlabel'
+    NONE = ("None",)
+    NUM_OF_QUERIES = ("num_of_queries",)
+    COST_LIMIT = ("cost_limit",)
+    PERCENT_OF_UNLABEL = "percent_of_unlabel"
 
 
 class QMeasureType(str, Enum):
-    LEAST_CONFIDENT = 'least_confident',
-    MARGIN = 'margin',
-    ENTROPY = 'entrop',
-    DISTANCE_TO_BOUNDARY = 'distance_to_boundar',
+    LEAST_CONFIDENT = ("least_confident",)
+    MARGIN = ("margin",)
+    ENTROPY = ("entrop",)
+    DISTANCE_TO_BOUNDARY = ("distance_to_boundar",)
 
 
 class QLALMode(str, Enum):
-    LAL_ITERATIVE = 'LAL_iterative',
-    LAL_INDEPENDENT = 'LAL_independent'
+    LAL_ITERATIVE = ("LAL_iterative",)
+    LAL_INDEPENDENT = "LAL_independent"
 
 
 class QQBCDisagreement(str, Enum):
-    VOTE_ENTROPY = 'vote_entropy',
-    KL_DIVERGENCE = 'KL_divergence'
+    VOTE_ENTROPY = ("vote_entropy",)
+    KL_DIVERGENCE = "KL_divergence"
 
 
 class QMetric(str, Enum):
-    EUCLIDEAN = 'euclidean',
-    L2 = 'l2',
-    L1 = 'l1',
-    MANHATTAN = 'manhattan',
-    CITYBLOCK = 'cityblock',
-    BRAYCURTIS = 'braycurtis',
-    CANBERRA = 'canberra',
-    CHEBYSHEV = 'chebyshev',
-    CORRELATION = 'correlation',
-    COSINE = 'cosine',
-    DICE = 'dice',
-    HAMMING = 'hamming',
-    JACCARD = 'jaccard',
-    KULSINSKI = 'kulsinski',
-    MAHALANOBIS = 'mahalanobis',
-    MATCHING = 'matching',
-    MINKOWSKI = 'minkowski',
-    ROGERSTANIMOTO = 'rogerstanimoto',
-    RUSSELLRAO = 'russellrao',
-    SEUCLIDEAN = 'seuclidean',
-    SOKALMICHENER = 'sokalmichener',
-    SOKALSNEATH = 'sokalsneath',
-    SQEUCLIDEAN = 'sqeuclidean',
-    YULE = 'yule',
+    EUCLIDEAN = ("euclidean",)
+    L2 = ("l2",)
+    L1 = ("l1",)
+    MANHATTAN = ("manhattan",)
+    CITYBLOCK = ("cityblock",)
+    BRAYCURTIS = ("braycurtis",)
+    CANBERRA = ("canberra",)
+    CHEBYSHEV = ("chebyshev",)
+    CORRELATION = ("correlation",)
+    COSINE = ("cosine",)
+    DICE = ("dice",)
+    HAMMING = ("hamming",)
+    JACCARD = ("jaccard",)
+    KULSINSKI = ("kulsinski",)
+    MAHALANOBIS = ("mahalanobis",)
+    MATCHING = ("matching",)
+    MINKOWSKI = ("minkowski",)
+    ROGERSTANIMOTO = ("rogerstanimoto",)
+    RUSSELLRAO = ("russellrao",)
+    SEUCLIDEAN = ("seuclidean",)
+    SOKALMICHENER = ("sokalmichener",)
+    SOKALSNEATH = ("sokalsneath",)
+    SQEUCLIDEAN = ("sqeuclidean",)
+    YULE = ("yule",)
     WMINKOWSKI = "wminkowski"
 
 
 class QueryStrategyConfig(Schema):
     beta = 1000  # QueryInstanceBMDR
     cls_est: PositiveInt = 50  # LAL
-    data_path = '.'  # LAL
+    data_path = "."  # LAL
     disagreement: QQBCDisagreement = QQBCDisagreement.VOTE_ENTROPY  # QueryInstanceQBC
     gamma = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
     lambda_init = 0.1  # QueryInstanceSPAL
     lambda_pace = 0.01  # QueryInstanceSPAL
     measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
-    method = 'query_by_bagging'  # QueryInstanceQBC
-    metric: QMetric = 'manhattan'  # QueryInstanceGraphDensity
+    method = "query_by_bagging"  # QueryInstanceQBC
+    metric: QMetric = "manhattan"  # QueryInstanceGraphDensity
     mode: QLALMode = QLALMode.LAL_ITERATIVE  # LAL
     mu = 0.1  # QueryInstanceSPAL
     rho = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
@@ -117,14 +107,16 @@ class ActiveLearningConfig(Schema):
     AL_MODEL: ALModel = ALModel.KMEANS
     STOPPING_CRITERIA: StoppingCriteria = StoppingCriteria.NONE
     BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
-    COUNTER_UNTIL_NEXT_EVAL: PositiveInt = 5  # number of updates (add/remove) until next model evaluation
+    COUNTER_UNTIL_NEXT_EVAL: PositiveInt = (
+        5  # number of updates (add/remove) until next model evaluation
+    )
     EVALUATION_SIZE: PositiveInt = 5  # number of updates until next model training
     COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt = 5
     # Etikedi config options
     RANDOM_SAMPLE_EVERY: PositiveInt = 10
     TIMEOUT_FOR_WORKER: PositiveInt = 60
 
-    DATASET_NAME: str = 'Dataset'
+    DATASET_NAME: str = "Dataset"
     AMOUNT_OF_FEATURES: int = -1
 
 
