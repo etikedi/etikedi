@@ -14,7 +14,8 @@
 
   const { id } = router.params()
 
-  let config = null
+  export let alWar = false
+  export let config = null
 
   // Spec for auto generating the config form
   const IntBetween = (min, max) => ({ type: 'number', min, max })
@@ -30,29 +31,23 @@
   const Bool = { type: 'bool' }
 
   const spec = {
-      QUERY_STRATEGY: Choice([
-          'QueryInstanceBMDR',
-          'QueryInstanceGraphDensity',
-          'QueryInstanceLAL',
-          'QueryInstanceQBC',
-          'QueryInstanceQUIRE',
-          'QueryInstanceSPAL',
-          'QueryInstanceUncertainty',
-          'QueryInstanceRandom',
-          'QueryExpectedErrorReduction']),
-      AL_MODEL: Choice([
-          'DecisionTreeClassifier',
-          'LinearRegression',
-          'KMeans']),
-      STOPPING_CRITERIA: Choice([
-          'None',
-          'num_of_queries',
-          'cost_limit',
-          'percent_of_unlabel']),
-      BATCH_SIZE: PositiveInt,
-      COUNTER_UNTIL_NEXT_EVAL: PositiveInt,
-      EVALUATION_SIZE: PositiveInt,
-      COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt
+    QUERY_STRATEGY: Choice([
+      'QueryInstanceBMDR',
+      'QueryInstanceGraphDensity',
+      'QueryInstanceLAL',
+      'QueryInstanceQBC',
+      'QueryInstanceQUIRE',
+      'QueryInstanceSPAL',
+      'QueryInstanceUncertainty',
+      'QueryInstanceRandom',
+      'QueryExpectedErrorReduction',
+    ]),
+    AL_MODEL: Choice(['DecisionTreeClassifier', 'LinearRegression', 'KMeans']),
+    STOPPING_CRITERIA: Choice(['None', 'num_of_queries', 'cost_limit', 'percent_of_unlabel']),
+    BATCH_SIZE: PositiveInt,
+    COUNTER_UNTIL_NEXT_EVAL: PositiveInt,
+    EVALUATION_SIZE: PositiveInt,
+    COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt,
   }
 
   $: dataset = $data[id]
@@ -89,7 +84,9 @@
 </script>
 
 <div>
-  <Button icon="arrow-back-circle-sharp" label="Back" on:click={back} />
+  {#if !alWar}
+    <Button icon="arrow-back-circle-sharp" label="Back" on:click={back} />
+  {/if}
   <br />
   {#if dataset && config}
     <h2><b>{dataset.name}</b> Config</h2>
@@ -103,18 +100,25 @@
           <Checkbox bind:value={config[key]} disabled={loading} label={sentenceCase(key)} />
         {/if}
       {/each}
-      <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
+      {#if !alWar}
+        <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
+      {/if}
     </form>
     <br />
-    <Button
-      on:click={del}
-      danger
-      label="Delete dataset and all the trained data"
-      icon="remove-circle-sharp"
-      {loading}
-      disabled={loading}
-    />
+    {#if !alWar}
+      <Button
+        on:click={del}
+        danger
+        label="Delete dataset and all the trained data"
+        icon="remove-circle-sharp"
+        {loading}
+        disabled={loading}
+      />
+    {/if}
   {:else}
-    <div class="loading loading-lg" />
+    <div class="text-center">
+      <div class="loading loading-lg" />
+      <p>Waiting for server</p>
+    </div>
   {/if}
 </div>

@@ -39,6 +39,8 @@
       for (const sample of samples) {
         chosen[sample.id] = false
       }
+    } else {
+      samples = $samples_to_label
     }
   }
 
