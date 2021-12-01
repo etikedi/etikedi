@@ -32,8 +32,7 @@
 <style>
   main {
     position: relative;
-    max-width: 56em;
-    padding: 2em;
+    padding: 3em 6em;
     margin: 0 auto;
     box-sizing: border-box;
   }
