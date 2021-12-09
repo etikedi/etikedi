@@ -1,3 +1,6 @@
+import altair as alt
+from vega_datasets import data
+
 from typing import List, Optional, Union
 
 from fastapi import Depends, UploadFile, File, Form, HTTPException, APIRouter, status, Query, Response
@@ -289,3 +292,32 @@ def get_worker_metrics(dataset_id: int, user=Depends(get_current_active_user)):
         )
 
     return worker.metrics
+
+
+@dataset_router.get('/{dataset_id}/diagrams/')
+def get_diagrams(user: User = Depends(get_current_active_user)):
+    chart1 = (
+        alt.Chart(data.cars.url)
+        .mark_point()
+        .encode(x="Horsepower:Q", y="Miles_per_Gallon:Q", color="Origin:N")
+    )
+
+    chart2 = (
+        alt.Chart(data.cars.url)
+        .mark_point()
+        .encode(x="Cylinders:Q", y="Acceleration:Q", color="Origin:N")
+    )
+
+    chart3 = (
+        alt.Chart(data.anscombe.url)
+        .mark_point()
+        .encode(x="X:Q", y="X:Q", color="Series:N")
+    )
+
+    chart4 = (
+        alt.Chart(data.anscombe.url)
+        .mark_point()
+        .encode(x="X:Q", y="X:Q", color="Series:N")
+    )
+
+    return [chart1.to_json(), chart2.to_json(), chart3.to_json(), chart4.to_json()]

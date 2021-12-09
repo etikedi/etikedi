@@ -13,6 +13,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^16.0.0",
+    "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-replace": "^2.3.4",
     "@rollup/plugin-typescript": "^6.0.0",
@@ -40,6 +41,9 @@
     "dompurify": "^2.2.3",
     "jwt-decode": "^3.1.2",
     "svelte-ace": "1.0.10",
-    "tinro": "^0.4.3"
+    "tinro": "^0.4.3",
+    "vega": "^5.21.0",
+    "vega-embed": "^6.20.5",
+    "vega-lite": "^5.2.0"
   }
 }
