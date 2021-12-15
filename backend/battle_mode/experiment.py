@@ -6,14 +6,14 @@ import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
-from alipy.query_strategy import QueryInstanceUncertainty
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
+
+from ..models import AlExperimentConfig, QueryStrategyAbstraction
 
 
 class AL_Experiment:
 
-    def __init__(self, d_frame: pd.DataFrame):
+    def __init__(self, d_frame: pd.DataFrame, config: AlExperimentConfig):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -52,12 +52,15 @@ class AL_Experiment:
         self.unlab_ind = IndexCollection(
             [adjusted_idx_map[idx] for idx in unlabel_idx])  # Indexes of your unlabeled set for querying
         self.label_ind = IndexCollection([adjusted_idx_map[idx] for idx in label_idx])  # Indexes of your labeled set
-        self.al_strategy = QueryInstanceUncertainty(X=self.all_training_samples.to_numpy(),
-                                                    y=self.all_training_labels.to_numpy())
+        self.al_strategy = QueryStrategyAbstraction.build(qs_type=config.QUERY_STRATEGY,
+                                                          X=self.all_training_samples.to_numpy(),
+                                                          y=self.all_training_labels.to_numpy(),
+                                                          config=config.QUERY_STRATEGY_CONFIG, )
+        model_class = config.AL_MODEL.get_class()
+        self.model = model_class()
+        self.batch_size = config.BATCH_SIZE
         self.prediction_history = pd.DataFrame(columns=test_idx)
-        self.batch_size = 5
-        self.stopping_criteria = StoppingCriteria(stopping_criteria=None)  # stop when no unlabeled samples available
-        self.model = RandomForestClassifier()
+        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get())
 
         self.X_test = all_labeled_samples.iloc[test_idx, :].to_numpy()
         self.y_test = labels.iloc[test_idx]
@@ -117,6 +120,8 @@ class AL_Experiment:
         # TODO
         # pandas dataframe: every column is one sample, every row is one prediction
         # every cell is a tuple of (predicted_label, certainty)
+        assert len(self.state_saver) == len(self.prediction_history)
+
         num_iter = len(self.prediction_history)
         for idx, row in self.prediction_history.iterrows():
             y_pred = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
@@ -131,7 +136,8 @@ class AL_Experiment:
         print(f"F1 over all iterations is: {f1_avg * 100}% ")
         print(
             f"Highest f1 over all iterations is: {self.metrics['F1'].max() * 100}% in iteration: {self.metrics['F1'].idxmax()} ")
-        training_times = [self.state_saver.get_state(i).get_value('train_time') for i in range(len(self.metrics))]
+        training_times = [self.state_saver.get_state(i).get_value('train_time') for i in
+                          range(len(self.prediction_history))]
         avg_time = round(sum(training_times) / num_iter, 4)
         print(f"Average training time took: " + ("less than 0.1ms" if avg_time < 0.1 else str(avg_time)))
 

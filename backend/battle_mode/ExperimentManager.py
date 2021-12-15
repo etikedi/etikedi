@@ -1,6 +1,6 @@
 from typing import List
 
-from ..models import Dataset
+from ..models import Dataset, AlExperimentConfig
 from ..config import db
 from .experiment import AL_Experiment
 import pandas as pd
@@ -9,7 +9,7 @@ import pandas as pd
 class ExperimentManager:
     """Manages (asynchronous) execution of to AL-strategies"""
 
-    def __init__(self, dataset_id: int, config_one, config_two):
+    def __init__(self, dataset_id: int, config_one: AlExperimentConfig, config_two: AlExperimentConfig):
         self.was_executed = False
         self.dataset_id: int = dataset_id
         self.config_one = config_one
@@ -22,9 +22,10 @@ class ExperimentManager:
         self.experiment_one.calculate_metrics()
         self.experiment_one.plot_metrics()
 
-        self.experiment_one.run_experiment(verbose=1)
-        self.experiment_one.calculate_metrics()
-        self.experiment_one.plot_metrics()
+        self.experiment_two.run_experiment(verbose=1)
+        self.experiment_two.calculate_metrics()
+        self.experiment_two.plot_metrics()
+        self.was_executed = True
         return self
 
     def get_metrics(self):
@@ -32,7 +33,7 @@ class ExperimentManager:
             raise Exception("Experiment has to be run first")
         return self.experiment_one.metrics, self.experiment_two.metrics
 
-    def _from_dataset(self, config) -> AL_Experiment:
+    def _from_dataset(self, config: AlExperimentConfig) -> AL_Experiment:
         dataset: Dataset = db.get(Dataset, self.dataset_id)
         feature_names: List[str] = dataset.feature_names.split(",")
         frame = pd.DataFrame(data=
@@ -40,4 +41,4 @@ class ExperimentManager:
                               for sample in dataset.samples if sample.labels != []],
                              columns=feature_names + ["LABEL"])
         print(f"There are {len(frame)} labeled samples ({round(len(frame) / len(dataset.samples) * 100, 2)})%")
-        return AL_Experiment(frame)
+        return AL_Experiment(frame, config)

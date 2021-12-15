@@ -1,85 +1,87 @@
 from __future__ import annotations  # necessary for self referencing annotations
 from enum import Enum
 from typing import List
+
 from .al_strategy import QueryStrategyType
 
-from sklearn.cluster import KMeans
-from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
 
 from pydantic import (
-    confloat as constrained_float,
-    conint as constrained_int,
     BaseModel as Schema,
-    PositiveFloat,
     PositiveInt,
 )
 
 
-# all model that implement the scikit-learn api
+# all model that implement the scikit-learn api and provide predict_proba
 class ALModel(str, Enum):
-    DECISION_TREE_CLASSIFIER = ("DecisionTreeClassifier",)
-    LINEAR_REGRESSION = ("LinearRegression",)
-    KMEANS = "KMeans"
+    DECISION_TREE_CLASSIFIER = "DecisionTreeClassifier"
+    RANDOM_FOREST_CLASSIFIER = "RandomForestClassifier"
+    LOGISTIC_REGRESSION = "LogisticRegression"
 
     def get_class(self):
         if self == ALModel.DECISION_TREE_CLASSIFIER:
             return DecisionTreeClassifier
-        elif self == ALModel.LINEAR_REGRESSION:
-            return LinearRegression
-        elif self == ALModel.KMEANS:
-            return KMeans
+        elif self == ALModel.RANDOM_FOREST_CLASSIFIER:
+            return RandomForestClassifier
+        elif self == ALModel.LOGISTIC_REGRESSION:
+            return LogisticRegression
 
 
 class StoppingCriteria(str, Enum):
-    NONE = ("None",)
-    NUM_OF_QUERIES = ("num_of_queries",)
-    COST_LIMIT = ("cost_limit",)
+    ALL_LABELED = 'None'
+    NUM_OF_QUERIES = "num_of_queries"
+    COST_LIMIT = "cost_limit"
     PERCENT_OF_UNLABEL = "percent_of_unlabel"
+
+    # None has to be passed to StoppingCriteria() as absence of criteria which is equiv to all_labeled
+    def get(self):
+        return None if self == StoppingCriteria.ALL_LABELED else self.value
 
 
 class QMeasureType(str, Enum):
-    LEAST_CONFIDENT = ("least_confident",)
-    MARGIN = ("margin",)
-    ENTROPY = ("entrop",)
-    DISTANCE_TO_BOUNDARY = ("distance_to_boundar",)
+    LEAST_CONFIDENT = "least_confident"
+    MARGIN = "margin"
+    ENTROPY = "entrop"
+    DISTANCE_TO_BOUNDARY = "distance_to_boundar"
 
 
 class QLALMode(str, Enum):
-    LAL_ITERATIVE = ("LAL_iterative",)
+    LAL_ITERATIVE = "LAL_iterative"
     LAL_INDEPENDENT = "LAL_independent"
 
 
 class QQBCDisagreement(str, Enum):
-    VOTE_ENTROPY = ("vote_entropy",)
+    VOTE_ENTROPY = "vote_entropy"
     KL_DIVERGENCE = "KL_divergence"
 
 
 class QMetric(str, Enum):
     EUCLIDEAN = ("euclidean",)
-    L2 = ("l2",)
-    L1 = ("l1",)
-    MANHATTAN = ("manhattan",)
-    CITYBLOCK = ("cityblock",)
-    BRAYCURTIS = ("braycurtis",)
-    CANBERRA = ("canberra",)
-    CHEBYSHEV = ("chebyshev",)
-    CORRELATION = ("correlation",)
-    COSINE = ("cosine",)
-    DICE = ("dice",)
-    HAMMING = ("hamming",)
-    JACCARD = ("jaccard",)
-    KULSINSKI = ("kulsinski",)
-    MAHALANOBIS = ("mahalanobis",)
-    MATCHING = ("matching",)
-    MINKOWSKI = ("minkowski",)
-    ROGERSTANIMOTO = ("rogerstanimoto",)
-    RUSSELLRAO = ("russellrao",)
-    SEUCLIDEAN = ("seuclidean",)
-    SOKALMICHENER = ("sokalmichener",)
-    SOKALSNEATH = ("sokalsneath",)
-    SQEUCLIDEAN = ("sqeuclidean",)
-    YULE = ("yule",)
+    L2 = "l2"
+    L1 = "l1"
+    MANHATTAN = "manhattan"
+    CITYBLOCK = "cityblock"
+    BRAYCURTIS = "braycurtis"
+    CANBERRA = "canberra"
+    CHEBYSHEV = "chebyshev"
+    CORRELATION = "correlation"
+    COSINE = "cosine"
+    DICE = "dice"
+    HAMMING = "hamming"
+    JACCARD = "jaccard"
+    KULSINSKI = "kulsinski"
+    MAHALANOBIS = "mahalanobis"
+    MATCHING = "matching"
+    MINKOWSKI = "minkowski"
+    ROGERSTANIMOTO = "rogerstanimoto"
+    RUSSELLRAO = "russellrao"
+    SEUCLIDEAN = "seuclidean"
+    SOKALMICHENER = "sokalmichener"
+    SOKALSNEATH = "sokalsneath"
+    SQEUCLIDEAN = "sqeuclidean"
+    YULE = "yule"
     WMINKOWSKI = "wminkowski"
 
 
@@ -104,8 +106,8 @@ class QueryStrategyConfig(Schema):
 class ActiveLearningConfig(Schema):
     QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
     QUERY_STRATEGY_CONFIG: QueryStrategyConfig = QueryStrategyConfig()
-    AL_MODEL: ALModel = ALModel.KMEANS
-    STOPPING_CRITERIA: StoppingCriteria = StoppingCriteria.NONE
+    AL_MODEL: ALModel = ALModel.RANDOM_FOREST_CLASSIFIER
+    STOPPING_CRITERIA: StoppingCriteria = StoppingCriteria.ALL_LABELED
     BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
     COUNTER_UNTIL_NEXT_EVAL: PositiveInt = (
         5  # number of updates (add/remove) until next model evaluation
