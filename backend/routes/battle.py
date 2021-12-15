@@ -1,17 +1,11 @@
 import json
 import altair as alt
+
 from vega_datasets import data
-
-from fastapi import APIRouter, HTTPException, status, Depends
-
-from ..utils import get_current_active_user
-from ..worker import manager
-from ..config import db
-from ..models import Dataset, ActiveLearningConfig, User
+from fastapi import APIRouter
+from ..models import ActiveLearningConfig
 
 config_router = APIRouter()
-
-remaining_time = 11
 
 
 @config_router.post("/al-wars/{dataset_id}/start")
