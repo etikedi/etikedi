@@ -50,6 +50,48 @@
     COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt,
   }
 
+  const spec_query_strategy = {
+    beta: PositiveInt,
+    cls_est: PositiveInt,
+    disagreement: Choice(['vote_entropy', 'KL_divergence']),
+    gamma: ZeroToOne,
+    lambda_init: ZeroToOne,
+    lambda_pace: PositiveFloat,
+    measure: Choice(['least_confident', 'margin', 'entrop', 'distance_to_boundar']),
+    method: 'query_by_bagging',
+    metric: Choice([
+      'euclidean',
+      'l2',
+      'l1',
+      'manhattan',
+      'cityblock',
+      'braycurtis',
+      'canberra',
+      'chebyshev',
+      'correlation',
+      'cosine',
+      'dice',
+      'hamming',
+      'jaccard',
+      'kulsinski',
+      'mahalanobis',
+      'matching',
+      'minkowski',
+      'rogerstanimoto',
+      'russellrao',
+      'seuclidean',
+      'sokalmichener',
+      'sokalsneath',
+      'sqeuclidean',
+      'yule',
+      'wminkowski',
+    ]),
+    mode: Choice(['LAL_iterative', 'LAL_independent']),
+    mu: ZeroToOne,
+    rho: ZeroToOne,
+    train_slt: Bool,
+  }
+
   $: dataset = $data[id]
   $: loading = $loadingConfig || $loadingDatasets
 
