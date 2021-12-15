@@ -2,6 +2,8 @@ import time
 
 import numpy as np
 import matplotlib.pyplot as plt
+from multiprocessing import Process
+from multiprocessing.connection import Connection
 import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
@@ -11,9 +13,9 @@ from sklearn.metrics import accuracy_score, f1_score
 from ..models import AlExperimentConfig, QueryStrategyAbstraction
 
 
-class AL_Experiment:
+class ALExperimentProcess(Process):
 
-    def __init__(self, d_frame: pd.DataFrame, config: AlExperimentConfig):
+    def __init__(self, d_frame: pd.DataFrame, config: AlExperimentConfig, pipe_endpoint: Connection):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -24,6 +26,8 @@ class AL_Experiment:
           3. test model,
           4. save current iteration in history.
         """
+        super().__init__()
+        self.pipe_endpoint = pipe_endpoint
         self.metrics = pd.DataFrame(columns=['Acc', 'F1'])
         labeled_set = d_frame[d_frame['LABEL'].notnull()]
         all_labeled_samples = labeled_set.drop(labels='LABEL', axis='columns')
@@ -65,9 +69,9 @@ class AL_Experiment:
         self.X_test = all_labeled_samples.iloc[test_idx, :].to_numpy()
         self.y_test = labels.iloc[test_idx]
         self.state_saver = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
-                                   init_U=self.unlab_ind.index, init_L=self.label_ind.index)
+                                   init_U=self.unlab_ind.index, init_L=self.label_ind.index, verbose=False)
 
-    def run_experiment(self, verbose=0):
+    def run(self, verbose=0):
         # initial training
         self.model.fit(*self.get_training_data())
         # test data does not change: has original index equal to all_labeled_samples
@@ -90,6 +94,7 @@ class AL_Experiment:
             finally:
                 stop = time.time()
             diff_time = stop - start
+            self.pipe_endpoint.send(diff_time)
             pred_proba = self.model.predict_proba(self.X_test)
             y_pred = list(map(lambda array: self.model.classes_[array.argmax()], pred_proba))
             perf = accuracy_score(y_true=self.y_test.to_list(), y_pred=y_pred)
@@ -140,6 +145,7 @@ class AL_Experiment:
                           range(len(self.prediction_history))]
         avg_time = round(sum(training_times) / num_iter, 4)
         print(f"Average training time took: " + ("less than 0.1ms" if avg_time < 0.1 else str(avg_time)))
+        return self.metrics
 
     def _calc_confidence(self):
         return [np.max(row) for _, row in self.prediction_history.iterrows()]

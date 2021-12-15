@@ -13,7 +13,7 @@ async def start_battle(dataset_id: int, config1: AlExperimentConfig, config2: Al
     """Return if training started successfully."""
 
     # start process
-    ExperimentManager(dataset_id, config1, config2).run()
+    ExperimentManager(dataset_id, config1, config2).start()
     return True
 
 
