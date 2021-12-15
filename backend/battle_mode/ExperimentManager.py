@@ -1,13 +1,27 @@
-from typing import List
+from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
-from ..models import Dataset, AlExperimentConfig
-from ..config import db
-from .experiment import AL_Experiment
+from multiprocessing.connection import Pipe
+from typing import List, Dict
+
 import pandas as pd
+
+from .experiment import ALExperimentProcess
+from ..config import db, logger
+from ..models import Dataset, AlExperimentConfig
 
 
 class ExperimentManager:
     """Manages (asynchronous) execution of to AL-strategies"""
+
+    _manager: Dict[int, ExperimentManager] = {}
+
+    @classmethod
+    def has_manager(cls, dataset_id: int):
+        return dataset_id in ExperimentManager._manager
+
+    @classmethod
+    def get_manager(cls, dataset_id):
+        return ExperimentManager._manager[dataset_id]
 
     def __init__(self, dataset_id: int, config_one: AlExperimentConfig, config_two: AlExperimentConfig):
         self.was_executed = False
