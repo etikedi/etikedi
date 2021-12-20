@@ -1,13 +1,75 @@
 import { writable } from 'svelte/store'
 import axios from 'axios'
 
-export type BattleConfig = {}
+export type BattleConfig = {
+  QUERY_STRATEGY:
+    | 'QueryInstanceBMDR'
+    | 'QueryInstanceGraphDensity'
+    | 'QueryInstanceLAL'
+    | 'QueryInstanceQBC'
+    | 'QueryInstanceQUIRE'
+    | 'QueryInstanceSPAL'
+    | 'QueryInstanceUncertainty'
+    | 'QueryInstanceRandom'
+    | 'QueryExpectedErrorReduction'
+  AL_MODEL: 'DecisionTreeClassifier' | 'RandomForestClassifier' | 'LogisticRegression'
+  STOPPING_CRITERIA: 'None' | 'num_of_queries' | 'cost_limit' | 'percent_of_unlabel'
+  BATCH_SIZE: number
+  QUERY_STRATEGY_CONFIG: {
+    beta: number
+    cls_est: number
+    disagreement: 'vote_entropy' | 'KL_divergence'
+    gamma: number
+    lambda_init: number
+    lambda_pace: number
+    measure: 'least_confident'
+    margin
+    entrop
+    distance_to_boundar
+    method: 'query_by_bagging'
+    metric:
+      | 'euclidean'
+      | 'l2'
+      | 'l1'
+      | 'manhattan'
+      | 'cityblock'
+      | 'braycurtis'
+      | 'canberra'
+      | 'chebyshev'
+      | 'correlation'
+      | 'cosine'
+      | 'dice'
+      | 'hamming'
+      | 'jaccard'
+      | 'kulsinski'
+      | 'mahalanobis'
+      | 'matching'
+      | 'minkowski'
+      | 'rogerstanimoto'
+      | 'russellrao'
+      | 'seuclidean'
+      | 'sokalmichener'
+      | 'sokalsneath'
+      | 'sqeuclidean'
+      | 'yule'
+      | 'wminkowski'
+    mode: 'LAL_iterative' | 'LAL_independent'
+    mu: number
+    rho: number
+    train_slt: boolean
+  }
+}
 export type Diagram = {}
 export type Metrics = {}
 
-export const isFinished = writable<boolean>(true)
+/**
+ * true if both finished
+ * false if no data available
+ * time in seconds if at least one is finished
+ */
+export const isFinished = writable<boolean | number>(false)
 export const diagrams = writable<Diagram[]>(null)
-export const metrics = writable<Metrics[]>(null)
+export const metricsss = writable<Metrics[]>(null)
 export const loading = writable(null)
 
 export async function startBattle(dataset_id: number | string, config1: BattleConfig, config2: BattleConfig) {
@@ -15,10 +77,12 @@ export async function startBattle(dataset_id: number | string, config1: BattleCo
     loading.set(true)
     const { data: success } = await axios({
       method: 'post',
-      url: `/al-war/${dataset_id}/start`,
+      url: `${dataset_id}/al-wars/start`,
       data: { config1, config2 },
     })
     return success
+  } catch {
+    return false
   } finally {
     loading.set(false)
   }
@@ -28,10 +92,18 @@ export async function getStatus(dataset_id: number | string) {
   try {
     loading.set(true)
     const { data: isFinish } = await axios({
-      url: `/al-war/${dataset_id}/is_finish`,
+      url: `${dataset_id}/al-wars/is_finish`,
       method: 'get',
     })
-    isFinished.set(isFinish)
+
+    /**
+     * Response:
+     * -1 if both are finished
+     * -2 if no data is available
+     * time in seconds if at least one is finished
+     */
+
+    isFinished.set(isFinish > 0 ? isFinish : isFinish < -1 ? false : true)
   } finally {
     loading.set(false)
   }
@@ -41,7 +113,7 @@ export async function getDiagrams(dataset_id: number | string) {
   try {
     loading.set(true)
     const { data: d } = await axios({
-      url: `/al-war/${dataset_id}/get_diagrams`,
+      url: `${dataset_id}/al-wars/get_diagrams`,
       method: 'get',
     })
     diagrams.set(d)
@@ -54,10 +126,10 @@ export async function getMetrics(dataset_id: number | string) {
   try {
     loading.set(true)
     const { data: d } = await axios({
-      url: `/al-war/${dataset_id}/get_metrics`,
+      url: `${dataset_id}/al-wars/get_metrics`,
       method: 'get',
     })
-    metrics.set(d)
+    metricsss.set(d)
   } finally {
     loading.set(false)
   }

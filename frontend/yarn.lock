@@ -1262,6 +1262,11 @@ svelte-check@^1.0.0:
     svelte-preprocess "^4.0.0"
     typescript "*"
 
+svelte-loading-spinners@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/svelte-loading-spinners/-/svelte-loading-spinners-0.1.7.tgz#3fa6fa0ef67ab635773bf20b07d0b071debbadaa"
+  integrity sha512-EKCId1DjVL2RSUVJJsvtNcqQHox03XIgh4xh/4p7r6ST7d8mut6INY9/LqK4A17PFU64+3quZmqiSfOlf480CA==
+
 svelte-preprocess@^4.0.0:
   version "4.6.5"
   resolved "https://registry.npmjs.org/svelte-preprocess/-/svelte-preprocess-4.6.5.tgz"

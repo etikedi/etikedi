@@ -10,93 +10,24 @@
   import Select from '../../../ui/Select.svelte'
 
   import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
-  import { get, save, loading as loadingConfig } from '../../../store/config'
+  import { get, save, loading as loadingConfig, BattleConfig, ALConfig, StrategyConfig } from '../../../store/config'
 
   const { id } = router.params()
 
   export let alWar = false
   export let config = null
+  export let strategyConfig = null
 
-  // Spec for auto generating the config form
-  const IntBetween = (min, max) => ({ type: 'number', min, max })
-  const FloatBetween = (min, max) => ({ type: 'number', min, max, step: 'any' })
-  const Choice = (choices) => ({ type: choices })
+  let spec
 
-  const ZeroToOne = FloatBetween(0, 1)
-  const OneHalfToOne = FloatBetween(0.5, 1)
-  const PositiveFloat = FloatBetween(0, undefined)
-  const LargerNegativeOne = IntBetween(-1, undefined)
-  const PositiveInt = IntBetween(0, undefined)
-  const IntBetween0_2000 = IntBetween(0, 2000)
-  const Bool = { type: 'bool' }
-
-  const spec = {
-    QUERY_STRATEGY: Choice([
-      'QueryInstanceBMDR',
-      'QueryInstanceGraphDensity',
-      'QueryInstanceLAL',
-      'QueryInstanceQBC',
-      'QueryInstanceQUIRE',
-      'QueryInstanceSPAL',
-      'QueryInstanceUncertainty',
-      'QueryInstanceRandom',
-      'QueryExpectedErrorReduction',
-    ]),
-    AL_MODEL: Choice(['DecisionTreeClassifier', 'LinearRegression', 'KMeans']),
-    STOPPING_CRITERIA: Choice(['None', 'num_of_queries', 'cost_limit', 'percent_of_unlabel']),
-    BATCH_SIZE: PositiveInt,
-    COUNTER_UNTIL_NEXT_EVAL: PositiveInt,
-    EVALUATION_SIZE: PositiveInt,
-    COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt,
-  }
-
-  const spec_query_strategy = {
-    beta: PositiveInt,
-    cls_est: PositiveInt,
-    disagreement: Choice(['vote_entropy', 'KL_divergence']),
-    gamma: ZeroToOne,
-    lambda_init: ZeroToOne,
-    lambda_pace: PositiveFloat,
-    measure: Choice(['least_confident', 'margin', 'entrop', 'distance_to_boundar']),
-    method: 'query_by_bagging',
-    metric: Choice([
-      'euclidean',
-      'l2',
-      'l1',
-      'manhattan',
-      'cityblock',
-      'braycurtis',
-      'canberra',
-      'chebyshev',
-      'correlation',
-      'cosine',
-      'dice',
-      'hamming',
-      'jaccard',
-      'kulsinski',
-      'mahalanobis',
-      'matching',
-      'minkowski',
-      'rogerstanimoto',
-      'russellrao',
-      'seuclidean',
-      'sokalmichener',
-      'sokalsneath',
-      'sqeuclidean',
-      'yule',
-      'wminkowski',
-    ]),
-    mode: Choice(['LAL_iterative', 'LAL_independent']),
-    mu: ZeroToOne,
-    rho: ZeroToOne,
-    train_slt: Bool,
-  }
+  if (alWar) spec = BattleConfig
+  else spec = ALConfig
 
   $: dataset = $data[id]
   $: loading = $loadingConfig || $loadingDatasets
 
   onMount(async () => {
-    config = await get(id)
+    if (!alWar) config = await get(id)
   })
 
   async function submit() {
@@ -144,6 +75,17 @@
       {/each}
       {#if !alWar}
         <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
+      {:else}
+        <h3>Query Strategy Config</h3>
+        {#each Object.entries(StrategyConfig) as [key, { type, ...props }]}
+          {#if type === 'number'}
+            <Input {type} {...props} bind:value={strategyConfig[key]} disabled={loading} label={sentenceCase(key)} />
+          {:else if Array.isArray(type)}
+            <Select label={sentenceCase(key)} bind:value={strategyConfig[key]} disabled={loading} values={type} />
+          {:else if type === 'bool'}
+            <Checkbox bind:value={strategyConfig[key]} disabled={loading} label={sentenceCase(key)} />
+          {/if}
+        {/each}
       {/if}
     </form>
     <br />

@@ -6,285 +6,156 @@
   import { router } from 'tinro'
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
+  import { getStatus, isFinished, startBattle, getMetrics, metricsss } from '../../../store/al-war'
+  import { Circle, SyncLoader, Firework, Shadow, Moon } from 'svelte-loading-spinners'
+  import { notifier } from '@beyonk/svelte-notifications'
+  import AlWarComponent from '../components/ALWarComponent.svelte'
 
-  let showConfig = false,
-    config1,
-    config2,
+  let showConfig = true,
     ready,
     dataset,
     training = false,
     progressElement,
-    acc_element,
-    dia_elements_one = [],
-    dia_elements_two = [],
-    vega_views = []
+    remainingTime,
+    interval,
+    starting = false
 
-  let spec = {
-    $schema: 'https://vega.github.io/schema/vega/v5.json',
-    description: 'A basic line chart example.',
-    width: 500,
-    height: 200,
-    padding: 5,
-
-    signals: [
-      {
-        name: 'interpolate',
-        value: 'linear',
-        bind: {
-          input: 'select',
-          options: [
-            'basis',
-            'cardinal',
-            'catmull-rom',
-            'linear',
-            'monotone',
-            'natural',
-            'step',
-            'step-after',
-            'step-before',
-          ],
-        },
-      },
-    ],
-
-    data: [
-      {
-        name: 'table',
-        values: [
-          { x: 0, y: 28, c: 0 },
-          { x: 0, y: 20, c: 1 },
-          { x: 1, y: 43, c: 0 },
-          { x: 1, y: 35, c: 1 },
-          { x: 2, y: 81, c: 0 },
-          { x: 2, y: 10, c: 1 },
-          { x: 3, y: 19, c: 0 },
-          { x: 3, y: 15, c: 1 },
-          { x: 4, y: 52, c: 0 },
-          { x: 4, y: 48, c: 1 },
-          { x: 5, y: 24, c: 0 },
-          { x: 5, y: 28, c: 1 },
-          { x: 6, y: 87, c: 0 },
-          { x: 6, y: 66, c: 1 },
-          { x: 7, y: 17, c: 0 },
-          { x: 7, y: 27, c: 1 },
-          { x: 8, y: 68, c: 0 },
-          { x: 8, y: 16, c: 1 },
-          { x: 9, y: 49, c: 0 },
-          { x: 9, y: 25, c: 1 },
-        ],
-      },
-    ],
-
-    scales: [
-      {
-        name: 'x',
-        type: 'point',
-        range: 'width',
-        domain: { data: 'table', field: 'x' },
-      },
-      {
-        name: 'y',
-        type: 'linear',
-        range: 'height',
-        nice: true,
-        zero: true,
-        domain: { data: 'table', field: 'y' },
-      },
-      {
-        name: 'color',
-        type: 'ordinal',
-        range: 'category',
-        domain: { data: 'table', field: 'c' },
-      },
-    ],
-
-    axes: [
-      { orient: 'bottom', scale: 'x' },
-      { orient: 'left', scale: 'y' },
-    ],
-
-    marks: [
-      {
-        type: 'group',
-        from: {
-          facet: {
-            name: 'series',
-            data: 'table',
-            groupby: 'c',
-          },
-        },
-        marks: [
-          {
-            type: 'line',
-            from: { data: 'series' },
-            encode: {
-              enter: {
-                x: { scale: 'x', field: 'x' },
-                y: { scale: 'y', field: 'y' },
-                stroke: { scale: 'color', field: 'c' },
-                strokeWidth: { value: 2 },
-              },
-              update: {
-                interpolate: { signal: 'interpolate' },
-                strokeOpacity: { value: 1 },
-              },
-              hover: {
-                strokeOpacity: { value: 0.5 },
-              },
-            },
-          },
-        ],
-      },
-    ],
+  let config1 = {
+    QUERY_STRATEGY: 'QueryInstanceRandom',
+    AL_MODEL: 'RandomForestClassifier',
+    STOPPING_CRITERIA: 'None',
+    BATCH_SIZE: 5,
   }
+
+  let strategyConfig1 = {
+    beta: 1000,
+    cls_est: 50,
+    disagreement: 'vote_entropy',
+    gamma: 0.1,
+    lambda_init: 0.1,
+    lambda_pace: 0.01,
+    measure: 'least_confident',
+    method: 'query_by_bagging',
+    metric: 'manhattan',
+    mode: 'LAL_iterative',
+    mu: 0.1,
+    rho: 0.1,
+    train_slt: true,
+  }
+
+  let config2 = { ...config1 }
+  let strategyConfig2 = { ...strategyConfig1 }
 
   const { id } = router.params()
-
-  const algorithmNames = ['Uncertainty (LC)', 'Random']
-
-  const dataset_info = {
-    name: 'DWTC',
-    cycle: 11,
-    cycle_total: 50,
-    classifier: 'Random Forest Classifier',
-    batch_size: 1,
-  }
-
-  const metrics = {
-    'Acc (test)': ['61%', '58%'],
-    'Mean Annotation Cost': ['62%', '59%'],
-    'F1-AUC (test)': ['63%', '60%'],
-    'Average distance labeled (test)': ['64%', '61%'],
-    'Average distance unlabeled (test)': ['65%', '62%'],
-    'Total Computation Time': ['66%', '63%'],
-  }
-
-  const sample_info = {
-    '# Similar samples': '32/240',
-    'Percentage labeled': '0.51%',
-    'Percentage unlabeled': '99.48%',
-  }
-
-  const diagrams1 = [1, 2, 3, 4]
-  const diagrams2 = [5, 6, 7, 8]
 
   $: dataset = $datasets[id]
   $: ready = dataset && config1 && config2
 
-  async function submit() {
-    console.debug('Config 1', config1, 'Config 2', config2)
+  async function start() {
+    const sendConf1 = {
+      ...config1,
+      QUERY_STRATEGY_CONFIG: { ...strategyConfig1 },
+    }
+    const sendConf2 = {
+      ...config2,
+      QUERY_STRATEGY_CONFIG: { ...strategyConfig2 },
+    }
+    console.debug('Config 1', sendConf1, 'Config 2', sendConf2)
     showConfig = false
-    training = true
-    setTimeout(() => (training = false), 10000)
+    starting = true
+    const started = await startBattle(id, sendConf1, sendConf2)
+    if (started === true) {
+      starting = false
+      checkStatus()
+    } else {
+      notifier.danger('Something went wrong in the backend.', 6000)
+      router.goto('/app/')
+    }
   }
 
-  async function getDia() {
-    const diagrams = await getDiagram(id)
-    const vega_options = {
-      width: 75,
-      height: 150,
-      tooltip: { theme: 'dark' },
-      actions: false,
+  async function checkStatus() {
+    training = true
+    interval = setInterval(async () => {
+      if ($isFinished === true) {
+        clearInterval(interval)
+        await getData()
+        training = false
+      } else {
+        await getStatus(id)
+        if (typeof $isFinished === 'number') {
+          remainingTime = formatTime($isFinished)
+        } else {
+          remainingTime = undefined
+        }
+      }
+    }, 3000)
+  }
+
+  async function getData() {
+    await getMetrics(id)
+    // TODO: Get diagrams
+  }
+
+  async function receiveMetrics() {
+    await getMetrics(id)
+  }
+
+  function formatTime(duration) {
+    // Hours, minutes and seconds
+    var hrs = ~~(duration / 3600)
+    var mins = ~~((duration % 3600) / 60)
+    var secs = ~~duration % 60
+
+    // Output like "1:01" or "4:03:59" or "123:03:59"
+    var ret = ''
+
+    if (hrs > 0) {
+      ret += '' + hrs + ':' + (mins < 10 ? '0' : '')
     }
-    for (let i = 0; i < 4; i++) {
-      vega_views.push(await embed(dia_elements_one[i], JSON.parse(diagrams[i]), vega_options))
-      vega_views.push(await embed(dia_elements_two[i], JSON.parse(diagrams[i]), vega_options))
-    }
-    vega_views.push(await embed(acc_element, spec, { height: 200, width: 800, actions: false }))
+
+    ret += '' + mins + ':' + (secs < 10 ? '0' : '')
+    ret += '' + secs
+    return ret
   }
 
   onMount(() => {
-    getDia()
+    // getDia()
   })
 
   onDestroy(() => {
-    for (const view of vega_views) {
-      view.view.finalize()
-    }
+    clearInterval(interval)
   })
 </script>
 
 <div class="wrapper">
   {#if showConfig}
     <div class="config-wrapper">
-      <Config bind:config={config1} alWar />
-      <Config bind:config={config2} alWar />
+      <Config bind:config={config1} bind:strategyConfig={strategyConfig1} alWar />
+      <Config bind:config={config2} bind:strategyConfig={strategyConfig2} alWar />
     </div>
     {#if ready}
-      <Button label="Submit" icon="checkmark-circle-sharp" on:click={submit} />
+      <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
     {/if}
+  {:else if starting}
+    <div class="starting">
+      <Moon size="30" color="#002557" unit="px" duration="1s" />
+      Starting ...
+    </div>
   {:else if training}
     <div class="progress-bar">
       <div bind:this={progressElement} class="progress" />
     </div>
     <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+    {#if remainingTime}
+      <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
+    {/if}
   {:else}
-    <div class="al-war-wrapper">
-      <div class="data section">
-        <div class="dataset-info">
-          <div>Dataset: {dataset_info.name}</div>
-          <div>AL Cycle: {dataset_info.cycle}/{dataset_info.cycle_total}</div>
-          <div>{dataset_info.classifier}</div>
-          <div>Batch Size: {dataset_info.batch_size}</div>
-        </div>
-        <div class="metrics">
-          {#if algorithmNames.length === 2 && metrics}
-            <table>
-              <tr style="height: 100px">
-                <th />
-                <th class="heading">{algorithmNames[0]}</th>
-                <th class="heading">{algorithmNames[1]}</th>
-              </tr>
-              {#each Object.entries(metrics) as metric}
-                <tr>
-                  <td style="font-weight: bold; text-align: end;">{metric[0]}</td>
-                  <td style="text-align: center">{metric[1][0]}</td>
-                  <td style="text-align: center">{metric[1][1]}</td>
-                </tr>
-              {/each}
-            </table>
-          {/if}
-        </div>
-        <div class="info">
-          {#each Object.entries(sample_info) as info}
-            <div class="row">
-              <span style="font-weight: bold">{info[0]}</span>
-              <span>{info[1]}</span>
-            </div>
-          {/each}
-        </div>
-      </div>
-      <div class="first section">
-        <div class="sample">sample</div>
-        <hr />
-        <div class="diagrams">
-          <div class="diagram" bind:this={dia_elements_one[0]} />
-          <div class="diagram" bind:this={dia_elements_one[1]} />
-          <div class="diagram" bind:this={dia_elements_one[2]} />
-          <div class="diagram" bind:this={dia_elements_one[3]} />
-        </div>
-      </div>
-      <div class="vs section">
-        <img src="/img/vs.png" alt="vs Icon" />
-      </div>
-      <div class="second section">
-        <div class="sample">sample</div>
-        <hr />
-        <div class="diagrams">
-          <div class="diagram" bind:this={dia_elements_two[0]} />
-          <div class="diagram" bind:this={dia_elements_two[1]} />
-          <div class="diagram" bind:this={dia_elements_two[2]} />
-          <div class="diagram" bind:this={dia_elements_two[3]} />
-        </div>
-      </div>
-      <div class="accuracy section">
-        <div bind:this={acc_element} />
-      </div>
-    </div>
+    <AlWarComponent />
   {/if}
 </div>
 
 <style>
+
   .wrapper {
     display: grid;
     align-items: center;
@@ -309,118 +180,10 @@
     transition: width 0.5s ease-in-out;
   }
 
-  .al-war-wrapper {
-    display: grid;
-    grid-template-columns: 0.65fr 1fr 90px 1fr;
-    grid-template-rows: 190px 3fr 280px;
-    row-gap: 15px;
-    grid-template-areas:
-      'data first vs second'
-      'data first vs second'
-      'data accuracy accuracy accuracy';
-  }
-
-  .section {
-    display: grid;
-  }
-
-  .data {
-    grid-area: data;
-    grid-template-rows: 1fr 3fr 1fr;
-    row-gap: 20px;
-    margin-right: 15px;
-  }
-
-  .dataset-info {
-    display: grid;
-    grid-template-rows: 1fr 1fr 1fr 1fr;
-    row-gap: 5px;
-  }
-
-  .first {
-    grid-area: first;
-  }
-
-  .second {
-    grid-area: second;
-  }
-
-  .first,
-  .second {
-    grid-template-rows: 1fr 40px 2fr;
-  }
-
-  .vs {
-    grid-area: vs;
-    align-items: center;
-    justify-content: center;
-    border: none;
-  }
-
-  .accuracy {
-    grid-area: accuracy;
-    align-items: center;
-  }
-
-  .heading {
-    transform: rotate(-90deg);
-    font-weight: normal;
-    margin-bottom: 10px;
-  }
-
-  .metrics {
-    border: 1px solid lightgray;
-  }
-
-  .info {
-    border: 1px solid lightgray;
+  .starting {
     display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .row {
-    display: grid;
-    grid-template-columns: 1fr 90px;
+    flex-direction: row;
+    align-self: center;
     column-gap: 10px;
-    text-align: end;
-    margin-right: 15px;
-  }
-
-  .al-war-wrapper > div {
-    border: 1px solid lightgray;
-  }
-
-  .al-war-wrapper > .vs {
-    border: none;
-  }
-
-  .dataset-info > div {
-    border: 1px solid lightgray;
-    text-align: center;
-  }
-
-  .diagrams {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    column-gap: 15px;
-    row-gap: 15px;
-  }
-
-  .diagram {
-    border: 1px solid lightgray;
-  }
-
-  table {
-    border-collapse: collapse;
-  }
-
-  tr {
-    border-bottom: 1px solid lightgray;
-  }
-
-  tr:last-child {
-    border-bottom: none;
   }
 </style>
