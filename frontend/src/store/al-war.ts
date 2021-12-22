@@ -60,7 +60,14 @@ export type BattleConfig = {
   }
 }
 export type Diagram = {}
-export type Metrics = {}
+export type Metric = {
+  samples: any[],
+  performance: number,
+  time: number
+}
+export interface MetricData {
+  [ iteration: number ]: Metric
+}
 
 /**
  * true if both finished
@@ -69,7 +76,7 @@ export type Metrics = {}
  */
 export const isFinished = writable<boolean | number>(false)
 export const diagrams = writable<Diagram[]>(null)
-export const metricsss = writable<Metrics[]>(null)
+export const metricData = writable<MetricData>(null)
 export const loading = writable(null)
 
 export async function startBattle(dataset_id: number | string, config1: BattleConfig, config2: BattleConfig) {
@@ -129,7 +136,7 @@ export async function getMetrics(dataset_id: number | string) {
       url: `${dataset_id}/al-wars/get_metrics`,
       method: 'get',
     })
-    metricsss.set(d)
+    metricData.set(d)
   } finally {
     loading.set(false)
   }

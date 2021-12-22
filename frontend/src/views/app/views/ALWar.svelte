@@ -6,7 +6,7 @@
   import { router } from 'tinro'
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
-  import { getStatus, isFinished, startBattle, getMetrics, metricsss } from '../../../store/al-war'
+  import { getStatus, isFinished, startBattle, getMetrics, metricData } from '../../../store/al-war'
   import { Circle, SyncLoader, Firework, Shadow, Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
