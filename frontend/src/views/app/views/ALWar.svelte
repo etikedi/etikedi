@@ -78,8 +78,7 @@
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
-        await getData()
-        training = false
+        getData()
       } else {
         await getStatus(id)
         if (typeof $isFinished === 'number') {
@@ -92,8 +91,12 @@
   }
 
   async function getData() {
-    await getMetrics(id)
-    // TODO: Get diagrams
+    try {
+      await Promise.all([getMetrics(id), getDiagrams(id)])
+      training = false
+    } catch (e) {
+      console.warn('Error while loading data:', e)
+    }
   }
 
   async function receiveMetrics() {
@@ -155,7 +158,6 @@
 </div>
 
 <style>
-
   .wrapper {
     display: grid;
     align-items: center;

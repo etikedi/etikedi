@@ -141,7 +141,7 @@
 
   // TODO: From store
   const metrics = {
-    Acc: ['61%', '58%'],
+    'Acc': ['61%', '58%'],
     'Mean Annotation Cost': ['6s', '9s'],
     'F1-AUC (test)': ['63%', '60%'],
   }
@@ -166,10 +166,6 @@
     }
     vega_views.push(await embed(acc_element, spec, { height: 200, width: 800, actions: false }))
   }
-
-  onMount(() => {
-    // getDia()
-  })
 
   onDestroy(() => {
     for (const view of vega_views) {

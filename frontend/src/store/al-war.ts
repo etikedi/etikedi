@@ -59,14 +59,28 @@ export type BattleConfig = {
     train_slt: boolean
   }
 }
-export type Diagram = {}
+
+export type Diagrams = {
+  data_map: any
+  uncertainty: any
+  class_boundaries: any
+  vector_space: any
+}
+
 export type Metric = {
-  samples: any[],
-  performance: number,
+  samples: any[]
+  performance: number
   time: number
 }
 export interface MetricData {
-  [ iteration: number ]: Metric
+  [iteration: number]: {
+    process_1: Metric
+    process_2: Metric
+  }
+}
+export interface DiagramData {
+  process_1: Diagrams
+  process_2: Diagrams
 }
 
 /**
