@@ -1,7 +1,8 @@
 import time
+from enum import Enum
+from typing import List, Dict
 
 import numpy as np
-import matplotlib.pyplot as plt
 from multiprocessing import Process
 from multiprocessing.connection import Connection
 import pandas as pd
@@ -10,7 +11,7 @@ from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
 from sklearn.metrics import accuracy_score, f1_score
 
-from ..models import AlExperimentConfig, QueryStrategyAbstraction
+from ..models import AlExperimentConfig, QueryStrategyAbstraction, Metric, MetricData
 
 
 class ALExperimentProcess(Process):
@@ -53,9 +54,11 @@ class ALExperimentProcess(Process):
         self.all_training_samples.reset_index(drop=True, inplace=True)
 
         # initiate configurable experiment setting
-        self.unlab_ind = IndexCollection(
-            [adjusted_idx_map[idx] for idx in unlabel_idx])  # Indexes of your unlabeled set for querying
-        self.label_ind = IndexCollection([adjusted_idx_map[idx] for idx in label_idx])  # Indexes of your labeled set
+
+        # Indexes of your unlabeled set for querying
+        self.unlab_ind = IndexCollection([adjusted_idx_map[idx] for idx in unlabel_idx])
+        # Indexes of your labeled set
+        self.label_ind = IndexCollection([adjusted_idx_map[idx] for idx in label_idx])
         self.al_strategy = QueryStrategyAbstraction.build(qs_type=config.QUERY_STRATEGY,
                                                           X=self.all_training_samples.to_numpy(),
                                                           y=self.all_training_labels.to_numpy(),
@@ -68,8 +71,9 @@ class ALExperimentProcess(Process):
 
         self.X_test = all_labeled_samples.iloc[test_idx, :].to_numpy()
         self.y_test = labels.iloc[test_idx]
-        self.state_saver = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
-                                   init_U=self.unlab_ind.index, init_L=self.label_ind.index, verbose=False)
+        self.state_saver: StateIO = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
+                                            init_U=self.unlab_ind.index, init_L=self.label_ind.index,
+                                            verbose=False)
 
     def run(self, verbose=0):
         # initial training
@@ -79,8 +83,10 @@ class ALExperimentProcess(Process):
         iteration = 0
         while not self.stopping_criteria.is_stop():
             # query al_strategy for next samples
-            selected_ind_list = self.al_strategy.select(label_index=self.label_ind, unlabel_index=self.unlab_ind,
-                                                        model=self.model, batch_size=self.batch_size)
+            selected_ind_list = self.al_strategy.select(label_index=self.label_ind,
+                                                        unlabel_index=self.unlab_ind,
+                                                        model=self.model,
+                                                        batch_size=self.batch_size)
             self.label_ind.update(selected_ind_list)
             self.unlab_ind.difference_update(selected_ind_list)
 
@@ -96,10 +102,12 @@ class ALExperimentProcess(Process):
             diff_time = stop - start
             self.pipe_endpoint.send(diff_time)
             pred_proba = self.model.predict_proba(self.X_test)
-            y_pred = list(map(lambda array: self.model.classes_[array.argmax()], pred_proba))
+            y_pred = _predicted_class(self.model, pred_proba)
             perf = accuracy_score(y_true=self.y_test.to_list(), y_pred=y_pred)
             state = State(select_index=selected_ind_list, performance=perf)
-            state.add_element(key='train_time', value=diff_time)
+            state.add_element(key=_StateKeys.TIME, value=diff_time)
+            state.add_element(key=_StateKeys.PERC_LABELED,
+                              value=len(self.label_ind) / (len(self.unlab_ind) + len(self.label_ind)))
             self.state_saver.add_state(state)
             if verbose > 0:
                 print(f"Training took: {diff_time}ms")
@@ -121,38 +129,36 @@ class ALExperimentProcess(Process):
             self.all_training_samples.iloc[self.label_ind.index].to_numpy(),
             self.all_training_labels.iloc[self.label_ind.index].to_numpy())
 
-    def calculate_metrics(self):
+    def calculate_metrics(self) -> List[MetricData]:
         # TODO
         # pandas dataframe: every column is one sample, every row is one prediction
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
-
-        num_iter = len(self.prediction_history)
         for idx, row in self.prediction_history.iterrows():
             y_pred = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
             acc = accuracy_score(self.y_test.to_list(), y_pred=y_pred)
             f1 = f1_score(self.y_test.to_list(), y_pred, average="micro")
             self.metrics = self.metrics.append({'ACC': acc, 'F1': f1}, ignore_index=True)
-        acc_avg = self.metrics['ACC'].sum() / num_iter
-        print(f"Accuracy over all iterations is: {acc_avg * 100}% ")
-        print(
-            f"Highest accuracy over all iterations is: {self.metrics['ACC'].max() * 100}% in iteration: {self.metrics['ACC'].idxmax()} ")
-        f1_avg = self.metrics['F1'].sum() / num_iter
-        print(f"F1 over all iterations is: {f1_avg * 100}% ")
-        print(
-            f"Highest f1 over all iterations is: {self.metrics['F1'].max() * 100}% in iteration: {self.metrics['F1'].idxmax()} ")
-        training_times = [self.state_saver.get_state(i).get_value('train_time') for i in
-                          range(len(self.prediction_history))]
-        avg_time = round(sum(training_times) / num_iter, 4)
-        print(f"Average training time took: " + ("less than 0.1ms" if avg_time < 0.1 else str(avg_time)))
-        return self.metrics
+
+        metrics: List[MetricData] = []
+        for idx, state in enumerate(self.state_saver):
+            metric_dp: MetricData = MetricData(time=state.get_value(_StateKeys.TIME),
+                                               accuracy=state.get_value(_StateKeys.ACC),
+                                               percentage_labeled=state.get_value(_StateKeys.PERC_LABELED),
+                                               sample_ids=state.get_value(_StateKeys.SAMPLES))
+            metrics.append(metric_dp)
+        return metrics
 
     def _calc_confidence(self):
         return [np.max(row) for _, row in self.prediction_history.iterrows()]
 
-    def plot_metrics(self):
-        ax = plt.gca()
-        ax.set_ylim([0, 1])
-        plt.title("Accuracy over iterations")
-        plt.plot(range(len(self.metrics)), self.metrics['ACC'])
-        plt.show()
+
+class _StateKeys(str, Enum):
+    ACC = 'performance'
+    PERC_LABELED = 'percentage_labeled',
+    TIME = 'training_time'
+    SAMPLES = 'select_index'
+
+
+def _predicted_class(model, pred_proba: List):
+    return list(map(lambda array: model.classes_[array.argmax()], pred_proba))

@@ -1,26 +1,26 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
 from multiprocessing.connection import Pipe
-from typing import List, Dict
+from typing import List, Dict, Tuple, Optional
 
 import pandas as pd
 
 from .experiment import ALExperimentProcess
 from ..config import db, logger
-from ..models import Dataset, AlExperimentConfig
+from ..models import Dataset, AlExperimentConfig, MetricData, Metric
 
 
 class ExperimentManager:
-    """Manages (asynchronous) execution of to AL-strategies"""
+    """Manages (asynchronous) execution of two AL-strategies"""
 
     _manager: Dict[int, ExperimentManager] = {}
 
-    @classmethod
-    def has_manager(cls, dataset_id: int):
+    @staticmethod
+    def has_manager(dataset_id: int):
         return dataset_id in ExperimentManager._manager
 
-    @classmethod
-    def get_manager(cls, dataset_id):
+    @staticmethod
+    def get_manager(dataset_id):
         return ExperimentManager._manager[dataset_id]
 
     def __init__(self, dataset_id: int, config_one: AlExperimentConfig, config_two: AlExperimentConfig):
@@ -42,16 +42,22 @@ class ExperimentManager:
         self.experiment_one.start()
         self.experiment_two.start()
 
-    def get_metrics(self):
+    def get_metrics(self) -> Metric:
         if self.experiment_one.is_alive() or self.experiment_two.is_alive():
             raise ValueError("Experiment has to be run first")
-        return self.experiment_one.calculate_metrics(), self.experiment_two.calculate_metrics()
+        m1 = self.experiment_one.calculate_metrics()
+        m2 = self.experiment_one.calculate_metrics()
+        combined: Dict[int, Tuple[Optional[MetricData], Optional[MetricData]]] = {}
+        for idx in range(max(len(m1), len(m2))):
+            combined[idx] = (m1[idx] if idx < len(m1) else None, m2[idx] if idx < len(m2) else None)
+
+        return Metric(iterations=combined)
 
     def get_status(self) -> int:
         """ @return
                 -1 if both are finished
-                -2 if no data is available
-                time in seconds if at least one is finished
+                -2 if no (new) data is available
+                time in seconds if at least one has finished one iteration
                 """
         # TODO estimate remaining time
         if not (self.experiment_one.is_alive() and self.experiment_two.is_alive()):

@@ -1,9 +1,9 @@
 import altair as alt
 from fastapi import APIRouter, HTTPException, status
-from vega_datasets import data
+
 
 from ..battle_mode import ExperimentManager
-from ..models import AlExperimentConfig
+from ..models import AlExperimentConfig, Metric
 
 battle_router = APIRouter()
 
@@ -14,12 +14,16 @@ async def start_battle(dataset_id: int, config1: AlExperimentConfig, config2: Al
 
     # start process
     ExperimentManager(dataset_id, config1, config2).start()
-    return True
 
 
 @battle_router.get("/is_finish")
 async def is_finish(dataset_id: int):
-    """Return training status."""
+    """ If an experiment started returns the last measured training-iteration-time
+    @return
+                -1 if both are finished
+                -2 if no (new) data is available
+                time in seconds if at least one has finished one iteration
+                """
     _assert_manager_exists(dataset_id)
 
     # estimate remaining time
@@ -35,22 +39,12 @@ async def get_diagrams(dataset_id: int):
     # create diagrams
     # return in list
     # TODO
-    chart1 = (
-        alt.Chart(data.cars.url)
-            .mark_point()
-            .encode(x="Horsepower:Q", y="Miles_per_Gallon:Q", color="Origin:N")
-    )
-
-    chart2 = (
-        alt.Chart(data.anscombe.url)
-            .mark_point()
-            .encode(x="X:Q", y="X:Q", color="Series:N")
-    )
-
-    return {"acc": chart1.to_json(), "variability": chart2.to_json()}
 
 
-@battle_router.get("/get_metrics")
+    return {"acc": "", "variability":""}
+
+
+@battle_router.get("/get_metrics", response_model=Metric)
 async def get_metrics(dataset_id: int):
     """Return all metrics."""
     _assert_manager_exists(dataset_id)
