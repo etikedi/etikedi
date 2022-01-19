@@ -1,19 +1,18 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple, Optional
+from typing import List, Tuple
 
 from pydantic import (
     confloat as constrained_float,
-    conint as constrained_int,
     BaseModel as Schema,
-    PositiveFloat,
     PositiveInt,
+    NonNegativeInt, NonNegativeFloat
 )
 
 from .al_strategy import QueryStrategyType
 from .config import ALModel, QueryStrategyConfig, StoppingCriteria
 
-ZeroToOne = constrained_float(gt=0, le=1)
+ZeroToOne = constrained_float(ge=0, le=1)
 
 
 class AlExperimentConfig(Schema):
@@ -25,11 +24,15 @@ class AlExperimentConfig(Schema):
 
 
 class MetricData(Schema):
-    accuracy: ZeroToOne
-    time: PositiveInt
+    time: NonNegativeFloat  # model training time in seconds
     percentage_labeled: ZeroToOne
-    sample_ids: List[PositiveInt]
+    sample_ids: List[NonNegativeInt]
+
+
+class ChartReturnSchema(Schema):
+    acc: str
+    conf: Tuple[List[str],List[str]]
 
 
 class Metric(Schema):
-    iterations: Dict[int, Tuple[Optional[MetricData], Optional[MetricData]]] = {}
+    iterations: List  # List[Tuple[Optional[MetricData],Optional[MetricData]]]
