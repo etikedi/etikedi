@@ -21,7 +21,7 @@ dataset_router.include_router(
     labeling_functions_router, prefix="/{dataset_id}/labelingfunctions", tags=["LabelingFunctions"]
 )
 
-app.include_router(battle_router, prefix="/{dataset_id}/al-wars")
+app.include_router(battle_router, prefix="/{dataset_id}/al-wars", tags=["ALWars"])
 
 app.include_router(dataset_router, prefix="/datasets", tags=["Datasets"])
 

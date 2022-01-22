@@ -1,0 +1,79 @@
+POST http://localhost:8000/3/al-wars/start
+accept: application/json
+Content-Type: application/json
+
+{
+  "config1": {
+    "QUERY_STRATEGY": "QueryInstanceRandom",
+    "QUERY_STRATEGY_CONFIG": {
+      "cls_est": 50,
+      "disagreement": "vote_entropy",
+      "measure": "least_confident",
+      "metric": "manhattan",
+      "mode": "LAL_iterative",
+      "train_idx": [],
+      "train_slt": true,
+      "beta": 1000,
+      "data_path": ".",
+      "gamma": 0.1,
+      "lambda_init": 0.1,
+      "lambda_pace": 0.01,
+      "method": "query_by_bagging",
+      "mu": 0.1,
+      "rho": 0.1
+    },
+    "AL_MODEL": "RandomForestClassifier",
+    "STOPPING_CRITERIA": "None",
+    "BATCH_SIZE": 5
+  },
+  "config2": {
+    "QUERY_STRATEGY": "QueryInstanceRandom",
+    "QUERY_STRATEGY_CONFIG": {
+      "cls_est": 50,
+      "disagreement": "vote_entropy",
+      "measure": "least_confident",
+      "metric": "manhattan",
+      "mode": "LAL_iterative",
+      "train_idx": [],
+      "train_slt": true,
+      "beta": 1000,
+      "data_path": ".",
+      "gamma": 0.1,
+      "lambda_init": 0.1,
+      "lambda_pace": 0.01,
+      "method": "query_by_bagging",
+      "mu": 0.1,
+      "rho": 0.1
+    },
+    "AL_MODEL": "RandomForestClassifier",
+    "STOPPING_CRITERIA": "None",
+    "BATCH_SIZE": 5
+  }
+}
+
+### check status
+GET http://localhost:8000/3/al-wars/is_finish
+accept: application/json
+
+### get diagrams
+# curl -X 'GET'
+#  'http://localhost:8000/3/al-wars/get_diagrams'
+#  -H 'accept: application/json'
+GET http://localhost:8000/3/al-wars/get_diagrams
+accept: application/json
+
+### get metrics
+# curl -X 'GET'
+#  'http://localhost:8000/3/al-wars/get_metrics'
+#  -H 'accept: application/json'
+GET http://localhost:8000/3/al-wars/get_metrics
+accept: application/json
+
+###
+
+
+
+
+
+
+
