@@ -28,6 +28,11 @@
     interval,
     starting = false
 
+  /**
+   * DEV
+   */
+  $: if ($metricData) console.debug($metricData)
+  $: if ($diagrams) console.debug($diagrams)
   if (localStorage.getItem('diagrams')) {
     showConfig = false
   }
@@ -62,8 +67,6 @@
 
   $: dataset = $datasets[id]
   $: ready = dataset && config1 && config2
-
-  $: console.log('dataset', dataset)
 
   async function start() {
     const sendConf1 = {
@@ -112,9 +115,6 @@
       console.warn('Error while loading data:', e)
     }
   }
-
-  $: console.debug($metricData)
-  $: console.debug($diagrams)
 
   async function receiveMetrics() {
     await getMetrics(id)

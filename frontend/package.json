@@ -17,6 +17,7 @@
     "@rollup/plugin-node-resolve": "^10.0.0",
     "@rollup/plugin-replace": "^2.3.4",
     "@rollup/plugin-typescript": "^6.0.0",
+    "@smui/slider": "^6.0.0-beta.13",
     "@tsconfig/svelte": "^1.0.0",
     "@types/sanitize-html": "^1.27.0",
     "rollup": "^2.3.4",

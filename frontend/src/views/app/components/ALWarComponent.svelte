@@ -7,6 +7,8 @@
   import Image from '../components/labeling/Image.svelte'
   import { getSpecificSample } from '../../../store/samples'
   import { Moon } from 'svelte-loading-spinners'
+  import Slider from '@smui/slider'
+  import { CONTINUOUS_TO_DISCRETE_SCALES } from 'vega-lite/build/src/scale'
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Dataset 1'
@@ -16,7 +18,6 @@
     dia_elements_one = [],
     dia_elements_two = [],
     vega_views = {},
-    slider,
     sliderValue = 1,
     currentIteration = 1,
     sample_1,
@@ -96,19 +97,17 @@
   }
 
   async function getSamples() {
-    const id_1 = $metricData['iterations'][currentIteration - 1][0]['sample_ids'][randomInt(0, 4)]
-    const id_2 = $metricData['iterations'][currentIteration - 1][1]['sample_ids'][randomInt(0, 4)]
+    const id_1 = $metricData['iterations'][currentIteration - 1][0]['sample_ids'][0]
+    const id_2 = $metricData['iterations'][currentIteration - 1][1]['sample_ids'][0]
 
     sample_1 = await getSpecificSample(id_1)
     sample_2 = await getSpecificSample(id_2)
   }
 
-  function randomInt(min, max) {
-    // min and max included
-    return Math.floor(Math.random() * (max - min + 1) + min)
-  }
-
   onMount(async () => {
+    /**
+     * DEV
+     */
     if (localStorage.getItem('diagrams')) {
       $diagrams = JSON.parse(localStorage.getItem('diagrams'))
       $metricData = JSON.parse(localStorage.getItem('metrics'))
@@ -116,8 +115,6 @@
 
     getSamples()
     await pushDiagrams()
-
-    slider.addEventListener('mouseup', changeIteration)
   })
 
   onDestroy(() => {
@@ -213,6 +210,16 @@
     <div bind:this={acc_element} />
     <div class="iterations">
       {#if $metricData && $metricData['iterations']}
+        <Slider
+          bind:value={sliderValue}
+          on:click={changeIteration}
+          min={1}
+          max={$metricData['iterations'].length}
+          discrete
+          tickMarks
+          input$aria-label="Tick slider"
+        />
+        <!--
         <input
           type="range"
           bind:this={slider}
@@ -226,15 +233,13 @@
             <option value={i + 1} label={i + 1} />
           {/each}
         </datalist>
+      -->
       {/if}
     </div>
   </div>
 </div>
 
 <style>
-  input {
-    width: 100%;
-  }
   h4 {
     margin: 5px;
   }
