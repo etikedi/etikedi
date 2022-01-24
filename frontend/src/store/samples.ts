@@ -27,3 +27,11 @@ export async function addLabel(sample_id, label_id) {
   })
   return data
 }
+
+export async function getSpecificSample(sample_id) {
+  const { data: d } = await axios({
+    method: 'get',
+    url: `/samples/${sample_id}`,
+  })
+  return d
+}

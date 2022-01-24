@@ -89,8 +89,8 @@ export interface DiagramData {
  * time in seconds if at least one is finished
  */
 export const isFinished = writable<boolean | number>(false)
-export const diagrams = writable<Diagram[]>(null)
-export const metricData = writable<MetricData>(null)
+export const diagrams = writable<any>(null)
+export const metricData = writable<any>(null)
 export const loading = writable(null)
 
 export async function startBattle(dataset_id: number | string, config1: BattleConfig, config2: BattleConfig) {
@@ -138,6 +138,7 @@ export async function getDiagrams(dataset_id: number | string) {
       method: 'get',
     })
     diagrams.set(d)
+    localStorage.setItem("diagrams", JSON.stringify(d))
   } finally {
     loading.set(false)
   }
@@ -151,6 +152,7 @@ export async function getMetrics(dataset_id: number | string) {
       method: 'get',
     })
     metricData.set(d)
+    localStorage.setItem("metrics", JSON.stringify(d))
   } finally {
     loading.set(false)
   }

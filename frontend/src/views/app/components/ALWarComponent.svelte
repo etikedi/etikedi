@@ -1,147 +1,30 @@
-<script>
-  import { getDiagram } from '../../../store/datasets'
+<script lang="ts">
   import { router } from 'tinro'
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
+  import { diagrams, metricData } from '../../../store/al-war'
+  import Table from '../components/labeling/Table.svelte'
+  import Image from '../components/labeling/Image.svelte'
+  import { getSpecificSample } from '../../../store/samples'
+  import { Moon } from 'svelte-loading-spinners'
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
-  export let dataset_info = {
-    name: 'DWTC',
-    cycle: 11,
-    cycle_total: 50,
-    classifier: 'Random Forest Classifier',
-    batch_size: 1,
-  }
+  export let dataset_name = 'Dataset 1'
+  export let batch_size = 1
 
   let acc_element,
     dia_elements_one = [],
     dia_elements_two = [],
-    vega_views = []
-
-  let spec = {
-    $schema: 'https://vega.github.io/schema/vega/v5.json',
-    description: 'A basic line chart example.',
-    width: 500,
-    height: 200,
-    padding: 5,
-
-    signals: [
-      {
-        name: 'interpolate',
-        value: 'linear',
-        bind: {
-          input: 'select',
-          options: [
-            'basis',
-            'cardinal',
-            'catmull-rom',
-            'linear',
-            'monotone',
-            'natural',
-            'step',
-            'step-after',
-            'step-before',
-          ],
-        },
-      },
-    ],
-
-    data: [
-      {
-        name: 'table',
-        values: [
-          { x: 0, y: 28, c: 0 },
-          { x: 0, y: 20, c: 1 },
-          { x: 1, y: 43, c: 0 },
-          { x: 1, y: 35, c: 1 },
-          { x: 2, y: 81, c: 0 },
-          { x: 2, y: 10, c: 1 },
-          { x: 3, y: 19, c: 0 },
-          { x: 3, y: 15, c: 1 },
-          { x: 4, y: 52, c: 0 },
-          { x: 4, y: 48, c: 1 },
-          { x: 5, y: 24, c: 0 },
-          { x: 5, y: 28, c: 1 },
-          { x: 6, y: 87, c: 0 },
-          { x: 6, y: 66, c: 1 },
-          { x: 7, y: 17, c: 0 },
-          { x: 7, y: 27, c: 1 },
-          { x: 8, y: 68, c: 0 },
-          { x: 8, y: 16, c: 1 },
-          { x: 9, y: 49, c: 0 },
-          { x: 9, y: 25, c: 1 },
-        ],
-      },
-    ],
-
-    scales: [
-      {
-        name: 'x',
-        type: 'point',
-        range: 'width',
-        domain: { data: 'table', field: 'x' },
-      },
-      {
-        name: 'y',
-        type: 'linear',
-        range: 'height',
-        nice: true,
-        zero: true,
-        domain: { data: 'table', field: 'y' },
-      },
-      {
-        name: 'color',
-        type: 'ordinal',
-        range: 'category',
-        domain: { data: 'table', field: 'c' },
-      },
-    ],
-
-    axes: [
-      { orient: 'bottom', scale: 'x' },
-      { orient: 'left', scale: 'y' },
-    ],
-
-    marks: [
-      {
-        type: 'group',
-        from: {
-          facet: {
-            name: 'series',
-            data: 'table',
-            groupby: 'c',
-          },
-        },
-        marks: [
-          {
-            type: 'line',
-            from: { data: 'series' },
-            encode: {
-              enter: {
-                x: { scale: 'x', field: 'x' },
-                y: { scale: 'y', field: 'y' },
-                stroke: { scale: 'color', field: 'c' },
-                strokeWidth: { value: 2 },
-              },
-              update: {
-                interpolate: { signal: 'interpolate' },
-                strokeOpacity: { value: 1 },
-              },
-              hover: {
-                strokeOpacity: { value: 0.5 },
-              },
-            },
-          },
-        ],
-      },
-    ],
-  }
-
-  const { id } = router.params()
+    vega_views = {},
+    slider,
+    sliderValue = 1,
+    currentIteration = 1,
+    sample_1,
+    sample_2
 
   // TODO: From store
   const metrics = {
-    'Acc': ['61%', '58%'],
+    Acc: ['61%', '58%'],
     'Mean Annotation Cost': ['6s', '9s'],
     'F1-AUC (test)': ['63%', '60%'],
   }
@@ -152,25 +35,93 @@
     'Percentage unlabeled': '99.48%',
   }
 
-  async function getDia() {
-    const diagrams = await getDiagram(id)
+  const mappings = {
+    tables: Table,
+    image: Image,
+    text: Table,
+  }
+
+  async function changeIteration() {
+    currentIteration = sliderValue
+
+    // Label percentage
+    const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
+    sample_info['Percentage labeled'] = labeled + '%'
+    sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
+
+    // Annotation cost
+    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
+    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
+    metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
+
+    // Fetch sample (hopefully in background)
+    getSamples()
+
+    // Destroy confidence diagrams
+    await destroyViews(['conf_1', 'conf_2'])
+
+    // Push new confidence diagrams
+    await pushDiagrams(true)
+  }
+
+  async function pushDiagrams(update?: boolean) {
     const vega_options = {
       width: 75,
       height: 150,
       tooltip: { theme: 'dark' },
       actions: false,
     }
-    for (let i = 0; i < 4; i++) {
-      vega_views.push(await embed(dia_elements_one[i], JSON.parse(diagrams[i]), vega_options))
-      vega_views.push(await embed(dia_elements_two[i], JSON.parse(diagrams[i]), vega_options))
+    const conf_1 = JSON.parse($diagrams['conf'][0][currentIteration - 1])
+    const conf_2 = JSON.parse($diagrams['conf'][1][currentIteration - 1])
+
+    vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
+    vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
+
+    if (!update) {
+      const acc = JSON.parse($diagrams['acc'])
+      vega_views['acc'] = await embed(acc_element, acc, { height: 110, width: 800, actions: false })
     }
-    vega_views.push(await embed(acc_element, spec, { height: 200, width: 800, actions: false }))
   }
 
-  onDestroy(() => {
-    for (const view of vega_views) {
-      view.view.finalize()
+  function destroyViews(viewList?) {
+    if (viewList) {
+      for (const view of viewList) {
+        vega_views[view].view.finalize()
+      }
+    } else {
+      for (const view of Object.keys(vega_views)) {
+        vega_views[view].view.finalize()
+      }
     }
+  }
+
+  async function getSamples() {
+    const id_1 = $metricData['iterations'][currentIteration - 1][0]['sample_ids'][randomInt(0, 4)]
+    const id_2 = $metricData['iterations'][currentIteration - 1][1]['sample_ids'][randomInt(0, 4)]
+
+    sample_1 = await getSpecificSample(id_1)
+    sample_2 = await getSpecificSample(id_2)
+  }
+
+  function randomInt(min, max) {
+    // min and max included
+    return Math.floor(Math.random() * (max - min + 1) + min)
+  }
+
+  onMount(async () => {
+    if (localStorage.getItem('diagrams')) {
+      $diagrams = JSON.parse(localStorage.getItem('diagrams'))
+      $metricData = JSON.parse(localStorage.getItem('metrics'))
+    }
+
+    getSamples()
+    await pushDiagrams()
+
+    slider.addEventListener('mouseup', changeIteration)
+  })
+
+  onDestroy(() => {
+    destroyViews()
   })
 </script>
 
@@ -179,11 +130,17 @@
     <div class="dataset-info">
       <div>
         <h4>Dataset:</h4>
-        <p>{dataset_info.name}</p>
+        <p>{dataset_name}</p>
       </div>
       <div>
         <h4>AL Cycle:</h4>
-        <p>{dataset_info.cycle}/{dataset_info.cycle_total}</p>
+        {#if $metricData && $metricData['iterations']}
+          <p>{currentIteration}/{$metricData['iterations'].length}</p>
+        {/if}
+      </div>
+      <div>
+        <h4>Batch size:</h4>
+        <p>{batch_size}</p>
       </div>
     </div>
     <div class="metrics">
@@ -214,7 +171,15 @@
     </div>
   </div>
   <div class="first section">
-    <div class="sample">sample</div>
+    <div class="sample">
+      {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
+        <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+      {:else if sample_1}
+        <p>Unsupported type {sample_1.type}</p>
+      {:else}
+        <Moon size="30" color="#002557" unit="px" duration="1s" />
+      {/if}
+    </div>
     <hr />
     <div class="diagrams">
       <div class="diagram" bind:this={dia_elements_one[0]} />
@@ -227,7 +192,15 @@
     <img src="/img/vs.png" alt="vs Icon" />
   </div>
   <div class="second section">
-    <div class="sample">sample</div>
+    <div class="sample">
+      {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
+        <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+      {:else if sample_2}
+        <p>Unsupported type {sample_2.type}</p>
+      {:else}
+        <Moon size="30" color="#002557" unit="px" duration="1s" />
+      {/if}
+    </div>
     <hr />
     <div class="diagrams">
       <div class="diagram" bind:this={dia_elements_two[0]} />
@@ -238,10 +211,30 @@
   </div>
   <div class="accuracy section">
     <div bind:this={acc_element} />
+    <div class="iterations">
+      {#if $metricData && $metricData['iterations']}
+        <input
+          type="range"
+          bind:this={slider}
+          bind:value={sliderValue}
+          min="1"
+          max={$metricData['iterations'].length}
+          list="tickmarks"
+        />
+        <datalist id="tickmarks">
+          {#each $metricData['iterations'] as _, i}
+            <option value={i + 1} label={i + 1} />
+          {/each}
+        </datalist>
+      {/if}
+    </div>
   </div>
 </div>
 
 <style>
+  input {
+    width: 100%;
+  }
   h4 {
     margin: 5px;
   }
@@ -253,7 +246,7 @@
   .al-war-wrapper {
     display: grid;
     grid-template-columns: 0.65fr 1fr 90px 1fr;
-    grid-template-rows: 190px 3fr 280px;
+    grid-template-rows: 200px 387px 235px;
     row-gap: 15px;
     grid-template-areas:
       'data first vs second'
@@ -274,7 +267,7 @@
 
   .dataset-info {
     display: grid;
-    grid-template-rows: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
     row-gap: 5px;
   }
 
@@ -289,6 +282,12 @@
   .first,
   .second {
     grid-template-rows: 1fr 40px 2fr;
+  }
+
+  .sample {
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .vs {

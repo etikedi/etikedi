@@ -1,12 +1,20 @@
-<script>
+<script lang="ts">
   import Button from '../../../ui/Button.svelte'
   import Input from '../../../ui/Input.svelte'
   import Config from './Config.svelte'
-  import { data as datasets, getDiagram } from '../../../store/datasets'
+  import { data as datasets } from '../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
-  import { getStatus, isFinished, startBattle, getMetrics, metricData } from '../../../store/al-war'
+  import {
+    getStatus,
+    isFinished,
+    startBattle,
+    getMetrics,
+    metricData,
+    getDiagrams,
+    diagrams,
+  } from '../../../store/al-war'
   import { Circle, SyncLoader, Firework, Shadow, Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
@@ -19,6 +27,10 @@
     remainingTime,
     interval,
     starting = false
+
+  if (localStorage.getItem('diagrams')) {
+    showConfig = false
+  }
 
   let config1 = {
     QUERY_STRATEGY: 'QueryInstanceRandom',
@@ -51,6 +63,8 @@
   $: dataset = $datasets[id]
   $: ready = dataset && config1 && config2
 
+  $: console.log('dataset', dataset)
+
   async function start() {
     const sendConf1 = {
       ...config1,
@@ -64,7 +78,7 @@
     showConfig = false
     starting = true
     const started = await startBattle(id, sendConf1, sendConf2)
-    if (started === true) {
+    if (started === null) {
       starting = false
       checkStatus()
     } else {
@@ -98,6 +112,9 @@
       console.warn('Error while loading data:', e)
     }
   }
+
+  $: console.debug($metricData)
+  $: console.debug($diagrams)
 
   async function receiveMetrics() {
     await getMetrics(id)
@@ -152,8 +169,8 @@
     {#if remainingTime}
       <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
     {/if}
-  {:else}
-    <AlWarComponent />
+  {:else if dataset}
+    <AlWarComponent dataset_name={dataset['name']} />
   {/if}
 </div>
 
