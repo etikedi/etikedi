@@ -8,7 +8,6 @@
   import { getSpecificSample } from '../../../store/samples'
   import { Moon } from 'svelte-loading-spinners'
   import Slider from '@smui/slider'
-  import { CONTINUOUS_TO_DISCRETE_SCALES } from 'vega-lite/build/src/scale'
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Dataset 1'
