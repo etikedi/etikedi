@@ -1,6 +1,7 @@
 import altair as alt
 import pandas as pd
 from fastapi import APIRouter, HTTPException, status
+from typing import List, Tuple
 
 from ..battle_mode import ExperimentManager
 from ..models import AlExperimentConfig, Metric, ChartReturnSchema
@@ -43,9 +44,9 @@ async def get_diagrams(dataset_id: int):
         color='Experiment:N'
     )
     # confidence: histogram, x=confidence, y=occurrence
-    conf_data: tuple[list[list[float]], list[list[float]]] = manager.get_confidence_his_data()
+    conf_data: Tuple[List[List[float]], List[List[float]]] = manager.get_confidence_his_data()
 
-    def cp_plots(data: list[list[float]]):
+    def cp_plots(data: List[List[float]]):
         plots = []
         for it in data:
             chart = alt.Chart(data=pd.DataFrame({'Confidence': it})).mark_bar().encode(

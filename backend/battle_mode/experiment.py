@@ -4,14 +4,15 @@ from multiprocessing import Process
 from multiprocessing import Queue
 from typing import List
 
-import numpy as np
 import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
 from sklearn.metrics import accuracy_score, f1_score
 
-from ..models import AlExperimentConfig, QueryStrategyAbstraction, MetricData
+from ..config import db
+from ..models import AlExperimentConfig, QueryStrategyAbstraction, MetricData, Dataset
+from ..utils import timeit
 
 
 class MetricsDFKeys(str, Enum):
@@ -38,9 +39,20 @@ class ResultType:
         self.raw_predictions = raw_predictions
 
 
+@timeit
+def _transform_dataset(dataset_id: int):
+    dataset: Dataset = db.get(Dataset, dataset_id)
+    feature_names: List[str] = dataset.feature_names.split(",")
+    frame = pd.DataFrame(data=
+                         [{f_name: f for (f_name, f) in
+                           zip(feature_names + ['LABEL'], sample.extract_feature_list() + [sample.labels[0].name])}
+                          for sample in dataset.samples if sample.labels != []])
+    return frame
+
+
 class ALExperimentProcess(Process):
 
-    def __init__(self, d_frame: pd.DataFrame, config: AlExperimentConfig, queue: Queue):
+    def __init__(self, dataset_id: int, config: AlExperimentConfig, queue: Queue):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -52,7 +64,29 @@ class ALExperimentProcess(Process):
           4. save current iteration in history.
         """
         super().__init__()
+        self.config: AlExperimentConfig = config
         self.queue = queue
+        model_class = config.AL_MODEL.get_class()
+        self.model = model_class()
+        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get())
+        self.batch_size = config.BATCH_SIZE
+        self.dataset_id = dataset_id
+        # move time intensive data operations outside __init__
+        self.all_training_samples = None
+        self.all_training_labels = None
+        self.idx2ID = None
+        self.unlab_ind = None
+        self.label_ind = None
+        self.label_ind = None
+        self.prediction_history = None
+        self.X_test = None
+        self.y_test = None
+        self.state_saver = None
+
+    @timeit
+    def _setup(self):
+        d_frame = _transform_dataset(self.dataset_id)
+        print("Loaded dataset")
         labeled_set = d_frame[d_frame['LABEL'].notnull()]
         all_labeled_samples = labeled_set.drop(labels='LABEL', axis='columns')
         labels = labeled_set['LABEL']
@@ -78,20 +112,15 @@ class ALExperimentProcess(Process):
         self.all_training_samples.reset_index(drop=True, inplace=True)
 
         # initiate configurable experiment setting
+        self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.config.QUERY_STRATEGY,
+                                                          X=self.all_training_samples.to_numpy(),
+                                                          y=self.all_training_labels.to_numpy(),
+                                                          config=self.config.QUERY_STRATEGY_CONFIG, )
 
         # Indexes of your unlabeled set for querying
         self.unlab_ind = IndexCollection([adjusted_idx_map[idx] for idx in unlabel_idx])
         # Indexes of your labeled set
         self.label_ind = IndexCollection([adjusted_idx_map[idx] for idx in label_idx])
-        self.al_strategy = QueryStrategyAbstraction.build(qs_type=config.QUERY_STRATEGY,
-                                                          X=self.all_training_samples.to_numpy(),
-                                                          y=self.all_training_labels.to_numpy(),
-                                                          config=config.QUERY_STRATEGY_CONFIG, )
-        model_class = config.AL_MODEL.get_class()
-        self.model = model_class()
-        self.batch_size = config.BATCH_SIZE
-        self.prediction_history = pd.DataFrame(columns=test_idx)
-        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get())
 
         self.X_test = all_labeled_samples.iloc[test_idx, :].to_numpy()
         self.y_test = labels.iloc[test_idx]
@@ -101,16 +130,17 @@ class ALExperimentProcess(Process):
 
     def run(self, verbose=0):
         # initial training
+        self._setup()
         self._train(verbose)
         self.queue.put({'Type': EventType.RESULT, 'Value': self.get_result()}, False)
         print(f"Process finished ")
-        self.close()
 
     def _train(self, verbose):
         self.model.fit(*self.get_training_data())
         # test data does not change: has original index equal to all_labeled_samples
 
         iteration = 0
+        predictions = []
         while not self.stopping_criteria.is_stop():
             # query al_strategy for next samples
             selected_ind_list = self.al_strategy.select(label_index=self.label_ind,
@@ -145,14 +175,14 @@ class ALExperimentProcess(Process):
                 print(f"#Labeled: {len(self.label_ind.index)}")
 
             # add current iteration to history
-            next_row = pd.Series(list(map(tuple, pred_proba)), index=self.prediction_history.columns)
-            self.prediction_history = self.prediction_history.append(next_row, ignore_index=True)
+            predictions.append({x: pred for (x, pred) in zip(self.state_saver.test_idx, map(tuple, pred_proba))})
 
             iteration += 1
             # update stopping_criteria
             self.stopping_criteria.update_information(self.state_saver)
 
         print(f"Stopped after {iteration} iterations")
+        self.prediction_history = pd.DataFrame(predictions)
 
     def get_training_data(self):
         return (
@@ -165,13 +195,13 @@ class ALExperimentProcess(Process):
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
         result = ResultType(raw_predictions=self.prediction_history, classes=self.model.classes_)
-        metrics_df: pd.DataFrame = result.df
+        metrics_tmp = []
         for idx, row in self.prediction_history.iterrows():
             y_pred = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
             acc = accuracy_score(self.y_test.to_list(), y_pred=y_pred)
             f1 = f1_score(self.y_test.to_list(), y_pred, average="micro")
-            metrics_df = metrics_df.append({MetricsDFKeys.ACC: acc, MetricsDFKeys.F1: f1}, ignore_index=True)
-        result.df = metrics_df
+            metrics_tmp.append({MetricsDFKeys.ACC: acc, MetricsDFKeys.F1: f1})
+        result.df = pd.DataFrame(metrics_tmp)
         state_data = result.metric_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database

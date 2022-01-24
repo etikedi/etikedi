@@ -7,8 +7,8 @@ import numpy as np
 import pandas as pd
 
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
-from ..config import db, logger
-from ..models import Dataset, AlExperimentConfig, Metric
+from ..config import logger
+from ..models import AlExperimentConfig, Metric
 
 
 class ExperimentManager:
@@ -33,20 +33,10 @@ class ExperimentManager:
         self.metrics: List[Optional[Metric], Optional[Metric]] = [None, None]
         self.queues = [Queue(), Queue()]
         self.experiments: List[ALExperimentProcess] = [
-            ALExperimentProcess(self._transform_dataset(), self.configs[i], queue=self.queues[i]) for i in [0, 1]]
+            ALExperimentProcess(dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
         ExperimentManager._manager[dataset_id] = self
-
-    def _transform_dataset(self) -> pd.DataFrame:
-        dataset: Dataset = db.get(Dataset, self.dataset_id)
-        feature_names: List[str] = dataset.feature_names.split(",")
-        frame = pd.DataFrame(data=
-                             [sample.extract_feature_list() + [sample.labels[0].name]
-                              for sample in dataset.samples if sample.labels != []],
-                             columns=feature_names + ["LABEL"])
-        logger.info(f"There are {len(frame)} labeled samples ({round(len(frame) / len(dataset.samples) * 100, 2)})%")
-        return frame
 
     def start(self):
         for exp in self.experiments:
