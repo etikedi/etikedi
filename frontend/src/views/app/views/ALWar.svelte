@@ -1,11 +1,9 @@
 <script lang="ts">
   import Button from '../../../ui/Button.svelte'
-  import Input from '../../../ui/Input.svelte'
   import Config from './Config.svelte'
   import { data as datasets } from '../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, onMount } from 'svelte'
-  import embed from 'vega-embed'
   import {
     getStatus,
     isFinished,
@@ -15,7 +13,7 @@
     getDiagrams,
     diagrams,
   } from '../../../store/al-war'
-  import { Circle, SyncLoader, Firework, Shadow, Moon } from 'svelte-loading-spinners'
+  import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
 
@@ -23,7 +21,6 @@
     ready,
     dataset,
     training = false,
-    progressElement,
     remainingTime,
     interval,
     starting = false
