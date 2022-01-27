@@ -1,5 +1,6 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
+from enum import Enum, IntEnum
 from multiprocessing import Queue
 from typing import List, Dict, Tuple, Optional
 
@@ -8,7 +9,7 @@ import pandas as pd
 
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
 from ..config import logger
-from ..models import AlExperimentConfig, Metric
+from ..models import AlExperimentConfig, Metric, Status
 
 
 class ExperimentManager:
@@ -28,6 +29,7 @@ class ExperimentManager:
         self.dataset_id: int = dataset_id
         self.configs = (config_one, config_two)
         self.started_flags: List[bool, bool] = [False, False]
+        self.setup_completed_flags: List[bool, bool] = [False, False]
         self.finished_flags: List[bool, bool] = [False, False]
         self.results: List[Optional[ResultType], Optional[ResultType]] = [None, None]
         self.metrics: List[Optional[Metric], Optional[Metric]] = [None, None]
@@ -81,7 +83,7 @@ class ExperimentManager:
 
         return gen(0), gen(1)
 
-    def get_status(self) -> int:
+    def get_status(self) -> Status:
         """ @return
                 -1 if both are finished
                 -2 if no (new) data is available
@@ -90,14 +92,15 @@ class ExperimentManager:
         # TODO estimate remaining time
         self.assert_started()
         times = [self.poll_process(i) for i in [0, 1]]
-
+        if not all(self.setup_completed_flags):
+            return Status(code=Status.Code.IN_SETUP)
         if all(self.finished_flags):
-            return -1  # experiments are finished: both results are reported
+            return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
         if all(t is None for t in times):
-            return -2  # experiments not finished and no new time
+            return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
         else:
             times = list(map(lambda t: t * 1e-9 if t is not None else 0, times))
-            return max(times)
+            return Status(code=Status.Code.TRAINING, time=max(times))
 
     def assert_started(self):
         if not all(self.started_flags):
@@ -138,6 +141,8 @@ class ExperimentManager:
             event = queue.get_nowait()
             if event['Type'] == EventType.INFO:
                 last_time = event['Value']
+            elif event['Type'] == EventType.SETUP_COMPLETED:
+                self.setup_completed_flags[exp_idx] = True
             elif event['Type'] == EventType.RESULT:
                 self.results[exp_idx] = event['Value']
                 self.experiments[exp_idx].join()

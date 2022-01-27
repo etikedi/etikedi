@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import List, Tuple
+from enum import IntEnum
+from typing import List, Tuple, Optional
 
 from pydantic import (
     confloat as constrained_float,
@@ -23,6 +24,16 @@ class AlExperimentConfig(Schema):
     BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
 
 
+class Status(Schema):
+    class Code(IntEnum):
+        IN_SETUP = 0,
+        TRAINING = 1,
+        COMPLETED = 2
+
+    code: Status.Code
+    time: Optional[float] = None  # last reported trainings time
+
+
 class MetricData(Schema):
     time: NonNegativeFloat  # model training time in seconds
     percentage_labeled: ZeroToOne
@@ -31,7 +42,7 @@ class MetricData(Schema):
 
 class ChartReturnSchema(Schema):
     acc: str
-    conf: Tuple[List[str],List[str]]
+    conf: Tuple[List[str], List[str]]
 
 
 class Metric(Schema):

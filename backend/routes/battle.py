@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, status
 from typing import List, Tuple
 
 from ..battle_mode import ExperimentManager
-from ..models import AlExperimentConfig, Metric, ChartReturnSchema
+from ..models import AlExperimentConfig, Metric, ChartReturnSchema, Status
 
 battle_router = APIRouter()
 
@@ -17,7 +17,7 @@ async def start_battle(dataset_id: int, config1: AlExperimentConfig, config2: Al
     ExperimentManager(dataset_id, config1, config2).start()
 
 
-@battle_router.get("/is_finish")
+@battle_router.get("/status", response_model=Status)
 async def is_finish(dataset_id: int):
     """ If an experiment started returns the last measured training-iteration-time
     @return

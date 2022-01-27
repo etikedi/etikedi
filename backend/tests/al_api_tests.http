@@ -52,7 +52,7 @@ Content-Type: application/json
 }
 
 ### check status
-GET http://localhost:8000/3/al-wars/is_finish
+GET http://localhost:8000/3/al-wars/status
 accept: application/json
 
 ### get diagrams

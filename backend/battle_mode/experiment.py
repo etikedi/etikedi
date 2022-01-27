@@ -1,5 +1,5 @@
 import time
-from enum import Enum
+from enum import Enum, IntEnum
 from multiprocessing import Process
 from multiprocessing import Queue
 from typing import List
@@ -26,9 +26,10 @@ class MapKeys(str, Enum):
     SAMPLES = 'select_index'
 
 
-class EventType(str, Enum):
-    INFO = 'INFO',
-    RESULT = 'RESULT'
+class EventType(IntEnum):
+    SETUP_COMPLETED = 1
+    INFO = 2,
+    RESULT = 3
 
 
 class ResultType:
@@ -131,6 +132,7 @@ class ALExperimentProcess(Process):
     def run(self, verbose=0):
         # initial training
         self._setup()
+        self.queue.put({'Type': EventType.SETUP_COMPLETED, 'Value': True}, False)
         self._train(verbose)
         self.queue.put({'Type': EventType.RESULT, 'Value': self.get_result()}, False)
         print(f"Process finished ")
