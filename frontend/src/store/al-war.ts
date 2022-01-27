@@ -113,18 +113,20 @@ export async function getStatus(dataset_id: number | string) {
   try {
     loading.set(true)
     const { data: isFinish } = await axios({
-      url: `${dataset_id}/al-wars/is_finish`,
+      url: `${dataset_id}/al-wars/status`,
       method: 'get',
     })
-
     /**
      * Response:
-     * -1 if both are finished
-     * -2 if no data is available
-     * time in seconds if at least one is finished
+     * IN_SETUP = 0,
+     * TRAINING = 1,
+     * COMPLETED = 2
+     * isFinished {
+     *    code: 0 | 1 | 2
+     *    time: float | null
+     * }
      */
-
-    isFinished.set(isFinish > 0 ? isFinish : isFinish < -1 ? false : true)
+    isFinished.set(isFinish.code == 1 && isFinish.time != null ? isFinish.time : isFinish.code == 2 )
   } finally {
     loading.set(false)
   }
