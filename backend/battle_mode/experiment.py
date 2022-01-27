@@ -46,7 +46,8 @@ def _transform_dataset(dataset_id: int):
     feature_names: List[str] = dataset.feature_names.split(",")
     frame = pd.DataFrame(data=
                          [{f_name: f for (f_name, f) in
-                           zip(feature_names + ['LABEL'], sample.extract_feature_list() + [sample.labels[0].name])}
+                           zip(feature_names + ['LABEL', "DB_ID"],
+                               sample.extract_feature_list() + [sample.labels[0].name, sample.id])}
                           for sample in dataset.samples if sample.labels != []])
     return frame
 
@@ -86,10 +87,10 @@ class ALExperimentProcess(Process):
 
     @timeit
     def _setup(self):
-        d_frame = _transform_dataset(self.dataset_id)
+        d_frame: pd.DataFrame = _transform_dataset(self.dataset_id)
         print("Loaded dataset")
         labeled_set = d_frame[d_frame['LABEL'].notnull()]
-        all_labeled_samples = labeled_set.drop(labels='LABEL', axis='columns')
+        all_labeled_samples = labeled_set.drop(labels=['LABEL', 'DB_ID'], axis='columns')
         labels = labeled_set['LABEL']
 
         self.idx2Label = {idx: label for idx, label in enumerate(set(labels))}
@@ -107,9 +108,10 @@ class ALExperimentProcess(Process):
         unlabel_idx = unlabel_idx[0]
         self.all_training_samples = all_labeled_samples.iloc[train_idx, :]
         self.all_training_labels = labels.iloc[train_idx]
+
         # al_strategy.select() only accepts idx from 0 to size of training data
         adjusted_idx_map = {idx: new_idx for new_idx, idx in enumerate(train_idx)}
-        self.idx2ID = {new_idx: idx for new_idx, idx in enumerate(train_idx)}
+        self.idx2ID = {new_idx: d_frame.iloc[idx]['DB_ID'] for new_idx, idx in enumerate(train_idx)}
         self.all_training_samples.reset_index(drop=True, inplace=True)
 
         # initiate configurable experiment setting
