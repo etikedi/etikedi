@@ -31,9 +31,6 @@
    */
   $: if ($metricData) console.debug($metricData)
   $: if ($diagrams) console.debug($diagrams)
-  if (localStorage.getItem('diagrams')) {
-    showConfig = false
-  }
 
   let config1 = {
     QUERY_STRATEGY: 'QueryInstanceRandom',
@@ -136,14 +133,17 @@
     return ret
   }
 
-  onMount(() => {
-    // getDia()
-  })
-
   onDestroy(() => {
     clearInterval(interval)
   })
 </script>
+
+<!--
+  DEV
+-->
+{#if localStorage.getItem('diagrams') && showConfig}
+  <Button on:click={() => (showConfig = false)}>Use cached data</Button>
+{/if}
 
 <div class="wrapper">
   {#if showConfig}

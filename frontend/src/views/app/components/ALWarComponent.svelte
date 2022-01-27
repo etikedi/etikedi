@@ -69,7 +69,6 @@
 
   async function pushDiagrams(update?: boolean) {
     const vega_options = {
-      width: 75,
       height: 150,
       tooltip: { theme: 'dark' },
       actions: false,
@@ -92,7 +91,7 @@
 
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
-      vega_views['acc'] = await embed(acc_element, acc, { height: 110, width: 800, actions: false })
+      vega_views['acc'] = await embed(acc_element, acc, { height: 140 })
     }
   }
 
@@ -120,7 +119,7 @@
     /**
      * DEV
      */
-    if (localStorage.getItem('diagrams')) {
+    if (!$diagrams && localStorage.getItem('diagrams')) {
       $diagrams = JSON.parse(localStorage.getItem('diagrams'))
       $metricData = JSON.parse(localStorage.getItem('metrics'))
     }
@@ -187,7 +186,9 @@
         <div class="process">
           <div class="sample">
             {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
-              <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+              <div class="data">
+                <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+              </div>
               <span>Sample ID: {sample_1.id}</span>
             {:else if sample_1}
               <p>Unsupported type {sample_1.type}</p>
@@ -206,7 +207,9 @@
         <div class="process">
           <div class="sample">
             {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
-              <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+              <div class="data">
+                <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+              </div>
               <span>Sample ID: {sample_2.id}</span>
             {:else if sample_2}
               <p>Unsupported type {sample_2.type}</p>
@@ -247,7 +250,7 @@
 <style>
   .wrapper {
     display: grid;
-    grid-template-columns: 1fr 3.5fr;
+    grid-template-columns: 1fr 5fr;
     column-gap: 15px;
   }
 
@@ -268,6 +271,8 @@
   .process {
     border: 1px solid lightgray;
     border-radius: 5px;
+    display: grid;
+    grid-template-rows: 250px 4em 1fr;
   }
 
   h4 {
@@ -291,11 +296,15 @@
   }
 
   .sample {
-    margin-top: 2em;
+    padding: 2em 2em 0 2em;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    row-gap: 1em;
+    justify-content: space-between;
+  }
+
+  .data {
+    overflow: auto;
   }
 
   .vs {
@@ -355,11 +364,20 @@
     grid-template-rows: 1fr 1fr;
     column-gap: 15px;
     row-gap: 15px;
+    margin-bottom: 2em;
   }
 
   .diagram {
     display: flex;
     justify-content: center;
+  }
+
+  .diagram:nth-child(even) {
+    margin: 0 2em 0 0.5em
+  }
+
+  .diagram:nth-child(odd) {
+    margin: 0 0.5em 0 2em
   }
 
   table {

@@ -42,7 +42,7 @@ async def get_diagrams(dataset_id: int):
         alt.X('Iteration:O'),
         alt.Y('Value:Q'),
         color='Experiment:N'
-    )
+    ).properties(width='container')
     # confidence: histogram, x=confidence, y=occurrence
     conf_data: Tuple[List[List[float]], List[List[float]]] = manager.get_confidence_his_data()
 
@@ -52,7 +52,7 @@ async def get_diagrams(dataset_id: int):
             chart = alt.Chart(data=pd.DataFrame({'Confidence': it})).mark_bar().encode(
                 x=alt.X('Confidence', bin=alt.BinParams(maxbins=20), scale=alt.Scale(0.0, 1.0)),
                 y=alt.Y('count()', type='ordinal')
-            ).to_json()
+            ).properties(width='container').to_json()
             plots.append(chart)
         return plots
 
