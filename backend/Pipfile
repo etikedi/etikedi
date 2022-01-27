@@ -23,6 +23,7 @@ seaborn = "*"
 sqlalchemy = "*"
 json-tricks = "*"
 numba = "*"
+numpy = "*"
 psycopg2-binary = "*"
 alipy = "*"
 
