@@ -39,7 +39,7 @@ async def get_diagrams(dataset_id: int):
     # learning curve: line chart x=iterations, y = accuracy
     learning_data: pd.DataFrame = manager.get_learning_curve_data()
     learning_curve: alt.Chart = alt.Chart(learning_data).mark_line().encode(
-        alt.X('X:O'),
+        alt.X('Iteration:O'),
         alt.Y('Value:Q'),
         color='Experiment:N'
     )
