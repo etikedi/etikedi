@@ -1,9 +1,6 @@
-import altair as alt
-import pandas as pd
 from fastapi import APIRouter, HTTPException, status
-from typing import List, Tuple
 
-from ..battle_mode import ExperimentManager
+from ..battle_mode import ExperimentManager, plotting
 from ..models import AlExperimentConfig, Metric, ChartReturnSchema, Status
 
 battle_router = APIRouter()
@@ -37,28 +34,13 @@ async def get_diagrams(dataset_id: int):
     # create diagrams
 
     # learning curve: line chart x=iterations, y = accuracy
-    learning_data: pd.DataFrame = manager.get_learning_curve_data()
-    learning_curve: alt.Chart = alt.Chart(learning_data).mark_line().encode(
-        alt.X('Iteration:O'),
-        alt.Y('Value:Q'),
-        color='Experiment:N'
-    ).properties(width='container')
+    learning_curve = plotting.learning_curve_plot(manager.get_learning_curve_data())
+
     # confidence: histogram, x=confidence, y=occurrence
-    conf_data: Tuple[List[List[float]], List[List[float]]] = manager.get_confidence_his_data()
+    confidence_plots = plotting.confidence_histograms(manager.get_confidence_his_data())
+    data_maps = plotting.data_maps(manager.get_data_map_data())
 
-    def cp_plots(data: List[List[float]]):
-        plots = []
-        for it in data:
-            chart = alt.Chart(data=pd.DataFrame({'Confidence': it})).mark_bar().encode(
-                x=alt.X('Confidence', bin=alt.BinParams(maxbins=20), scale=alt.Scale(0.0, 1.0)),
-                y=alt.Y('count()', type='ordinal')
-            ).properties(width='container').to_json()
-            plots.append(chart)
-        return plots
-
-    confidence_plots = (cp_plots(conf_data[0]), cp_plots(conf_data[1]))
-
-    return ChartReturnSchema(acc=learning_curve.to_json(), conf=confidence_plots)
+    return ChartReturnSchema(acc=learning_curve, conf=confidence_plots, data_maps=data_maps)
 
 
 @battle_router.get("/get_metrics", response_model=Metric)

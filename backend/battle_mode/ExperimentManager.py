@@ -1,6 +1,5 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
-from enum import Enum, IntEnum
 from multiprocessing import Queue
 from typing import List, Dict, Tuple, Optional
 
@@ -80,6 +79,26 @@ class ExperimentManager:
             for _, row in self.results[experiment_idx].raw_predictions.iterrows():
                 data_over_iterations.append(list(np.max(row)))
             return data_over_iterations
+
+        return gen(0), gen(1)
+
+    def get_data_map_data(self):
+        self.assert_finished()
+        self._poll_results_if_not_present()
+
+        def gen(exp_idx: int):
+            r = self.results[exp_idx]
+            raw_predicts = r.raw_predictions
+            data = []
+            for smpl in raw_predicts.columns:
+                confidence = raw_predicts[smpl].map(lambda x: max(x)).mean()
+                variance = raw_predicts[smpl].map(lambda x: x.index(max(x))).var()
+                correctness = raw_predicts[smpl].map(lambda x: x.index(max(x)) == r.correct_labelAsIdx[smpl]).mean()
+                data.append({'Confidence': confidence,
+                             'Variability': variance,
+                             'Correctness': correctness,
+                             'SampleID': smpl})
+            return pd.DataFrame(data)
 
         return gen(0), gen(1)
 

@@ -2,7 +2,7 @@ import time
 from enum import Enum, IntEnum
 from multiprocessing import Process
 from multiprocessing import Queue
-from typing import List
+from typing import List, Dict
 
 import pandas as pd
 from alipy.data_manipulate import split
@@ -38,6 +38,7 @@ class ResultType:
         self.metric_data: List[MetricData] = []
         self.classes: List[str] = classes if (classes is not None) else []
         self.raw_predictions = raw_predictions
+        self.correct_labelAsIdx: Dict[int, int] = dict()
 
 
 @timeit
@@ -76,7 +77,8 @@ class ALExperimentProcess(Process):
         # move time intensive data operations outside __init__
         self.all_training_samples = None
         self.all_training_labels = None
-        self.idx2ID = None
+        self.idx2IDTrain = None
+        self.idx2IDTest = None
         self.unlab_ind = None
         self.label_ind = None
         self.label_ind = None
@@ -111,8 +113,10 @@ class ALExperimentProcess(Process):
 
         # al_strategy.select() only accepts idx from 0 to size of training data
         adjusted_idx_map = {idx: new_idx for new_idx, idx in enumerate(train_idx)}
-        self.idx2ID = {new_idx: d_frame.iloc[idx]['DB_ID'] for new_idx, idx in enumerate(train_idx)}
         self.all_training_samples.reset_index(drop=True, inplace=True)
+
+        self.idx2IDTrain = {new_idx: d_frame.iloc[idx]['DB_ID'] for new_idx, idx in enumerate(train_idx)}
+        self.idx2IDTest = {idx: d_frame.iloc[idx]['DB_ID'] for idx in test_idx}
 
         # initiate configurable experiment setting
         self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.config.QUERY_STRATEGY,
@@ -179,7 +183,9 @@ class ALExperimentProcess(Process):
                 print(f"#Labeled: {len(self.label_ind.index)}")
 
             # add current iteration to history
-            predictions.append({x: pred for (x, pred) in zip(self.state_saver.test_idx, map(tuple, pred_proba))})
+            predictions.append(
+                {self.idx2IDTest[x]: pred for (x, pred) in zip(self.state_saver.test_idx, map(tuple, pred_proba))}
+            )
 
             iteration += 1
             # update stopping_criteria
@@ -199,6 +205,8 @@ class ALExperimentProcess(Process):
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
         result = ResultType(raw_predictions=self.prediction_history, classes=self.model.classes_)
+        result.correct_labelAsIdx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
+                                     for idx, label_str in self.y_test.items()}
         metrics_tmp = []
         for idx, row in self.prediction_history.iterrows():
             y_pred = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
@@ -209,7 +217,7 @@ class ALExperimentProcess(Process):
         state_data = result.metric_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
-            selected_samples = [self.idx2ID[i] for i in state.get_value(MapKeys.SAMPLES)]
+            selected_samples = [self.idx2IDTrain[i] for i in state.get_value(MapKeys.SAMPLES)]
             metric_dp: MetricData = MetricData(time=state.get_value(MapKeys.TIME),
                                                percentage_labeled=state.get_value(MapKeys.PERC_LABELED),
                                                sample_ids=selected_samples)

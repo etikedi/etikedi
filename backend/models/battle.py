@@ -43,6 +43,7 @@ class MetricData(Schema):
 class ChartReturnSchema(Schema):
     acc: str
     conf: Tuple[List[str], List[str]]
+    data_maps: Tuple[str, str]
 
 
 class Metric(Schema):
