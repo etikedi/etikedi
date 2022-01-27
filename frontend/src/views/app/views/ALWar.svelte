@@ -23,7 +23,8 @@
     training = false,
     remainingTime,
     interval,
-    starting = false
+    starting = false,
+    progressElement
 
   /**
    * DEV
