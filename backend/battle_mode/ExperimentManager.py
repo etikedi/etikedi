@@ -32,7 +32,7 @@ class ExperimentManager:
         self.setup_completed_flags: List[bool, bool] = [False, False]
         self.finished_flags: List[bool, bool] = [False, False]
         self.results: List[Optional[ResultType], Optional[ResultType]] = [None, None]
-        self.metrics: List[Optional[Metric], Optional[Metric]] = [None, None]
+        self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
         self.experiments: List[ALExperimentProcess] = [
             ALExperimentProcess(dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
@@ -46,8 +46,8 @@ class ExperimentManager:
         self.started_flags = [True for _ in self.started_flags]
 
     def get_metrics(self) -> Metric:
-        if all(m is not None for m in self.metrics):
-            return self.metrics
+        if self.metric is not None:
+            return self.metric
         self.assert_finished()
         self._poll_results_if_not_present()
         combined: List = []
@@ -55,8 +55,8 @@ class ExperimentManager:
         m1 = self.results[1].metric_data
         for idx in range(max(len(m0), len(m1))):
             combined.append((m0[idx] if idx < len(m0) else None, m1[idx] if idx < len(m1) else None))
-        self.metrics = Metric(iterations=combined)
-        return self.metrics
+        self.metric = Metric(iterations=combined)
+        return self.metric
 
     def get_learning_curve_data(self) -> pd.DataFrame:
         # convert to long form for altair
