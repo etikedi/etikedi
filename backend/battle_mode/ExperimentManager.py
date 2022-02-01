@@ -37,6 +37,7 @@ class ExperimentManager:
             ALExperimentProcess(dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
+            ExperimentManager._manager[dataset_id].terminate()
         ExperimentManager._manager[dataset_id] = self
 
     def start(self):
@@ -169,3 +170,16 @@ class ExperimentManager:
                 return None
 
         return last_time
+
+    def terminate(self):
+        logger.info(f"Terminating experiment: {self.dataset_id}")
+        for exp_ind, finished in enumerate(self.finished_flags):
+            if not finished:
+                self.experiments[exp_ind].kill()
+        for q in self.queues:
+            q.close()
+        if self.dataset_id in ExperimentManager._manager.keys():
+            del ExperimentManager._manager[self.dataset_id]
+
+    def __del__(self):
+        self.terminate()
