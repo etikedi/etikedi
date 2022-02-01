@@ -31,10 +31,11 @@ class ExperimentManager:
         self.setup_completed_flags: List[bool, bool] = [False, False]
         self.finished_flags: List[bool, bool] = [False, False]
         self.results: List[Optional[ResultType], Optional[ResultType]] = [None, None]
+        self.last_reported_time: Optional[Tuple[float, bool]] = None  # reported time, true if experiment one
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
         self.experiments: List[ALExperimentProcess] = [
-            ALExperimentProcess(dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
+            ALExperimentProcess(i, dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
             ExperimentManager._manager[dataset_id].terminate()
@@ -109,7 +110,6 @@ class ExperimentManager:
                 -2 if no (new) data is available
                 time in seconds if at least one has finished one iteration
                 """
-        # TODO estimate remaining time
         self.assert_started()
         times = [self.poll_process(i) for i in [0, 1]]
         if not all(self.setup_completed_flags):
@@ -118,9 +118,15 @@ class ExperimentManager:
             return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
         if all(t is None for t in times):
             return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
-        else:
-            times = list(map(lambda t: t * 1e-9 if t is not None else 0, times))
+        if self.last_reported_time is None:
+            times = list(filter(lambda t: t is not None, times))
+            t = max(times)
+            self.last_reported_time = t, times.index(t)
             return Status(code=Status.Code.TRAINING, time=max(times))
+        for i, t in enumerate(times):
+            if t is not None and (t > self.last_reported_time[0] or i == self.last_reported_time[1]):
+                self.last_reported_time = t, i
+        return Status(code=Status.Code.TRAINING, time=self.last_reported_time[0])
 
     def assert_started(self):
         if not all(self.started_flags):

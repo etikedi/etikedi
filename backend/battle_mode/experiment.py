@@ -1,5 +1,8 @@
+from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
+
 import time
 from enum import Enum, IntEnum
+from math import ceil
 from multiprocessing import Process
 from multiprocessing import Queue
 from typing import List, Dict
@@ -11,7 +14,7 @@ from alipy.index import IndexCollection
 from sklearn.metrics import accuracy_score, f1_score
 
 from ..config import db
-from ..models import AlExperimentConfig, QueryStrategyAbstraction, MetricData, Dataset
+from ..models import AlExperimentConfig, QueryStrategyAbstraction, MetricData, Dataset, StoppingCriteriaOption
 from ..utils import timeit
 
 
@@ -54,8 +57,48 @@ def _transform_dataset(dataset_id: int):
 
 
 class ALExperimentProcess(Process):
+    class RemainingTimeEstimate:
+        def __init__(self, criteria: StoppingCriteriaOption, experiment: ALExperimentProcess):
+            self._start_time = None
+            self._criteria: StoppingCriteriaOption = criteria
+            self._criteria_value = experiment.config.STOPPING_CRITERIA_VALUE
+            self._times = []  # iteration : measured_time
+            self._total_iterations: int = 0
+            if criteria == StoppingCriteriaOption.PERCENT_OF_UNLABEL:
+                percentage_as_absolute: int = ceil(len(experiment.unlab_ind) * float(self._criteria_value))
+                self._total_iterations = ceil(percentage_as_absolute / experiment.batch_size)
+            elif criteria == StoppingCriteriaOption.NUM_OF_QUERIES:
+                self._total_iterations = int(self._criteria_value)
+            # TODO estimate time for cost limit
+            if criteria == StoppingCriteriaOption.ALL_LABELED or criteria == StoppingCriteriaOption.COST_LIMIT:
+                self._total_iterations = ceil(len(experiment.unlab_ind) / experiment.batch_size)
 
-    def __init__(self, dataset_id: int, config: AlExperimentConfig, queue: Queue):
+        def remaining_time(self, last_training_time: float) -> float:
+            """
+            Assuming this method is called every iteration once.
+            @param last_training_time: time for model.fit() in ns
+            @return: estimated remaining time in seconds
+            """
+            self._times.append(last_training_time)
+            it = len(self._times)
+            if self._criteria == StoppingCriteriaOption.CPU_TIME:
+                if self._start_time is None:
+                    raise ValueError("start_timer() was not called")
+                return max(self._criteria_value - (time.perf_counter_ns() - self._start_time), 0) * 1e-9
+
+            incr = sum(self._times[i + 1] - self._times[i] for i in range(it - 1)) / max(it - 1, 1)
+            result = sum([last_training_time + incr * i for i in range(self._total_iterations - it)])
+            if result < 0.0:
+                raise ValueError(f"Remaining time is negative: {result}")
+            return result * 1e-9  # convert ns to seconds
+
+        def start_timer(self):
+            if self._criteria != StoppingCriteriaOption.CPU_TIME:
+                raise ValueError(f"This method is only relevant if criteria is : {StoppingCriteriaOption.CPU_TIME}")
+            # not one to one what alipy is using but necessary for estimation
+            self._start_time = time.perf_counter_ns()
+
+    def __init__(self, exp_id: int, dataset_id: int, config: AlExperimentConfig, queue: Queue):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -67,11 +110,14 @@ class ALExperimentProcess(Process):
           4. save current iteration in history.
         """
         super().__init__()
+        self.exp_id = exp_id
         self.config: AlExperimentConfig = config
         self.queue = queue
         model_class = config.AL_MODEL.get_class()
         self.model = model_class()
-        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get())
+        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get()) \
+            if (config.STOPPING_CRITERIA_VALUE is None) \
+            else StoppingCriteria(config.STOPPING_CRITERIA.get(), config.STOPPING_CRITERIA_VALUE)
         self.batch_size = config.BATCH_SIZE
         self.dataset_id = dataset_id
         # move time intensive data operations outside __init__
@@ -86,11 +132,12 @@ class ALExperimentProcess(Process):
         self.X_test = None
         self.y_test = None
         self.state_saver = None
+        self.rte = None  # RemainingTimeEstimate instance predicting the remaining time
 
     @timeit
     def _setup(self):
         d_frame: pd.DataFrame = _transform_dataset(self.dataset_id)
-        print("Loaded dataset")
+        print(f"[{self.exp_id}] Loaded dataset")
         labeled_set = d_frame[d_frame['LABEL'].notnull()]
         all_labeled_samples = labeled_set.drop(labels=['LABEL', 'DB_ID'], axis='columns')
         labels = labeled_set['LABEL']
@@ -134,6 +181,7 @@ class ALExperimentProcess(Process):
         self.state_saver: StateIO = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
                                             init_U=self.unlab_ind.index, init_L=self.label_ind.index,
                                             verbose=False)
+        self.rte = ALExperimentProcess.RemainingTimeEstimate(self.config.STOPPING_CRITERIA, self)
 
     def run(self, verbose=0):
         # initial training
@@ -141,14 +189,18 @@ class ALExperimentProcess(Process):
         self.queue.put({'Type': EventType.SETUP_COMPLETED, 'Value': True}, False)
         self._train(verbose)
         self.queue.put({'Type': EventType.RESULT, 'Value': self.get_result()}, False)
-        print(f"Process finished ")
+        print(f"[{self.exp_id}] Process finished ")
 
     def _train(self, verbose):
         self.model.fit(*self.get_training_data())
         # test data does not change: has original index equal to all_labeled_samples
 
-        iteration = 0
+        iteration = 1
         predictions = []
+        if self.config.STOPPING_CRITERIA == StoppingCriteriaOption.CPU_TIME:
+            self.stopping_criteria.reset()  # reset cpu start time 
+            self.rte.start_timer()
+        starting_time = time.time_ns()
         while not self.stopping_criteria.is_stop():
             # query al_strategy for next samples
             selected_ind_list = self.al_strategy.select(label_index=self.label_ind,
@@ -168,7 +220,11 @@ class ALExperimentProcess(Process):
             finally:
                 stop = time.time_ns()
             diff_time = stop - start
-            self.queue.put({'Type': EventType.INFO, 'Value': diff_time}, False)
+            estimation = self.rte.remaining_time(diff_time)
+            if iteration > 2:  # estimation not precise enough
+                self.queue.put({'Type': EventType.INFO, 'Value': estimation}, False)
+                if verbose > 0:
+                    print(f"[{self.exp_id}] estimation: {estimation}")
             pred_proba = self.model.predict_proba(self.X_test)
             y_pred = _predicted_class(self.model, pred_proba)
             perf = accuracy_score(y_true=self.y_test.to_list(), y_pred=y_pred)
@@ -178,9 +234,9 @@ class ALExperimentProcess(Process):
                               value=len(self.label_ind) / (len(self.unlab_ind) + len(self.label_ind)))
             self.state_saver.add_state(state)
             if verbose > 0:
-                print(f"Training took: {diff_time}ns")
-                print(f"Performance: {perf}")
-                print(f"#Labeled: {len(self.label_ind.index)}")
+                print(f"[{self.exp_id}] Training took: {diff_time}ns")
+                print(f"[{self.exp_id}] Performance: {perf}")
+                print(f"[{self.exp_id}] #Labeled: {len(self.label_ind.index)}")
 
             # add current iteration to history
             predictions.append(
@@ -191,7 +247,8 @@ class ALExperimentProcess(Process):
             # update stopping_criteria
             self.stopping_criteria.update_information(self.state_saver)
 
-        print(f"Stopped after {iteration} iterations")
+        print(f"[{self.exp_id}] Stopped after {iteration} iterations")
+        print(f"[{self.exp_id}] Training took {round((time.time_ns() - starting_time) * 1e-9, 4)} seconds")
         self.prediction_history = pd.DataFrame(predictions)
 
     def get_training_data(self):

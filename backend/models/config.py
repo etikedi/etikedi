@@ -1,6 +1,6 @@
 from __future__ import annotations  # necessary for self referencing annotations
 from enum import Enum
-from typing import List
+from typing import List, Optional, Union
 
 from .al_strategy import QueryStrategyType
 
@@ -29,15 +29,16 @@ class ALModel(str, Enum):
             return LogisticRegression
 
 
-class StoppingCriteria(str, Enum):
-    ALL_LABELED = 'None'
+class StoppingCriteriaOption(str, Enum):
+    ALL_LABELED = "all_labeled"
     NUM_OF_QUERIES = "num_of_queries"
     COST_LIMIT = "cost_limit"
     PERCENT_OF_UNLABEL = "percent_of_unlabel"
+    CPU_TIME = "time_limit"
 
     # None has to be passed to StoppingCriteria() as absence of criteria which is equiv to all_labeled
     def get(self):
-        return None if self == StoppingCriteria.ALL_LABELED else self.value
+        return None if self == StoppingCriteriaOption.ALL_LABELED else self.value
 
 
 class QMeasureType(str, Enum):
@@ -107,7 +108,8 @@ class ActiveLearningConfig(Schema):
     QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
     QUERY_STRATEGY_CONFIG: QueryStrategyConfig = QueryStrategyConfig()
     AL_MODEL: ALModel = ALModel.RANDOM_FOREST_CLASSIFIER
-    STOPPING_CRITERIA: StoppingCriteria = StoppingCriteria.ALL_LABELED
+    STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
+    STOPPING_CRITERIA_VALUE: Optional[Union[int, float]]
     BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
     COUNTER_UNTIL_NEXT_EVAL: PositiveInt = (
         5  # number of updates (add/remove) until next model evaluation

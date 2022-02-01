@@ -35,7 +35,8 @@
   let config1 = {
     QUERY_STRATEGY: 'QueryInstanceRandom',
     AL_MODEL: 'RandomForestClassifier',
-    STOPPING_CRITERIA: 'None',
+    STOPPING_CRITERIA_VALUE: 10,
+    STOPPING_CRITERIA: 'all_labeled',
     BATCH_SIZE: 5,
   }
 
