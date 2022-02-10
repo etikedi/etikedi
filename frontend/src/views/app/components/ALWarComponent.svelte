@@ -42,29 +42,31 @@
   }
 
   async function changeIteration() {
-    currentIteration = sliderValue
+    if (sliderValue !== currentIteration) {
+      currentIteration = sliderValue
 
-    // Label percentage
-    const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
-    sample_info['Percentage labeled'] = labeled + '%'
-    sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
+      // Label percentage
+      const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
+      sample_info['Percentage labeled'] = labeled + '%'
+      sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
 
-    // Annotation cost
-    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
-    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
-    metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
+      // Annotation cost
+      const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
+      const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
+      metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
 
-    // Fetch sample (hopefully in background)
-    getSamples()
+      // Fetch sample (hopefully in background)
+      getSamples()
 
-    // Destroy confidence diagrams
-    const allViews = Object.keys(vega_views)
-    delete allViews['acc']
-    await destroyViews(allViews)
-    // await destroyViews(['conf_1', 'conf_2'])
+      // Destroy confidence diagrams
+      const allViews = Object.keys(vega_views)
+      delete allViews['acc']
+      await destroyViews(allViews)
+      // await destroyViews(['conf_1', 'conf_2'])
 
-    // Push new confidence diagrams
-    await pushDiagrams(true)
+      // Push new confidence diagrams
+      await pushDiagrams(true)
+    }
   }
 
   async function pushDiagrams(update?: boolean) {
@@ -373,11 +375,11 @@
   }
 
   .diagram:nth-child(even) {
-    margin: 0 2em 0 0.5em
+    margin: 0 2em 0 0.5em;
   }
 
   .diagram:nth-child(odd) {
-    margin: 0 0.5em 0 2em
+    margin: 0 0.5em 0 2em;
   }
 
   table {
