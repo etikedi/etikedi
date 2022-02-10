@@ -1,6 +1,5 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
-from enum import Enum, IntEnum
 from multiprocessing import Queue
 from typing import List, Dict, Tuple, Optional
 
@@ -32,12 +31,14 @@ class ExperimentManager:
         self.setup_completed_flags: List[bool, bool] = [False, False]
         self.finished_flags: List[bool, bool] = [False, False]
         self.results: List[Optional[ResultType], Optional[ResultType]] = [None, None]
+        self.last_reported_time: Optional[Tuple[float, bool]] = None  # reported time, true if experiment one
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
         self.experiments: List[ALExperimentProcess] = [
-            ALExperimentProcess(dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
+            ALExperimentProcess(i, dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
+            ExperimentManager._manager[dataset_id].terminate()
         ExperimentManager._manager[dataset_id] = self
 
     def start(self):
@@ -83,13 +84,32 @@ class ExperimentManager:
 
         return gen(0), gen(1)
 
+    def get_data_map_data(self):
+        self.assert_finished()
+        self._poll_results_if_not_present()
+
+        def gen(exp_idx: int):
+            r = self.results[exp_idx]
+            raw_predicts = r.raw_predictions
+            data = []
+            for smpl in raw_predicts.columns:
+                confidence = raw_predicts[smpl].map(lambda x: max(x)).mean()
+                variance = raw_predicts[smpl].map(lambda x: x.index(max(x))).var()
+                correctness = raw_predicts[smpl].map(lambda x: x.index(max(x)) == r.correct_labelAsIdx[smpl]).mean()
+                data.append({'Confidence': confidence,
+                             'Variability': variance,
+                             'Correctness': correctness,
+                             'SampleID': smpl})
+            return pd.DataFrame(data)
+
+        return gen(0), gen(1)
+
     def get_status(self) -> Status:
         """ @return
                 -1 if both are finished
                 -2 if no (new) data is available
                 time in seconds if at least one has finished one iteration
                 """
-        # TODO estimate remaining time
         self.assert_started()
         times = [self.poll_process(i) for i in [0, 1]]
         if not all(self.setup_completed_flags):
@@ -98,9 +118,15 @@ class ExperimentManager:
             return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
         if all(t is None for t in times):
             return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
-        else:
-            times = list(map(lambda t: t * 1e-9 if t is not None else 0, times))
+        if self.last_reported_time is None:
+            times = list(filter(lambda t: t is not None, times))
+            t = max(times)
+            self.last_reported_time = t, times.index(t)
             return Status(code=Status.Code.TRAINING, time=max(times))
+        for i, t in enumerate(times):
+            if t is not None and (t > self.last_reported_time[0] or i == self.last_reported_time[1]):
+                self.last_reported_time = t, i
+        return Status(code=Status.Code.TRAINING, time=self.last_reported_time[0])
 
     def assert_started(self):
         if not all(self.started_flags):
@@ -150,3 +176,16 @@ class ExperimentManager:
                 return None
 
         return last_time
+
+    def terminate(self):
+        logger.info(f"Terminating experiment: {self.dataset_id}")
+        for exp_ind, finished in enumerate(self.finished_flags):
+            if not finished:
+                self.experiments[exp_ind].kill()
+        for q in self.queues:
+            q.close()
+        if self.dataset_id in ExperimentManager._manager.keys():
+            del ExperimentManager._manager[self.dataset_id]
+
+    def __del__(self):
+        self.terminate()

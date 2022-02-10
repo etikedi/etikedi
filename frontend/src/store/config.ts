@@ -46,7 +46,8 @@ export const BattleConfig = {
     'QueryExpectedErrorReduction',
   ]),
   AL_MODEL: Choice(['DecisionTreeClassifier', 'RandomForestClassifier', 'LogisticRegression']),
-  STOPPING_CRITERIA: Choice(['None', 'num_of_queries', 'cost_limit', 'percent_of_unlabel']),
+  STOPPING_CRITERIA_VALUE: PositiveInt,
+  STOPPING_CRITERIA: Choice(['all_labeled', 'num_of_queries', 'cost_limit', 'percent_of_unlabel']),
   BATCH_SIZE: PositiveInt,
 }
 

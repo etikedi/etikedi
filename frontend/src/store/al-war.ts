@@ -13,7 +13,8 @@ export type BattleConfig = {
     | 'QueryInstanceRandom'
     | 'QueryExpectedErrorReduction'
   AL_MODEL: 'DecisionTreeClassifier' | 'RandomForestClassifier' | 'LogisticRegression'
-  STOPPING_CRITERIA: 'None' | 'num_of_queries' | 'cost_limit' | 'percent_of_unlabel'
+  STOPPING_CRITERIA_Value: number
+  STOPPING_CRITERIA: 'all_labeled' | 'num_of_queries' | 'cost_limit' | 'percent_of_unlabel'
   BATCH_SIZE: number
   QUERY_STRATEGY_CONFIG: {
     beta: number
@@ -112,7 +113,7 @@ export async function startBattle(dataset_id: number | string, config1: BattleCo
 export async function getStatus(dataset_id: number | string) {
   try {
     loading.set(true)
-    const { data: isFinish } = await axios({
+    const { data: status } = await axios({
       url: `${dataset_id}/al-wars/status`,
       method: 'get',
     })
@@ -126,7 +127,7 @@ export async function getStatus(dataset_id: number | string) {
      *    time: float | null
      * }
      */
-    isFinished.set(isFinish.code == 1 && isFinish.time != null ? isFinish.time : isFinish.code == 2 )
+    isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2 )
   } finally {
     loading.set(false)
   }
