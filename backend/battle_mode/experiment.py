@@ -53,6 +53,11 @@ def _transform_dataset(dataset_id: int):
                            zip(feature_names + ['LABEL', "DB_ID"],
                                sample.extract_feature_list() + [sample.labels[0].name, sample.id])}
                           for sample in dataset.samples if sample.labels != []])
+    # TODO some models / query_strategies need number based label
+    # labels = frame['LABEL'].unique()
+    # label2Int = {label: i for i, label in enumerate(labels)}
+    # frame['Label'] = frame['LABEL'].map(label2Int)
+    # int2Label: dict[int, str] = {i: label for label, i in label2Int.items()}
     return frame
 
 
@@ -166,10 +171,11 @@ class ALExperimentProcess(Process):
         self.idx2IDTest = {idx: d_frame.iloc[idx]['DB_ID'] for idx in test_idx}
 
         # initiate configurable experiment setting
+        self.config.QUERY_STRATEGY_CONFIG.train_idx = list(map(lambda old_idx: adjusted_idx_map[old_idx], train_idx))
         self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.config.QUERY_STRATEGY,
                                                           X=self.all_training_samples.to_numpy(),
                                                           y=self.all_training_labels.to_numpy(),
-                                                          config=self.config.QUERY_STRATEGY_CONFIG, )
+                                                          config=self.config.QUERY_STRATEGY_CONFIG)
 
         # Indexes of your unlabeled set for querying
         self.unlab_ind = IndexCollection([adjusted_idx_map[idx] for idx in unlabel_idx])

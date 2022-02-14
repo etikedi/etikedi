@@ -52,7 +52,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         self.qs = QueryInstanceLAL(X=X,
                                    y=y,
                                    mode=config.mode.value,
-                                   data_path=config.data_path,
+                                   data_path='data/alipy/LAL-randomtree-simulatedunbalanced-big.npz',
                                    cls_est=config.cls_est,
                                    train_slt=config.train_slt)
 
@@ -127,9 +127,9 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
 
 
 class QueryStrategyType(str, Enum):
-    QUERY_INSTANCE_BMDR = 'QueryInstanceBMDR',
+    QUERY_INSTANCE_BMDR = 'QueryInstanceBMDR',  # Requires pip cvxpy, only applicable for binary classification
     QUERY_INSTANCE_GRAPH_DENSITY = 'QueryInstanceGraphDensity',
-    QUERY_INSTANCE_LAL = 'QueryInstanceLAL',
+    QUERY_INSTANCE_LAL = 'QueryInstanceLAL',  # Only applicable for binary classification
     QUERY_INSTANCE_QBC = 'QueryInstanceQBC',
     QUERY_INSTANCE_QUIRE = 'QueryInstanceQUIRE',
     QUERY_INSTANCE_SPAL = 'QueryInstanceSPAL',
@@ -139,8 +139,6 @@ class QueryStrategyType(str, Enum):
 
     def get_class(self):
         if self == QueryStrategyType.QUERY_INSTANCE_BMDR:
-            return QueryInstanceBMDRHolder
-        elif self == QueryStrategyType.QUERY_INSTANCE_BMDR:
             return QueryInstanceBMDRHolder
         elif self == QueryStrategyType.QUERY_INSTANCE_GRAPH_DENSITY:
             return QueryInstanceGraphDensityHolder

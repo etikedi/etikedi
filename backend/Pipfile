@@ -27,6 +27,8 @@ numpy = "*"
 psycopg2-binary = "*"
 alipy = "*"
 altair = "*"
+# Additional ALipy dependencies
+cvxpy = "*"
 
 [dev-packages]
 pylint = "*"

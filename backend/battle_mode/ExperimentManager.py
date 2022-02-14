@@ -6,6 +6,8 @@ from typing import List, Dict, Tuple, Optional
 import numpy as np
 import pandas as pd
 
+from ..utils import ValidationError
+from .additional_experiment_validation import validate_config
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
 from ..config import logger
 from ..models import AlExperimentConfig, Metric, Status
@@ -26,6 +28,8 @@ class ExperimentManager:
 
     def __init__(self, dataset_id: int, config_one: AlExperimentConfig, config_two: AlExperimentConfig):
         self.dataset_id: int = dataset_id
+        validate_config(dataset_id, config_one)
+        validate_config(dataset_id, config_two)
         self.configs = (config_one, config_two)
         self.started_flags: List[bool, bool] = [False, False]
         self.setup_completed_flags: List[bool, bool] = [False, False]
@@ -130,7 +134,7 @@ class ExperimentManager:
 
     def assert_started(self):
         if not all(self.started_flags):
-            raise ValueError(
+            raise ValidationError(
                 f"At least one experiment was not started ({[e for e in [0, 1] if not self.started_flags[e]]})")
 
     def assert_finished(self):
@@ -140,7 +144,7 @@ class ExperimentManager:
                 if self.results[exp_idx] is None:
                     self.poll_process(exp_idx)
             if not all(self.finished_flags):
-                raise ValueError(
+                raise ValidationError(
                     f"At least one experiment is not finished ({[e for e in [0, 1] if not self.finished_flags[e]]})")
 
     def _poll_results_if_not_present(self):
@@ -158,7 +162,7 @@ class ExperimentManager:
                 If no new time was reported or is finished return None
         """
         if exp_idx not in [0, 1]:
-            raise ValueError(f"index of experiment was neither 0 nor 1: {exp_idx}")
+            raise ValidationError(f"index of experiment was neither 0 nor 1: {exp_idx}")
         if self.finished_flags[exp_idx]:
             return None
         last_time = None
@@ -178,14 +182,16 @@ class ExperimentManager:
         return last_time
 
     def terminate(self):
-        logger.info(f"Terminating experiment: {self.dataset_id}")
+        logger.info(f"Terminating experiment with ID: {getattr(self,'dataset_id', 'Unknown')}")
+        if not hasattr(self, 'finished_flags') or hasattr(self, 'experiments'):
+            return
         for exp_ind, finished in enumerate(self.finished_flags):
             if not finished:
                 self.experiments[exp_ind].kill()
+        if not hasattr(self, 'queues'):
+            return
         for q in self.queues:
             q.close()
-        if self.dataset_id in ExperimentManager._manager.keys():
-            del ExperimentManager._manager[self.dataset_id]
 
     def __del__(self):
         self.terminate()

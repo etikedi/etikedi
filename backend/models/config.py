@@ -89,7 +89,7 @@ class QMetric(str, Enum):
 class QueryStrategyConfig(Schema):
     beta = 1000  # QueryInstanceBMDR
     cls_est: PositiveInt = 50  # LAL
-    data_path = "."  # LAL
+    data_path = "/data/alipy"  # LAL
     disagreement: QQBCDisagreement = QQBCDisagreement.VOTE_ENTROPY  # QueryInstanceQBC
     gamma = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
     lambda_init = 0.1  # QueryInstanceSPAL
@@ -100,8 +100,9 @@ class QueryStrategyConfig(Schema):
     mode: QLALMode = QLALMode.LAL_ITERATIVE  # LAL
     mu = 0.1  # QueryInstanceSPAL
     rho = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
-    train_idx: List = []  # QueryInstanceGraphDensity, QueryInstanceQUIRE
     train_slt: bool = True  # LAL
+    # injected by the experiment:
+    train_idx: List = []  # QueryInstanceGraphDensity, QueryInstanceQUIRE
 
 
 class ActiveLearningConfig(Schema):

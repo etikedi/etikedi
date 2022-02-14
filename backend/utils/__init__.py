@@ -4,6 +4,7 @@ from functools import wraps
 from .dataset import *
 from .labels import *
 from .users import *
+from .exceptions import *
 
 
 def timeit(func):

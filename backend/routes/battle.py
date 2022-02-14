@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 
+from ..utils import ValidationError
 from ..battle_mode import ExperimentManager, plotting
 from ..models import AlExperimentConfig, Metric, ChartReturnSchema, Status
 
@@ -11,7 +12,10 @@ async def start_battle(dataset_id: int, config1: AlExperimentConfig, config2: Al
     """Return if training started successfully."""
 
     # start process
-    ExperimentManager(dataset_id, config1, config2).start()
+    try:
+        ExperimentManager(dataset_id, config1, config2).start()
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
 
 @battle_router.get("/status", response_model=Status)
@@ -59,12 +63,12 @@ def _assert_started(dataset_id):
     _assert_manager_exists(dataset_id)
     try:
         ExperimentManager.get_manager(dataset_id).assert_started()
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=getattr(e, 'message', 'Not started'))
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 
 
 def _assert_completed(dataset_id):
     try:
         ExperimentManager.get_manager(dataset_id).assert_finished()
-    except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=getattr(e, 'message', 'Not started'))
+    except ValidationError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
