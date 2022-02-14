@@ -11,6 +11,7 @@
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Unknown dataset'
+  export let dataset_id
   export let batch_size = 5
 
   let acc_element,
@@ -61,6 +62,8 @@
       // Destroy confidence diagrams
       const allViews = Object.keys(vega_views)
       delete allViews['acc']
+      delete allViews['dmap_1']
+      delete allViews['dmap_2']
       await destroyViews(allViews)
       // await destroyViews(['conf_1', 'conf_2'])
 
@@ -77,23 +80,27 @@
     }
     const conf_1 = JSON.parse($diagrams['conf'][0][currentIteration - 1])
     const conf_2 = JSON.parse($diagrams['conf'][1][currentIteration - 1])
+    const dmap_1 = JSON.parse($diagrams['data_maps'][0])
+    const dmap_2 = JSON.parse($diagrams['data_maps'][1])
+
+    vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
+    vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
 
     /**
      * TODO: Embed actual diagrams and not the same for every slot
      */
-    vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
-    vega_views['mock_1'] = await embed(dia_elements_one[1], conf_1, vega_options)
-    vega_views['mock_2'] = await embed(dia_elements_one[2], conf_1, vega_options)
-    vega_views['mock_3'] = await embed(dia_elements_one[3], conf_1, vega_options)
 
-    vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
-    vega_views['mock_4'] = await embed(dia_elements_two[1], conf_2, vega_options)
-    vega_views['mock_5'] = await embed(dia_elements_two[2], conf_2, vega_options)
-    vega_views['mock_6'] = await embed(dia_elements_two[3], conf_2, vega_options)
+    vega_views['mock_2'] = await embed(dia_elements_one[1], conf_2, vega_options)
+    vega_views['mock_4'] = await embed(dia_elements_two[1], conf_1, vega_options)
+
+    // vega_views['mock_3'] = await embed(dia_elements_one[3], conf_1, vega_options)
+    // vega_views['mock_5'] = await embed(dia_elements_two[3], conf_2, vega_options)
 
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
       vega_views['acc'] = await embed(acc_element, acc, { height: 140 })
+      vega_views['dmap_1'] = await embed(dia_elements_one[2], dmap_1, { ...vega_options, actions: true })
+      vega_views['dmap_2'] = await embed(dia_elements_two[2], dmap_2, { ...vega_options, actions: true })
     }
   }
 
@@ -121,9 +128,9 @@
     /**
      * DEV
      */
-    if (!$diagrams && localStorage.getItem('diagrams')) {
-      $diagrams = JSON.parse(localStorage.getItem('diagrams'))
-      $metricData = JSON.parse(localStorage.getItem('metrics'))
+    if (!$diagrams && localStorage.getItem(`battle-${dataset_id}-diagrams`)) {
+      $diagrams = JSON.parse(localStorage.getItem(`battle-${dataset_id}-diagrams`))
+      $metricData = JSON.parse(localStorage.getItem(`battle-${dataset_id}-metrics`))
     }
 
     getSamples()
@@ -202,8 +209,10 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_one[0]} />
             <div class="diagram" bind:this={dia_elements_one[1]} />
-            <div class="diagram" bind:this={dia_elements_one[2]} />
+            <div class="diagram datamap" bind:this={dia_elements_one[2]} />
+            <!--
             <div class="diagram" bind:this={dia_elements_one[3]} />
+            -->
           </div>
         </div>
         <div class="process">
@@ -223,8 +232,10 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_two[0]} />
             <div class="diagram" bind:this={dia_elements_two[1]} />
-            <div class="diagram" bind:this={dia_elements_two[2]} />
+            <div class="diagram datamap" bind:this={dia_elements_two[2]} />
+            <!--
             <div class="diagram" bind:this={dia_elements_two[3]} />
+            -->
           </div>
         </div>
       </div>
@@ -372,6 +383,10 @@
   .diagram {
     display: flex;
     justify-content: center;
+  }
+
+  .datamap {
+    grid-column: span 2;
   }
 
   .diagram:nth-child(even) {
