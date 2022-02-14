@@ -146,14 +146,16 @@
     return ret
   }
 
+  function beforeunload(event: BeforeUnloadEvent) {
+    event.preventDefault()
+    return (event.returnValue = '')
+  }
+
   onDestroy(() => {
     clearInterval(interval)
   })
 </script>
 
-<!--
-  DEV
--->
 {#if showCache}
   <Card>
     <span>We saved your last simulation with this dataset. Do you want to view it again?</span>
@@ -195,6 +197,7 @@
     {/if}
   </div>
 {/if}
+<svelte:window on:beforeunload={beforeunload} />
 
 <style>
   .wrapper {
