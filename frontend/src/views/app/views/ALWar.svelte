@@ -40,6 +40,12 @@
   $: ready = dataset && config1 && config2
 
   if (localStorage.getItem(`battle-${id}-diagrams`) && localStorage.getItem(`battle-${id}-metrics`)) showCache = true
+  if (localStorage.getItem(`running-battle-${id}`)) {
+    showCache = false
+    showConfig = false
+    starting = false
+    checkStatus()
+  }
 
   let config1 = {
     QUERY_STRATEGY: 'QueryInstanceRandom',
@@ -92,9 +98,11 @@
 
   async function checkStatus() {
     training = true
+    localStorage.setItem(`running-battle-${id}`, 'true')
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
+        localStorage.removeItem(`running-battle-${id}`)
         getData()
       } else {
         await getStatus(id)
