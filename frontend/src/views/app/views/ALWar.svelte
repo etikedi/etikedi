@@ -84,6 +84,8 @@
       QUERY_STRATEGY_CONFIG: { ...strategyConfig2 },
     }
     console.debug('Config 1', sendConf1, 'Config 2', sendConf2)
+    localStorage.setItem(`battle-${id}-config1`, JSON.stringify(sendConf1))
+    localStorage.setItem(`battle-${id}-config2`, JSON.stringify(sendConf2))
     showConfig = false
     starting = true
     const started = await startBattle(id, sendConf1, sendConf2)
@@ -150,6 +152,15 @@
     event.preventDefault()
     return (event.returnValue = '')
   }
+
+  /*
+  window.onpopstate = function (e) {
+    if (confirm('Do you want to terminate the training?')) {
+      console.debug("terminate")
+    }
+    return e
+  }
+  */
 
   onDestroy(() => {
     clearInterval(interval)

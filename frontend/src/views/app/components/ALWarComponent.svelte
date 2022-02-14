@@ -21,7 +21,9 @@
     sliderValue = 1,
     currentIteration = 1,
     sample_1,
-    sample_2
+    sample_2,
+    config1 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config1`)),
+    config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`))
 
   // TODO: From store
   const metrics = {
@@ -193,49 +195,67 @@
     <div class="right">
       <div class="battle">
         <div class="process">
-          <div class="sample">
-            {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
-              <div class="data">
-                <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
-              </div>
-              <span>Sample ID: {sample_1.id}</span>
-            {:else if sample_1}
-              <p>Unsupported type {sample_1.type}</p>
-            {:else}
-              <Moon size="30" color="#002557" unit="px" duration="1s" />
-            {/if}
+          <div class="process-info">
+            <h2>{config1.QUERY_STRATEGY}</h2>
+            <div style="display: flex; align-items: center; margin-bottom: 15px">
+              <h4>Batch size:</h4>
+              <span>{config1.BATCH_SIZE}</span>
+            </div>
           </div>
-          <hr />
-          <div class="diagrams">
-            <div class="diagram" bind:this={dia_elements_one[0]} />
-            <div class="diagram" bind:this={dia_elements_one[1]} />
-            <div class="diagram datamap" bind:this={dia_elements_one[2]} />
-            <!--
-            <div class="diagram" bind:this={dia_elements_one[3]} />
-            -->
+          <div class="process-data">
+            <div class="sample">
+              {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
+                <div class="data">
+                  <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+                </div>
+                <span>Sample ID: {sample_1.id}</span>
+              {:else if sample_1}
+                <p>Unsupported type {sample_1.type}</p>
+              {:else}
+                <Moon size="30" color="#002557" unit="px" duration="1s" />
+              {/if}
+            </div>
+            <hr />
+            <div class="diagrams">
+              <div class="diagram" bind:this={dia_elements_one[0]} />
+              <div class="diagram" bind:this={dia_elements_one[1]} />
+              <div class="diagram datamap" bind:this={dia_elements_one[2]} />
+              <!--
+              <div class="diagram" bind:this={dia_elements_one[3]} />
+              -->
+            </div>
           </div>
         </div>
         <div class="process">
-          <div class="sample">
-            {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
-              <div class="data">
-                <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
-              </div>
-              <span>Sample ID: {sample_2.id}</span>
-            {:else if sample_2}
-              <p>Unsupported type {sample_2.type}</p>
-            {:else}
-              <Moon size="30" color="#002557" unit="px" duration="1s" />
-            {/if}
+          <div class="process-info">
+            <h2>{config2.QUERY_STRATEGY}</h2>
+            <div style="display: flex; align-items: center; margin-bottom: 15px">
+              <h4>Batch size:</h4>
+              <span>{config2.BATCH_SIZE}</span>
+            </div>
           </div>
-          <hr />
-          <div class="diagrams">
-            <div class="diagram" bind:this={dia_elements_two[0]} />
-            <div class="diagram" bind:this={dia_elements_two[1]} />
-            <div class="diagram datamap" bind:this={dia_elements_two[2]} />
-            <!--
-            <div class="diagram" bind:this={dia_elements_two[3]} />
-            -->
+          <div class="process-data">
+            <div class="sample">
+              {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
+                <div class="data">
+                  <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+                </div>
+                <span>Sample ID: {sample_2.id}</span>
+              {:else if sample_2}
+                <p>Unsupported type {sample_2.type}</p>
+              {:else}
+                <Moon size="30" color="#002557" unit="px" duration="1s" />
+              {/if}
+            </div>
+            <hr />
+            <div class="diagrams">
+              <div class="diagram" bind:this={dia_elements_two[0]} />
+              <div class="diagram" bind:this={dia_elements_two[1]} />
+              <div class="diagram datamap" bind:this={dia_elements_two[2]} />
+              <!--
+              <div class="diagram" bind:this={dia_elements_two[3]} />
+              -->
+            </div>
           </div>
         </div>
       </div>
@@ -281,11 +301,9 @@
   .dataset-info,
   .metrics,
   .info,
-  .process {
+  .process-data {
     border: 1px solid lightgray;
     border-radius: 5px;
-    display: grid;
-    grid-template-rows: 250px 4em 1fr;
   }
 
   h4 {
@@ -306,6 +324,11 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     column-gap: 50px;
+  }
+
+  .process-data {
+    display: grid;
+    grid-template-rows: 250px 4em 1fr;
   }
 
   .sample {
