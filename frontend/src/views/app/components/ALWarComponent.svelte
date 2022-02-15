@@ -12,7 +12,6 @@
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Unknown dataset'
   export let dataset_id
-  export let batch_size = 5
 
   let acc_element,
     dia_elements_one = [],
@@ -23,7 +22,8 @@
     sample_1,
     sample_2,
     config1 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config1`)),
-    config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`))
+    config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`)),
+    sliderDiv
 
   // TODO: From store
   const metrics = {
@@ -100,6 +100,7 @@
 
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
+      getStepSize($metricData['iterations'].length)
       vega_views['acc'] = await embed(acc_element, acc, { height: 140 })
       vega_views['dmap_1'] = await embed(dia_elements_one[2], dmap_1, { ...vega_options, actions: true })
       vega_views['dmap_2'] = await embed(dia_elements_two[2], dmap_2, { ...vega_options, actions: true })
@@ -124,6 +125,18 @@
 
     sample_1 = await getSpecificSample(id_1)
     sample_2 = await getSpecificSample(id_2)
+  }
+
+  let stepSize = 1
+
+  function getStepSize(length: number) {
+    const pxPerStep = sliderDiv.offsetWidth / length
+    if (pxPerStep < 15) {
+      stepSize++
+      getStepSize(Math.round(length / 2))
+    } else {
+      return stepSize
+    }
   }
 
   onMount(async () => {
@@ -157,10 +170,6 @@
           {#if $metricData && $metricData['iterations']}
             <p>{currentIteration}/{$metricData['iterations'].length}</p>
           {/if}
-        </div>
-        <div>
-          <h4>Batch size:</h4>
-          <p>{batch_size}</p>
         </div>
       </div>
       <div class="metrics">
@@ -197,78 +206,77 @@
         <div class="process">
           <div class="process-info">
             <h2>{config1.QUERY_STRATEGY}</h2>
-            <div style="display: flex; align-items: center; margin-bottom: 15px">
+            <div style="display: flex; align-items: center;">
               <h4>Batch size:</h4>
               <span>{config1.BATCH_SIZE}</span>
             </div>
           </div>
-          <div class="process-data">
-            <div class="sample">
-              {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
-                <div class="data">
-                  <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
-                </div>
-                <span>Sample ID: {sample_1.id}</span>
-              {:else if sample_1}
-                <p>Unsupported type {sample_1.type}</p>
-              {:else}
-                <Moon size="30" color="#002557" unit="px" duration="1s" />
-              {/if}
-            </div>
-            <hr />
-            <div class="diagrams">
-              <div class="diagram" bind:this={dia_elements_one[0]} />
-              <div class="diagram" bind:this={dia_elements_one[1]} />
-              <div class="diagram datamap" bind:this={dia_elements_one[2]} />
-              <!--
+          <hr />
+          <div class="sample">
+            {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
+              <div class="data">
+                <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+              </div>
+              <span>Sample ID: {sample_1.id}</span>
+            {:else if sample_1}
+              <p>Unsupported type {sample_1.type}</p>
+            {:else}
+              <Moon size="30" color="#002557" unit="px" duration="1s" />
+            {/if}
+          </div>
+          <hr />
+          <div class="diagrams">
+            <div class="diagram" bind:this={dia_elements_one[0]} />
+            <div class="diagram" bind:this={dia_elements_one[1]} />
+            <div class="diagram datamap" bind:this={dia_elements_one[2]} />
+            <!--
               <div class="diagram" bind:this={dia_elements_one[3]} />
               -->
-            </div>
           </div>
         </div>
         <div class="process">
           <div class="process-info">
             <h2>{config2.QUERY_STRATEGY}</h2>
-            <div style="display: flex; align-items: center; margin-bottom: 15px">
+            <div style="display: flex; align-items: center;">
               <h4>Batch size:</h4>
               <span>{config2.BATCH_SIZE}</span>
             </div>
           </div>
-          <div class="process-data">
-            <div class="sample">
-              {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
-                <div class="data">
-                  <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
-                </div>
-                <span>Sample ID: {sample_2.id}</span>
-              {:else if sample_2}
-                <p>Unsupported type {sample_2.type}</p>
-              {:else}
-                <Moon size="30" color="#002557" unit="px" duration="1s" />
-              {/if}
-            </div>
-            <hr />
-            <div class="diagrams">
-              <div class="diagram" bind:this={dia_elements_two[0]} />
-              <div class="diagram" bind:this={dia_elements_two[1]} />
-              <div class="diagram datamap" bind:this={dia_elements_two[2]} />
-              <!--
+          <hr />
+          <div class="sample">
+            {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
+              <div class="data">
+                <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+              </div>
+              <span>Sample ID: {sample_2.id}</span>
+            {:else if sample_2}
+              <p>Unsupported type {sample_2.type}</p>
+            {:else}
+              <Moon size="30" color="#002557" unit="px" duration="1s" />
+            {/if}
+          </div>
+          <hr />
+          <div class="diagrams">
+            <div class="diagram" bind:this={dia_elements_two[0]} />
+            <div class="diagram" bind:this={dia_elements_two[1]} />
+            <div class="diagram datamap" bind:this={dia_elements_two[2]} />
+            <!--
               <div class="diagram" bind:this={dia_elements_two[3]} />
               -->
-            </div>
           </div>
         </div>
       </div>
       <hr />
       <div class="accuracy">
         <div bind:this={acc_element} />
-        <div class="iterations">
+        <div class="iterations" bind:this={sliderDiv}>
           {#if $metricData && $metricData['iterations']}
             <Slider
               bind:value={sliderValue}
               on:click={changeIteration}
               min={1}
               max={$metricData['iterations'].length}
+              step={stepSize}
               discrete
               tickMarks
               input$aria-label="Tick slider"
@@ -301,7 +309,7 @@
   .dataset-info,
   .metrics,
   .info,
-  .process-data {
+  .process {
     border: 1px solid lightgray;
     border-radius: 5px;
   }
@@ -316,7 +324,7 @@
 
   .dataset-info {
     display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     row-gap: 5px;
   }
 
@@ -325,14 +333,16 @@
     grid-template-columns: 1fr 1fr;
     column-gap: 50px;
   }
-
-  .process-data {
+  .process {
     display: grid;
-    grid-template-rows: 250px 4em 1fr;
+    grid-template-rows: auto 4em 250px 4em 1fr;
+  }
+
+  .process-info, .sample {
+    padding: 0 2em;
   }
 
   .sample {
-    padding: 2em 2em 0 2em;
     display: flex;
     flex-direction: column;
     row-gap: 1em;
