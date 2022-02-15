@@ -169,15 +169,17 @@
 
 {#if showCache}
   <Card>
-    <span>We saved your last simulation with this dataset. Do you want to view it again?</span>
-    <div style="display: grid; grid-template-columns: 200px 200px; column-gap: 15px; margin-top: 15px">
-      <Button
-        on:click={() => {
-          showConfig = false
-          showCache = false
-        }}>Yes</Button
-      >
-      <Button on:click={() => (showCache = false)}>Start new battle</Button>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <span>We saved your last simulation with this dataset. Do you want to view it again?</span>
+      <div style="display: grid; grid-template-columns: 200px 200px; column-gap: 15px; margin-top: 15px">
+        <Button
+          on:click={() => {
+            showConfig = false
+            showCache = false
+          }}>Yes</Button
+        >
+        <Button on:click={() => (showCache = false)}>Start new battle</Button>
+      </div>
     </div>
   </Card>
 {:else}
