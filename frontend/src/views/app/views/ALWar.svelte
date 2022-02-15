@@ -16,8 +16,10 @@
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
+  import Card from '../../../ui/Card.svelte'
 
-  let showConfig = true,
+  let showCache = false,
+    showConfig = true,
     ready,
     dataset,
     training = false,
@@ -31,6 +33,19 @@
    */
   $: if ($metricData) console.debug($metricData)
   $: if ($diagrams) console.debug($diagrams)
+
+  const { id } = router.params()
+
+  $: dataset = $datasets[id]
+  $: ready = dataset && config1 && config2
+
+  if (localStorage.getItem(`battle-${id}-diagrams`) && localStorage.getItem(`battle-${id}-metrics`)) showCache = true
+  if (localStorage.getItem(`running-battle-${id}`)) {
+    showCache = false
+    showConfig = false
+    starting = false
+    checkStatus()
+  }
 
   let config1 = {
     QUERY_STRATEGY: 'QueryInstanceRandom',
@@ -59,11 +74,6 @@
   let config2 = { ...config1 }
   let strategyConfig2 = { ...strategyConfig1 }
 
-  const { id } = router.params()
-
-  $: dataset = $datasets[id]
-  $: ready = dataset && config1 && config2
-
   async function start() {
     const sendConf1 = {
       ...config1,
@@ -74,6 +84,8 @@
       QUERY_STRATEGY_CONFIG: { ...strategyConfig2 },
     }
     console.debug('Config 1', sendConf1, 'Config 2', sendConf2)
+    localStorage.setItem(`battle-${id}-config1`, JSON.stringify(sendConf1))
+    localStorage.setItem(`battle-${id}-config2`, JSON.stringify(sendConf2))
     showConfig = false
     starting = true
     const started = await startBattle(id, sendConf1, sendConf2)
@@ -88,9 +100,11 @@
 
   async function checkStatus() {
     training = true
+    localStorage.setItem(`running-battle-${id}`, 'true')
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
+        localStorage.removeItem(`running-battle-${id}`)
         getData()
       } else {
         await getStatus(id)
@@ -134,44 +148,69 @@
     return ret
   }
 
+  function beforeunload(event: BeforeUnloadEvent) {
+    event.preventDefault()
+    return (event.returnValue = '')
+  }
+
+  /*
+  window.onpopstate = function (e) {
+    if (confirm('Do you want to terminate the training?')) {
+      console.debug("terminate")
+    }
+    return e
+  }
+  */
+
   onDestroy(() => {
     clearInterval(interval)
   })
 </script>
 
-<!--
-  DEV
--->
-{#if localStorage.getItem('diagrams') && showConfig}
-  <Button on:click={() => (showConfig = false)}>Use cached data</Button>
+{#if showCache}
+  <Card>
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <span>We saved your last simulation with this dataset. Do you want to view it again?</span>
+      <div style="display: grid; grid-template-columns: 200px 200px; column-gap: 15px; margin-top: 15px">
+        <Button
+          on:click={() => {
+            showConfig = false
+            showCache = false
+          }}>Yes</Button
+        >
+        <Button on:click={() => (showCache = false)}>Start new battle</Button>
+      </div>
+    </div>
+  </Card>
+{:else}
+  <div class="wrapper">
+    {#if showConfig}
+      <div class="config-wrapper">
+        <Config bind:config={config1} bind:strategyConfig={strategyConfig1} alWar />
+        <Config bind:config={config2} bind:strategyConfig={strategyConfig2} alWar />
+      </div>
+      {#if ready}
+        <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
+      {/if}
+    {:else if starting}
+      <div class="starting">
+        <Moon size="30" color="#002557" unit="px" duration="1s" />
+        Starting ...
+      </div>
+    {:else if training}
+      <div class="progress-bar">
+        <div bind:this={progressElement} class="progress" />
+      </div>
+      <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+      {#if remainingTime}
+        <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
+      {/if}
+    {:else if dataset}
+      <AlWarComponent dataset_name={dataset['name']} dataset_id={id} />
+    {/if}
+  </div>
 {/if}
-
-<div class="wrapper">
-  {#if showConfig}
-    <div class="config-wrapper">
-      <Config bind:config={config1} bind:strategyConfig={strategyConfig1} alWar />
-      <Config bind:config={config2} bind:strategyConfig={strategyConfig2} alWar />
-    </div>
-    {#if ready}
-      <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
-    {/if}
-  {:else if starting}
-    <div class="starting">
-      <Moon size="30" color="#002557" unit="px" duration="1s" />
-      Starting ...
-    </div>
-  {:else if training}
-    <div class="progress-bar">
-      <div bind:this={progressElement} class="progress" />
-    </div>
-    <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
-    {#if remainingTime}
-      <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
-    {/if}
-  {:else if dataset}
-    <AlWarComponent dataset_name={dataset['name']} />
-  {/if}
-</div>
+<svelte:window on:beforeunload={beforeunload} />
 
 <style>
   .wrapper {

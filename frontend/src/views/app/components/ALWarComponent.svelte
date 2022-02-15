@@ -11,7 +11,7 @@
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Unknown dataset'
-  export let batch_size = 5
+  export let dataset_id
 
   let acc_element,
     dia_elements_one = [],
@@ -20,7 +20,10 @@
     sliderValue = 1,
     currentIteration = 1,
     sample_1,
-    sample_2
+    sample_2,
+    config1 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config1`)),
+    config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`)),
+    sliderDiv
 
   // TODO: From store
   const metrics = {
@@ -42,29 +45,33 @@
   }
 
   async function changeIteration() {
-    currentIteration = sliderValue
+    if (sliderValue !== currentIteration) {
+      currentIteration = sliderValue
 
-    // Label percentage
-    const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
-    sample_info['Percentage labeled'] = labeled + '%'
-    sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
+      // Label percentage
+      const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
+      sample_info['Percentage labeled'] = labeled + '%'
+      sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
 
-    // Annotation cost
-    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
-    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
-    metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
+      // Annotation cost
+      const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
+      const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
+      metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
 
-    // Fetch sample (hopefully in background)
-    getSamples()
+      // Fetch sample (hopefully in background)
+      getSamples()
 
-    // Destroy confidence diagrams
-    const allViews = Object.keys(vega_views)
-    delete allViews['acc']
-    await destroyViews(allViews)
-    // await destroyViews(['conf_1', 'conf_2'])
+      // Destroy confidence diagrams
+      const allViews = Object.keys(vega_views)
+      delete allViews['acc']
+      delete allViews['dmap_1']
+      delete allViews['dmap_2']
+      await destroyViews(allViews)
+      // await destroyViews(['conf_1', 'conf_2'])
 
-    // Push new confidence diagrams
-    await pushDiagrams(true)
+      // Push new confidence diagrams
+      await pushDiagrams(true)
+    }
   }
 
   async function pushDiagrams(update?: boolean) {
@@ -75,23 +82,28 @@
     }
     const conf_1 = JSON.parse($diagrams['conf'][0][currentIteration - 1])
     const conf_2 = JSON.parse($diagrams['conf'][1][currentIteration - 1])
+    const dmap_1 = JSON.parse($diagrams['data_maps'][0])
+    const dmap_2 = JSON.parse($diagrams['data_maps'][1])
+
+    vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
+    vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
 
     /**
      * TODO: Embed actual diagrams and not the same for every slot
      */
-    vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
-    vega_views['mock_1'] = await embed(dia_elements_one[1], conf_1, vega_options)
-    vega_views['mock_2'] = await embed(dia_elements_one[2], conf_1, vega_options)
-    vega_views['mock_3'] = await embed(dia_elements_one[3], conf_1, vega_options)
 
-    vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
-    vega_views['mock_4'] = await embed(dia_elements_two[1], conf_2, vega_options)
-    vega_views['mock_5'] = await embed(dia_elements_two[2], conf_2, vega_options)
-    vega_views['mock_6'] = await embed(dia_elements_two[3], conf_2, vega_options)
+    vega_views['mock_2'] = await embed(dia_elements_one[1], conf_2, vega_options)
+    vega_views['mock_4'] = await embed(dia_elements_two[1], conf_1, vega_options)
+
+    // vega_views['mock_3'] = await embed(dia_elements_one[3], conf_1, vega_options)
+    // vega_views['mock_5'] = await embed(dia_elements_two[3], conf_2, vega_options)
 
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
+      getStepSize($metricData['iterations'].length)
       vega_views['acc'] = await embed(acc_element, acc, { height: 140 })
+      vega_views['dmap_1'] = await embed(dia_elements_one[2], dmap_1, { ...vega_options, actions: true })
+      vega_views['dmap_2'] = await embed(dia_elements_two[2], dmap_2, { ...vega_options, actions: true })
     }
   }
 
@@ -115,13 +127,25 @@
     sample_2 = await getSpecificSample(id_2)
   }
 
+  let stepSize = 1
+
+  function getStepSize(length: number) {
+    const pxPerStep = sliderDiv.offsetWidth / length
+    if (pxPerStep < 15) {
+      stepSize++
+      getStepSize(Math.round(length / 2))
+    } else {
+      return stepSize
+    }
+  }
+
   onMount(async () => {
     /**
      * DEV
      */
-    if (!$diagrams && localStorage.getItem('diagrams')) {
-      $diagrams = JSON.parse(localStorage.getItem('diagrams'))
-      $metricData = JSON.parse(localStorage.getItem('metrics'))
+    if (!$diagrams && localStorage.getItem(`battle-${dataset_id}-diagrams`)) {
+      $diagrams = JSON.parse(localStorage.getItem(`battle-${dataset_id}-diagrams`))
+      $metricData = JSON.parse(localStorage.getItem(`battle-${dataset_id}-metrics`))
     }
 
     getSamples()
@@ -146,10 +170,6 @@
           {#if $metricData && $metricData['iterations']}
             <p>{currentIteration}/{$metricData['iterations'].length}</p>
           {/if}
-        </div>
-        <div>
-          <h4>Batch size:</h4>
-          <p>{batch_size}</p>
         </div>
       </div>
       <div class="metrics">
@@ -184,6 +204,14 @@
     <div class="right">
       <div class="battle">
         <div class="process">
+          <div class="process-info">
+            <h2>{config1.QUERY_STRATEGY}</h2>
+            <div style="display: flex; align-items: center;">
+              <h4>Batch size:</h4>
+              <span>{config1.BATCH_SIZE}</span>
+            </div>
+          </div>
+          <hr />
           <div class="sample">
             {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
               <div class="data">
@@ -200,11 +228,21 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_one[0]} />
             <div class="diagram" bind:this={dia_elements_one[1]} />
-            <div class="diagram" bind:this={dia_elements_one[2]} />
-            <div class="diagram" bind:this={dia_elements_one[3]} />
+            <div class="diagram datamap" bind:this={dia_elements_one[2]} />
+            <!--
+              <div class="diagram" bind:this={dia_elements_one[3]} />
+              -->
           </div>
         </div>
         <div class="process">
+          <div class="process-info">
+            <h2>{config2.QUERY_STRATEGY}</h2>
+            <div style="display: flex; align-items: center;">
+              <h4>Batch size:</h4>
+              <span>{config2.BATCH_SIZE}</span>
+            </div>
+          </div>
+          <hr />
           <div class="sample">
             {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
               <div class="data">
@@ -221,21 +259,24 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_two[0]} />
             <div class="diagram" bind:this={dia_elements_two[1]} />
-            <div class="diagram" bind:this={dia_elements_two[2]} />
-            <div class="diagram" bind:this={dia_elements_two[3]} />
+            <div class="diagram datamap" bind:this={dia_elements_two[2]} />
+            <!--
+              <div class="diagram" bind:this={dia_elements_two[3]} />
+              -->
           </div>
         </div>
       </div>
       <hr />
       <div class="accuracy">
         <div bind:this={acc_element} />
-        <div class="iterations">
+        <div class="iterations" bind:this={sliderDiv}>
           {#if $metricData && $metricData['iterations']}
             <Slider
               bind:value={sliderValue}
               on:click={changeIteration}
               min={1}
               max={$metricData['iterations'].length}
+              step={stepSize}
               discrete
               tickMarks
               input$aria-label="Tick slider"
@@ -271,8 +312,6 @@
   .process {
     border: 1px solid lightgray;
     border-radius: 5px;
-    display: grid;
-    grid-template-rows: 250px 4em 1fr;
   }
 
   h4 {
@@ -285,7 +324,7 @@
 
   .dataset-info {
     display: grid;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     row-gap: 5px;
   }
 
@@ -294,9 +333,16 @@
     grid-template-columns: 1fr 1fr;
     column-gap: 50px;
   }
+  .process {
+    display: grid;
+    grid-template-rows: auto 4em 250px 4em 1fr;
+  }
+
+  .process-info, .sample {
+    padding: 0 2em;
+  }
 
   .sample {
-    padding: 2em 2em 0 2em;
     display: flex;
     flex-direction: column;
     row-gap: 1em;
@@ -372,12 +418,16 @@
     justify-content: center;
   }
 
+  .datamap {
+    grid-column: span 2;
+  }
+
   .diagram:nth-child(even) {
-    margin: 0 2em 0 0.5em
+    margin: 0 2em 0 0.5em;
   }
 
   .diagram:nth-child(odd) {
-    margin: 0 0.5em 0 2em
+    margin: 0 0.5em 0 2em;
   }
 
   table {

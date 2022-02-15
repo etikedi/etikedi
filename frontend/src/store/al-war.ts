@@ -127,7 +127,7 @@ export async function getStatus(dataset_id: number | string) {
      *    time: float | null
      * }
      */
-    isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2 )
+    isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2)
   } finally {
     loading.set(false)
   }
@@ -141,7 +141,7 @@ export async function getDiagrams(dataset_id: number | string) {
       method: 'get',
     })
     diagrams.set(d)
-    localStorage.setItem("diagrams", JSON.stringify(d))
+    localStorage.setItem(`battle-${dataset_id}-diagrams`, JSON.stringify(d))
   } finally {
     loading.set(false)
   }
@@ -155,7 +155,7 @@ export async function getMetrics(dataset_id: number | string) {
       method: 'get',
     })
     metricData.set(d)
-    localStorage.setItem("metrics", JSON.stringify(d))
+    localStorage.setItem(`battle-${dataset_id}-metrics`, JSON.stringify(d))
   } finally {
     loading.set(false)
   }
