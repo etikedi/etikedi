@@ -1,17 +1,28 @@
 from __future__ import annotations  # necessary for self referencing annotations
+
 from enum import Enum
-from typing import List, Optional, Union
-
-from .al_strategy import QueryStrategyType
-
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import LogisticRegression
+from typing import Optional, Union
 
 from pydantic import (
     BaseModel as Schema,
-    PositiveInt,
+    PositiveInt, validator, )
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+
+from .al_strategy import (
+    QueryStrategyType,
+    QueryInstanceBMDRHolder,
+    QueryInstanceGraphDensityHolder,
+    QueryInstanceLALHolder,
+    QueryInstanceQBCHolder,
+    QueryInstanceQUIREHolder,
+    QueryInstanceSPALHolder,
+    QueryInstanceUncertaintyHolder,
+    QueryInstanceRandomHolder,
+    QueryExpectedErrorReductionHolder,
 )
+from .battle import AlExperimentConfig
 
 
 # all model that implement the scikit-learn api and provide predict_proba
@@ -41,81 +52,28 @@ class StoppingCriteriaOption(str, Enum):
         return None if self == StoppingCriteriaOption.ALL_LABELED else self.value
 
 
-class QMeasureType(str, Enum):
-    LEAST_CONFIDENT = "least_confident"
-    MARGIN = "margin"
-    ENTROPY = "entrop"
-    DISTANCE_TO_BOUNDARY = "distance_to_boundar"
-
-
-class QLALMode(str, Enum):
-    LAL_ITERATIVE = "LAL_iterative"
-    LAL_INDEPENDENT = "LAL_independent"
-
-
-class QQBCDisagreement(str, Enum):
-    VOTE_ENTROPY = "vote_entropy"
-    KL_DIVERGENCE = "KL_divergence"
-
-
-class QMetric(str, Enum):
-    EUCLIDEAN = ("euclidean",)
-    L2 = "l2"
-    L1 = "l1"
-    MANHATTAN = "manhattan"
-    CITYBLOCK = "cityblock"
-    BRAYCURTIS = "braycurtis"
-    CANBERRA = "canberra"
-    CHEBYSHEV = "chebyshev"
-    CORRELATION = "correlation"
-    COSINE = "cosine"
-    DICE = "dice"
-    HAMMING = "hamming"
-    JACCARD = "jaccard"
-    KULSINSKI = "kulsinski"
-    MAHALANOBIS = "mahalanobis"
-    MATCHING = "matching"
-    MINKOWSKI = "minkowski"
-    ROGERSTANIMOTO = "rogerstanimoto"
-    RUSSELLRAO = "russellrao"
-    SEUCLIDEAN = "seuclidean"
-    SOKALMICHENER = "sokalmichener"
-    SOKALSNEATH = "sokalsneath"
-    SQEUCLIDEAN = "sqeuclidean"
-    YULE = "yule"
-    WMINKOWSKI = "wminkowski"
-
-
-class QueryStrategyConfig(Schema):
-    beta = 1000  # QueryInstanceBMDR
-    cls_est: PositiveInt = 50  # LAL
-    data_path = "/data/alipy"  # LAL
-    disagreement: QQBCDisagreement = QQBCDisagreement.VOTE_ENTROPY  # QueryInstanceQBC
-    gamma = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
-    lambda_init = 0.1  # QueryInstanceSPAL
-    lambda_pace = 0.01  # QueryInstanceSPAL
-    measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
-    method = "query_by_bagging"  # QueryInstanceQBC
-    metric: QMetric = "manhattan"  # QueryInstanceGraphDensity
-    mode: QLALMode = QLALMode.LAL_ITERATIVE  # LAL
-    mu = 0.1  # QueryInstanceSPAL
-    rho = 0.1  # QueryInstanceSPAL, QueryInstanceBMDR
-    train_slt: bool = True  # LAL
-    # injected by the experiment:
-    train_idx: List = []  # QueryInstanceGraphDensity, QueryInstanceQUIRE
-
-
 class ActiveLearningConfig(Schema):
     QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
-    QUERY_STRATEGY_CONFIG: QueryStrategyConfig = QueryStrategyConfig()
+    QUERY_STRATEGY_CONFIG: Union[
+        QueryInstanceBMDRHolder.BMDRConfig,
+        QueryInstanceGraphDensityHolder.GraphDensityConfig,
+        QueryInstanceLALHolder.LALConfig,
+        QueryInstanceQBCHolder.QBCConfig,
+        QueryInstanceQUIREHolder.QUIREConfig,
+        QueryInstanceSPALHolder.SPALConfig,
+        QueryInstanceUncertaintyHolder.UncertaintyConfig,
+        QueryInstanceRandomHolder.RandomConfig,
+        QueryExpectedErrorReductionHolder.ExpectedErrorReductionConfig,
+    ] = QUERY_STRATEGY.get_default_config()
     AL_MODEL: ALModel = ALModel.RANDOM_FOREST_CLASSIFIER
     STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
     STOPPING_CRITERIA_VALUE: Optional[Union[int, float]]
-    BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
-    COUNTER_UNTIL_NEXT_EVAL: PositiveInt = (
-        5  # number of updates (add/remove) until next model evaluation
-    )
-    EVALUATION_SIZE: PositiveInt = 5  # number of updates until next model training
+    # number of samples suggested per request
+    BATCH_SIZE: PositiveInt = 5
+    # number of updates (add/remove) until next model evaluation
+    COUNTER_UNTIL_NEXT_EVAL: PositiveInt = 5
+    # number of updates until next model training
+    EVALUATION_SIZE: PositiveInt = 5
     COUNTER_UNTIL_NEXT_MODEL_UPDATE: PositiveInt = 5
     # Etikedi config options
     RANDOM_SAMPLE_EVERY: PositiveInt = 10
@@ -123,6 +81,10 @@ class ActiveLearningConfig(Schema):
 
     DATASET_NAME: str = "Dataset"
     AMOUNT_OF_FEATURES: int = -1
+
+    @validator('QUERY_STRATEGY_CONFIG')
+    def validate_strategy_config(cls, config, values):
+        return AlExperimentConfig.validate_strategy_config(config, values)
 
 
 default_al_config = ActiveLearningConfig()

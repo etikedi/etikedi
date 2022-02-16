@@ -1,10 +1,31 @@
+from typing import List
+
 from fastapi import APIRouter, HTTPException, status
 
-from ..utils import ValidationError
 from ..battle_mode import ExperimentManager, plotting
-from ..models import AlExperimentConfig, Metric, ChartReturnSchema, Status
+from ..config import db
+from ..models import (
+    AlExperimentConfig,
+    Metric,
+    ChartReturnSchema,
+    Status,
+    QueryStrategyType,
+    Label,
+    ValidStrategiesReturnSchema
+)
+from ..utils import ValidationError
 
 battle_router = APIRouter()
+
+
+@battle_router.get("/valid_strategies", response_model=ValidStrategiesReturnSchema)
+async def valid_strategies(dataset_id: int):
+    number_of_labels = db.query(Label).filter(Label.dataset_id == dataset_id).distinct(Label.name).count()
+    valid: List[QueryStrategyType] = list(
+        filter(lambda strategy: number_of_labels != 2 or not strategy.only_binary_classification(), QueryStrategyType))
+    return ValidStrategiesReturnSchema(
+        strategies={strategy: strategy.get_config_schema().schema_json() for strategy in valid}
+    )
 
 
 @battle_router.post("/start")
