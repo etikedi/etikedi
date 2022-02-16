@@ -6,11 +6,11 @@ from typing import List, Dict, Tuple, Optional
 import numpy as np
 import pandas as pd
 
-from ..utils import ValidationError
-from .additional_experiment_validation import validate_config
+from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
 from ..config import logger
-from ..models import AlExperimentConfig, Metric, Status
+from ..models import ALBattleConfig, Metric, Status
+from ..utils import ValidationError
 
 
 class ExperimentManager:
@@ -26,11 +26,10 @@ class ExperimentManager:
     def get_manager(dataset_id):
         return ExperimentManager._manager[dataset_id]
 
-    def __init__(self, dataset_id: int, config_one: AlExperimentConfig, config_two: AlExperimentConfig):
+    def __init__(self, dataset_id: int, battle_config: ALBattleConfig):
         self.dataset_id: int = dataset_id
-        validate_config(dataset_id, config_one)
-        validate_config(dataset_id, config_two)
-        self.configs = (config_one, config_two)
+        validate_else_throw(dataset_id, battle_config)
+        self.config = battle_config
         self.started_flags: List[bool, bool] = [False, False]
         self.setup_completed_flags: List[bool, bool] = [False, False]
         self.finished_flags: List[bool, bool] = [False, False]
@@ -39,7 +38,7 @@ class ExperimentManager:
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
         self.experiments: List[ALExperimentProcess] = [
-            ALExperimentProcess(i, dataset_id, self.configs[i], self.queues[i]) for i in [0, 1]]
+            ALExperimentProcess(i, dataset_id, self.config, self.queues[i]) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
             ExperimentManager._manager[dataset_id].terminate()
@@ -182,7 +181,7 @@ class ExperimentManager:
         return last_time
 
     def terminate(self):
-        logger.info(f"Terminating experiment with ID: {getattr(self,'dataset_id', 'Unknown')}")
+        logger.info(f"Terminating experiment with ID: {getattr(self, 'dataset_id', 'Unknown')}")
         if not hasattr(self, 'finished_flags') or hasattr(self, 'experiments'):
             return
         for exp_ind, finished in enumerate(self.finished_flags):

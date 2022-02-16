@@ -3,24 +3,24 @@ accept: application/json
 Content-Type: application/json
 
 {
-  "config1": {
-    "QUERY_STRATEGY": "QueryInstanceUncertainty",
-    "QUERY_STRATEGY_CONFIG": {
-      "measure": "least_confident"
+  "exp_configs": [
+    {
+      "QUERY_STRATEGY": "QueryInstanceUncertainty",
+      "QUERY_STRATEGY_CONFIG": {
+        "measure": "least_confident"
+      },
+      "AL_MODEL": "RandomForestClassifier"
     },
-    "AL_MODEL": "RandomForestClassifier",
-    "STOPPING_CRITERIA_VALUE": 0.9,
-    "STOPPING_CRITERIA": "percent_of_unlabel",
-    "BATCH_SIZE": 10
-  },
-  "config2": {
-    "QUERY_STRATEGY": "QueryInstanceRandom",
-    "QUERY_STRATEGY_CONFIG": {
-    },
-    "AL_MODEL": "RandomForestClassifier",
-    "STOPPING_CRITERIA": "all_labeled",
-    "BATCH_SIZE": 5
-  }
+    {
+      "QUERY_STRATEGY": "QueryInstanceRandom",
+      "QUERY_STRATEGY_CONFIG": {
+      },
+      "AL_MODEL": "RandomForestClassifier"
+    }
+  ],
+  "STOPPING_CRITERIA_VALUE": 0.9,
+  "STOPPING_CRITERIA": "percent_of_unlabel",
+  "BATCH_SIZE": 10
 }
 
 ### check status

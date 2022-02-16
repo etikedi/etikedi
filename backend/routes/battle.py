@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from ..battle_mode import ExperimentManager, plotting
 from ..config import db
 from ..models import (
-    AlExperimentConfig,
+    ALBattleConfig,
     Metric,
     ChartReturnSchema,
     Status,
@@ -29,12 +29,12 @@ async def valid_strategies(dataset_id: int):
 
 
 @battle_router.post("/start")
-async def start_battle(dataset_id: int, config1: AlExperimentConfig, config2: AlExperimentConfig):
+async def start_battle(dataset_id: int, battle_config: ALBattleConfig):
     """Return if training started successfully."""
 
     # start process
     try:
-        ExperimentManager(dataset_id, config1, config2).start()
+        ExperimentManager(dataset_id, battle_config).start()
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
 

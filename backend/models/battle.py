@@ -11,7 +11,7 @@ from pydantic import (
     ValidationError
 )
 
-from .al_strategy import (
+from .al_model import (
     QueryStrategyType,
     QueryInstanceBMDRHolder,
     QueryInstanceGraphDensityHolder,
@@ -22,8 +22,9 @@ from .al_strategy import (
     QueryInstanceUncertaintyHolder,
     QueryInstanceRandomHolder,
     QueryExpectedErrorReductionHolder,
+    ALModel,
+    StoppingCriteriaOption
 )
-from .config import ALModel, StoppingCriteriaOption
 
 ZeroToOne = constrained_float(ge=0, le=1)
 
@@ -42,17 +43,6 @@ class AlExperimentConfig(Schema):
         QueryExpectedErrorReductionHolder.ExpectedErrorReductionConfig,
     ] = QUERY_STRATEGY.get_default_config()
     AL_MODEL: ALModel = ALModel.RANDOM_FOREST_CLASSIFIER
-    STOPPING_CRITERIA_VALUE: Union[None, float, int] = None
-    STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
-    BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
-
-    @validator('STOPPING_CRITERIA')
-    def stopping_criteria_with_option(cls, criteria, values):
-        if criteria != StoppingCriteriaOption.ALL_LABELED and (
-                'STOPPING_CRITERIA_VALUE' not in values or values['STOPPING_CRITERIA_VALUE'] is None):
-            raise ValueError(
-                f"If stopping_criteria is not: {StoppingCriteriaOption.ALL_LABELED} the value has to be set")
-        return criteria
 
     @validator('QUERY_STRATEGY_CONFIG', pre=True)
     def validate_strategy_config(cls, raw_config, values):
@@ -69,12 +59,24 @@ class AlExperimentConfig(Schema):
             raise ValueError("Config did not match strategy: " + str(e))
 
 
-class ValidStrategiesReturnSchema(Schema):
-    """
-    Represents all valid strategies for this dataset.
-    Json represents the config options as Schema.schema_json()
-    """
-    strategies: Dict[QueryStrategyType, str]
+class BattlePlotConfig(Schema):
+    FEATURES: Optional[List[str]] = None
+
+
+class ALBattleConfig(Schema):
+    exp_configs: Tuple[AlExperimentConfig, AlExperimentConfig]
+    STOPPING_CRITERIA_VALUE: Union[None, float, int] = None
+    STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
+    BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
+    PLOT_CONFIG: BattlePlotConfig = BattlePlotConfig()
+
+    @validator('STOPPING_CRITERIA')
+    def stopping_criteria_with_option(cls, criteria, values):
+        if criteria != StoppingCriteriaOption.ALL_LABELED and (
+                'STOPPING_CRITERIA_VALUE' not in values or values['STOPPING_CRITERIA_VALUE'] is None):
+            raise ValueError(
+                f"If stopping_criteria is not: {StoppingCriteriaOption.ALL_LABELED} the value has to be set")
+        return criteria
 
 
 class Status(Schema):
@@ -93,11 +95,19 @@ class MetricData(Schema):
     sample_ids: List[NonNegativeInt]
 
 
+class Metric(Schema):
+    iterations: List  # List[Tuple[Optional[MetricData],Optional[MetricData]]]
+
+
+class ValidStrategiesReturnSchema(Schema):
+    """
+    Represents all valid strategies for this dataset.
+    Json represents the config options as Schema.schema_json()
+    """
+    strategies: Dict[QueryStrategyType, str]
+
+
 class ChartReturnSchema(Schema):
     acc: str
     conf: Tuple[List[str], List[str]]
     data_maps: Tuple[str, str]
-
-
-class Metric(Schema):
-    iterations: List  # List[Tuple[Optional[MetricData],Optional[MetricData]]]

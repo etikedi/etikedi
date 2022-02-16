@@ -1,16 +1,12 @@
 from __future__ import annotations  # necessary for self referencing annotations
 
-from enum import Enum
 from typing import Optional, Union
 
 from pydantic import (
     BaseModel as Schema,
     PositiveInt, validator, )
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
 
-from .al_strategy import (
+from .al_model import (
     QueryStrategyType,
     QueryInstanceBMDRHolder,
     QueryInstanceGraphDensityHolder,
@@ -20,36 +16,9 @@ from .al_strategy import (
     QueryInstanceSPALHolder,
     QueryInstanceUncertaintyHolder,
     QueryInstanceRandomHolder,
-    QueryExpectedErrorReductionHolder,
+    QueryExpectedErrorReductionHolder, ALModel, StoppingCriteriaOption,
 )
 from .battle import AlExperimentConfig
-
-
-# all model that implement the scikit-learn api and provide predict_proba
-class ALModel(str, Enum):
-    DECISION_TREE_CLASSIFIER = "DecisionTreeClassifier"
-    RANDOM_FOREST_CLASSIFIER = "RandomForestClassifier"
-    LOGISTIC_REGRESSION = "LogisticRegression"
-
-    def get_class(self):
-        if self == ALModel.DECISION_TREE_CLASSIFIER:
-            return DecisionTreeClassifier
-        elif self == ALModel.RANDOM_FOREST_CLASSIFIER:
-            return RandomForestClassifier
-        elif self == ALModel.LOGISTIC_REGRESSION:
-            return LogisticRegression
-
-
-class StoppingCriteriaOption(str, Enum):
-    ALL_LABELED = "all_labeled"
-    NUM_OF_QUERIES = "num_of_queries"
-    COST_LIMIT = "cost_limit"
-    PERCENT_OF_UNLABEL = "percent_of_unlabel"
-    CPU_TIME = "time_limit"
-
-    # None has to be passed to StoppingCriteria() as absence of criteria which is equiv to all_labeled
-    def get(self):
-        return None if self == StoppingCriteriaOption.ALL_LABELED else self.value
 
 
 class ActiveLearningConfig(Schema):

@@ -14,7 +14,13 @@ from alipy.index import IndexCollection
 from sklearn.metrics import accuracy_score, f1_score
 
 from ..config import db
-from ..models import AlExperimentConfig, QueryStrategyAbstraction, MetricData, Dataset, StoppingCriteriaOption
+from ..models import (
+    ALBattleConfig,
+    AlExperimentConfig,
+    QueryStrategyAbstraction,
+    MetricData,
+    Dataset,
+    StoppingCriteriaOption)
 from ..utils import timeit
 
 
@@ -66,7 +72,7 @@ class ALExperimentProcess(Process):
         def __init__(self, criteria: StoppingCriteriaOption, experiment: ALExperimentProcess):
             self._start_time = None
             self._criteria: StoppingCriteriaOption = criteria
-            self._criteria_value = experiment.config.STOPPING_CRITERIA_VALUE
+            self._criteria_value = experiment.battle_config.STOPPING_CRITERIA_VALUE
             self._times = []  # iteration : measured_time
             self._total_iterations: int = 0
             if criteria == StoppingCriteriaOption.PERCENT_OF_UNLABEL:
@@ -103,7 +109,7 @@ class ALExperimentProcess(Process):
             # not one to one what alipy is using but necessary for estimation
             self._start_time = time.perf_counter_ns()
 
-    def __init__(self, exp_id: int, dataset_id: int, config: AlExperimentConfig, queue: Queue):
+    def __init__(self, exp_id: int, dataset_id: int, battle_config: ALBattleConfig, queue: Queue):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -116,14 +122,15 @@ class ALExperimentProcess(Process):
         """
         super().__init__()
         self.exp_id = exp_id
-        self.config: AlExperimentConfig = config
+        self.battle_config: ALBattleConfig = battle_config
+        self.exp_config: AlExperimentConfig = battle_config.exp_configs[exp_id]
         self.queue = queue
-        model_class = config.AL_MODEL.get_class()
+        model_class = self.exp_config.AL_MODEL.get_class()
         self.model = model_class()
-        self.stopping_criteria = StoppingCriteria(stopping_criteria=config.STOPPING_CRITERIA.get()) \
-            if (config.STOPPING_CRITERIA_VALUE is None) \
-            else StoppingCriteria(config.STOPPING_CRITERIA.get(), config.STOPPING_CRITERIA_VALUE)
-        self.batch_size = config.BATCH_SIZE
+        self.stopping_criteria = StoppingCriteria(stopping_criteria=battle_config.STOPPING_CRITERIA.get()) \
+            if (battle_config.STOPPING_CRITERIA_VALUE is None) \
+            else StoppingCriteria(battle_config.STOPPING_CRITERIA.get(), battle_config.STOPPING_CRITERIA_VALUE)
+        self.batch_size = battle_config.BATCH_SIZE
         self.dataset_id = dataset_id
         # move time intensive data operations outside __init__
         self.all_training_samples = None
@@ -171,11 +178,12 @@ class ALExperimentProcess(Process):
         self.idx2IDTest = {idx: d_frame.iloc[idx]['DB_ID'] for idx in test_idx}
 
         # initiate configurable experiment setting
-        self.config.QUERY_STRATEGY_CONFIG.train_idx = list(map(lambda old_idx: adjusted_idx_map[old_idx], train_idx))
-        self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.config.QUERY_STRATEGY,
+        self.exp_config.QUERY_STRATEGY_CONFIG.train_idx = list(
+            map(lambda old_idx: adjusted_idx_map[old_idx], train_idx))
+        self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.exp_config.QUERY_STRATEGY,
                                                           X=self.all_training_samples.to_numpy(),
                                                           y=self.all_training_labels.to_numpy(),
-                                                          config=self.config.QUERY_STRATEGY_CONFIG)
+                                                          config=self.exp_config.QUERY_STRATEGY_CONFIG)
 
         # Indexes of your unlabeled set for querying
         self.unlab_ind = IndexCollection([adjusted_idx_map[idx] for idx in unlabel_idx])
@@ -187,7 +195,7 @@ class ALExperimentProcess(Process):
         self.state_saver: StateIO = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
                                             init_U=self.unlab_ind.index, init_L=self.label_ind.index,
                                             verbose=False)
-        self.rte = ALExperimentProcess.RemainingTimeEstimate(self.config.STOPPING_CRITERIA, self)
+        self.rte = ALExperimentProcess.RemainingTimeEstimate(self.battle_config.STOPPING_CRITERIA, self)
 
     def run(self, verbose=0):
         # initial training
@@ -203,7 +211,7 @@ class ALExperimentProcess(Process):
 
         iteration = 1
         predictions = []
-        if self.config.STOPPING_CRITERIA == StoppingCriteriaOption.CPU_TIME:
+        if self.battle_config.STOPPING_CRITERIA == StoppingCriteriaOption.CPU_TIME:
             self.stopping_criteria.reset()  # reset cpu start time 
             self.rte.start_timer()
         starting_time = time.time_ns()
