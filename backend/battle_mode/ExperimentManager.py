@@ -8,8 +8,8 @@ import pandas as pd
 
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
-from ..config import logger
-from ..models import ALBattleConfig, Metric, Status
+from ..config import db, logger
+from ..models import ALBattleConfig, Metric, Status, Dataset, Sample
 from ..utils import ValidationError
 
 
@@ -104,6 +104,42 @@ class ExperimentManager:
                              'Correctness': correctness,
                              'SampleID': smpl})
             return pd.DataFrame(data)
+
+        return gen(0), gen(1)
+
+    def get_vector_space_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+        self.assert_finished()
+        self._poll_results_if_not_present()
+        if self.config.PLOT_CONFIG.FEATURES is None:
+            raise NotImplementedError("TODO: automatically select FEATURES by PCA or t-SNE")
+        features = self.config.PLOT_CONFIG.FEATURES
+        samples: List[Sample] = db.get(Dataset, self.dataset_id).samples
+        all_samples: pd.DataFrame = pd.DataFrame([
+            {
+                "SampleID": smpl.id,
+                "Feature1": smpl.feature_dict()[features[0]],
+                "Feature2": smpl.feature_dict()[features[1]]
+            }
+            for smpl in samples]
+        )
+        all_samples.set_index("SampleID")
+
+        def classify(ID, selected_ids, labeled_ids):
+            return 'Selected' if ID in selected_ids \
+                else 'Labeled' if ID in labeled_ids \
+                else 'Unlabeled'
+
+        def gen(exp_idx: int):
+            r = self.results[exp_idx]
+            labeled_ids = r.initially_labeled
+            iterations = []
+            for metric_data in r.metric_data:
+                it_df: pd.DataFrame = all_samples.copy()
+                selected_ids = metric_data.sample_ids
+                labeled_ids += selected_ids
+                it_df['Color'] = it_df['SampleID'].apply(lambda ID: classify(ID, selected_ids, labeled_ids))
+                iterations.append(it_df)
+            return iterations
 
         return gen(0), gen(1)
 

@@ -60,7 +60,7 @@ class AlExperimentConfig(Schema):
 
 
 class BattlePlotConfig(Schema):
-    FEATURES: Optional[List[str]] = None
+    FEATURES: Optional[Tuple[str, str]] = None
 
 
 class ALBattleConfig(Schema):
@@ -111,3 +111,4 @@ class ChartReturnSchema(Schema):
     acc: str
     conf: Tuple[List[str], List[str]]
     data_maps: Tuple[str, str]
+    vector_space: Tuple[List[str], List[str]]

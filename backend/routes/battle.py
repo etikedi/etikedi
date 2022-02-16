@@ -63,9 +63,18 @@ async def get_diagrams(dataset_id: int):
 
     # confidence: histogram, x=confidence, y=occurrence
     confidence_plots = plotting.confidence_histograms(manager.get_confidence_his_data())
+
+    # data_maps: scatter plot, x=variability, y=confidence
     data_maps = plotting.data_maps(manager.get_data_map_data())
 
-    return ChartReturnSchema(acc=learning_curve, conf=confidence_plots, data_maps=data_maps)
+    # vector_space: scatter plot x=feature_1, y=feature_2
+    vector_space_plots = plotting.vector_space(manager.get_vector_space_data())
+
+    return ChartReturnSchema(
+        acc=learning_curve,
+        conf=confidence_plots,
+        data_maps=data_maps,
+        vector_space=vector_space_plots)
 
 
 @battle_router.get("/get_metrics", response_model=Metric)

@@ -42,12 +42,13 @@ class EventType(IntEnum):
 
 
 class ResultType:
-    def __init__(self, raw_predictions: pd.DataFrame, classes=None):
+    def __init__(self, raw_predictions: pd.DataFrame, initially_labeled, classes=None):
         self.df: pd.DataFrame = pd.DataFrame(columns=[MetricsDFKeys.ACC, MetricsDFKeys.F1])
         self.metric_data: List[MetricData] = []
         self.classes: List[str] = classes if (classes is not None) else []
         self.raw_predictions = raw_predictions
         self.correct_labelAsIdx: Dict[int, int] = dict()
+        self.initially_labeled: List[int] = initially_labeled  # all initially labeled samples as SampleIDs
 
 
 @timeit
@@ -275,7 +276,11 @@ class ALExperimentProcess(Process):
         # pandas dataframe: every column is one sample, every row is one prediction
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
-        result = ResultType(raw_predictions=self.prediction_history, classes=self.model.classes_)
+        result = ResultType(
+            raw_predictions=self.prediction_history,
+            classes=self.model.classes_,
+            initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L]
+        )
         result.correct_labelAsIdx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
                                      for idx, label_str in self.y_test.items()}
         metrics_tmp = []

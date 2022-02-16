@@ -57,10 +57,13 @@ class Sample(Base):
     def __repr__(self):
         return str(self)
 
-    def extract_feature_list(self) -> List:
+    def feature_dict(self) -> Dict:
         json_features = self.features
         dict_features: Dict = json.loads(json_features)
-        return list(dict_features.values())
+        return dict_features
+
+    def extract_feature_list(self) -> List:
+        return list(self.feature_dict().values())
 
 
 class SampleDTO(Schema):

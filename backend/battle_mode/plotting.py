@@ -37,3 +37,18 @@ def data_maps(data_map_data: Tuple[pd.DataFrame, pd.DataFrame]) -> Tuple[str, st
             tooltip=['Variability', 'Confidence', 'SampleID']
         ).properties(width='container').interactive().to_json()
         for data in data_map_data])
+
+
+def vector_space(vector_space_data: Tuple[List[pd.DataFrame],List[pd.DataFrame]]) -> Tuple[List[str], List[str]]:
+    return [vector_space_iteration(it) for it in vector_space_data[0]], \
+            [vector_space_iteration(it) for it in vector_space_data[1]]
+
+
+def vector_space_iteration(iteration_data: pd.DataFrame) -> str:
+    feature_1_name, feature_2_name = [x for x in iteration_data.columns if x not in ['Color', 'SampleID']]
+    return alt.Chart(iteration_data).mark_circle().encode(
+        x=f'{feature_1_name}:Q',
+        y=f'{feature_2_name}:Q',
+        color='Color',
+        tooltip=list(iteration_data.columns)
+    ).properties(width='container').interactive().to_json()
