@@ -8,6 +8,8 @@
   import { Moon } from 'svelte-loading-spinners'
   import Slider from '@smui/slider'
   import Card from '../../../ui/Card.svelte'
+  import Input from '../../../ui/Input.svelte'
+  import Button from '../../../ui/Button.svelte'
 
   export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Unknown dataset'
@@ -18,6 +20,7 @@
     dia_elements_two = [],
     vega_views = {},
     sliderValue = 1,
+    inputValue = 1,
     currentIteration = 1,
     sample_1,
     sample_2,
@@ -44,34 +47,36 @@
     text: Table,
   }
 
+  $: if ($metricData && $metricData['iterations'] && currentIteration) changeIteration()
+
   async function changeIteration() {
-    if (sliderValue !== currentIteration) {
-      currentIteration = sliderValue
+    // Sync values
+    sliderValue = parseInt(currentIteration, 10)
+    inputValue = parseInt(currentIteration, 10)
 
-      // Label percentage
-      const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
-      sample_info['Percentage labeled'] = labeled + '%'
-      sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
+    // Label percentage
+    const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
+    sample_info['Percentage labeled'] = labeled + '%'
+    sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
 
-      // Annotation cost
-      const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
-      const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
-      metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
+    // Annotation cost
+    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
+    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
+    metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
 
-      // Fetch sample (hopefully in background)
-      getSamples()
+    // Fetch sample (hopefully in background)
+    getSamples()
 
-      // Destroy confidence diagrams
-      const allViews = Object.keys(vega_views)
-      delete allViews['acc']
-      delete allViews['dmap_1']
-      delete allViews['dmap_2']
-      await destroyViews(allViews)
-      // await destroyViews(['conf_1', 'conf_2'])
+    // Destroy confidence diagrams
+    const allViews = Object.keys(vega_views)
+    delete allViews['acc']
+    delete allViews['dmap_1']
+    delete allViews['dmap_2']
+    await destroyViews(allViews)
+    // await destroyViews(['conf_1', 'conf_2'])
 
-      // Push new confidence diagrams
-      await pushDiagrams(true)
-    }
+    // Push new confidence diagrams
+    await pushDiagrams(true)
   }
 
   async function pushDiagrams(update?: boolean) {
@@ -273,7 +278,9 @@
           {#if $metricData && $metricData['iterations']}
             <Slider
               bind:value={sliderValue}
-              on:click={changeIteration}
+              on:click={() => {
+                if (sliderValue !== currentIteration) currentIteration = sliderValue
+              }}
               min={1}
               max={$metricData['iterations'].length}
               step={stepSize}
@@ -281,6 +288,24 @@
               tickMarks
               input$aria-label="Tick slider"
             />
+            <div class="iteration-input">
+              <Input
+                label="Iteration"
+                bind:value={inputValue}
+                type="number"
+                min="1"
+                max={$metricData['iterations'].length}
+              />
+              <ion-icon
+                name="checkmark-circle-outline"
+                style="width: 100%; height: 100%; cursor: pointer;"
+                on:click={() => {
+                  if (inputValue > $metricData['iterations'].length) inputValue = $metricData['iterations'].length
+                  if (inputValue < 1) inputValue = 1
+                  if (inputValue !== currentIteration) currentIteration = inputValue
+                }}
+              />
+            </div>
           {/if}
         </div>
       </div>
@@ -338,7 +363,8 @@
     grid-template-rows: auto 4em 250px 4em 1fr;
   }
 
-  .process-info, .sample {
+  .process-info,
+  .sample {
     padding: 0 2em;
   }
 
@@ -368,6 +394,9 @@
 
   .iterations {
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 120px;
+    align-items: center;
   }
 
   .heading {
@@ -440,5 +469,12 @@
 
   tr:last-child {
     border-bottom: none;
+  }
+
+  .iteration-input {
+    display: grid;
+    grid-template-columns: 85px 1fr;
+    column-gap: 5px;
+    align-items: center;
   }
 </style>
