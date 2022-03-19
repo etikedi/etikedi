@@ -15,6 +15,7 @@ from sklearn.metrics import accuracy_score, f1_score
 
 from ..config import db
 from ..models import (
+    ALModel,
     ALBattleConfig,
     AlExperimentConfig,
     QueryStrategyAbstraction,
@@ -101,7 +102,7 @@ class ALExperimentProcess(Process):
             incr = sum(self._times[i + 1] - self._times[i] for i in range(it - 1)) / max(it - 1, 1)
             result = sum([last_training_time + incr * i for i in range(self._total_iterations - it)])
             if result < 0.0:
-                raise ValueError(f"Remaining time is negative: {result}")
+                print(f"[Warning] Remaining time is negative: {result}")
             return result * 1e-9  # convert ns to seconds
 
         def start_timer(self):
@@ -127,7 +128,7 @@ class ALExperimentProcess(Process):
         self.exp_config: AlExperimentConfig = battle_config.exp_configs[exp_id]
         self.queue = queue
         model_class = self.exp_config.AL_MODEL.get_class()
-        self.model = model_class()
+        self.model = model_class() if self.exp_config.AL_MODEL != ALModel.SVC else model_class(probability=True)
         self.stopping_criteria = StoppingCriteria(stopping_criteria=battle_config.STOPPING_CRITERIA.get()) \
             if (battle_config.STOPPING_CRITERIA_VALUE is None) \
             else StoppingCriteria(battle_config.STOPPING_CRITERIA.get(), battle_config.STOPPING_CRITERIA_VALUE)

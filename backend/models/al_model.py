@@ -11,6 +11,8 @@ from fastapi.openapi.models import Schema
 from pydantic import PositiveInt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 
@@ -74,6 +76,8 @@ class ALModel(str, Enum):
     DECISION_TREE_CLASSIFIER = "DecisionTreeClassifier"
     RANDOM_FOREST_CLASSIFIER = "RandomForestClassifier"
     LOGISTIC_REGRESSION = "LogisticRegression"
+    NAIVE_BAYES = "NaiveBayes"
+    SVC = "SVC"
 
     def get_class(self):
         if self == ALModel.DECISION_TREE_CLASSIFIER:
@@ -82,6 +86,10 @@ class ALModel(str, Enum):
             return RandomForestClassifier
         elif self == ALModel.LOGISTIC_REGRESSION:
             return LogisticRegression
+        elif self == ALModel.NAIVE_BAYES:
+            return GaussianNB
+        elif self == ALModel.SVC:
+            return SVC
 
 
 class StoppingCriteriaOption(str, Enum):
@@ -97,7 +105,8 @@ class StoppingCriteriaOption(str, Enum):
 
 
 class QueryStrategyAbstraction(metaclass=ABCMeta):
-    base_url = "http://parnec.nuaa.edu.cn/_upload/tpl/02/db/731/template731/pages/huangsj/alipy/page_reference/api_classes/api_query_strategy.query_labels"
+    base_url = "https://parnec.nuaa.edu.cn/_upload/tpl/02/db/731/template731/pages/huangsj/alipy/page_reference" \
+               "/api_classes/api_query_strategy.query_labels "
 
     @abstractmethod
     def select(self, label_index, unlabel_index, model, batch_size):
