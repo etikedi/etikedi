@@ -5,6 +5,7 @@ from typing import List, Dict, Tuple, Optional
 
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
 
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
@@ -107,22 +108,43 @@ class ExperimentManager:
 
         return gen(0), gen(1)
 
-    def get_vector_space_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
-        self.assert_finished()
-        self._poll_results_if_not_present()
-        if self.config.PLOT_CONFIG.FEATURES is None:
-            raise NotImplementedError("TODO: automatically select FEATURES by PCA or t-SNE")
-        features = self.config.PLOT_CONFIG.FEATURES
+    def _use_pca_for_feature_selection(self):
+        dataset = db.get(Dataset, self.dataset_id)
+        feature_names = dataset.feature_names
+
+        samples_df = pd.DataFrame([
+            [smpl.id] + smpl.extract_feature_list()
+            for smpl in dataset.samples
+            if smpl.labels != []], columns=["SampleID"] + feature_names.split(","))
+        pca = PCA(n_components=2)
+        transformed_samples = pca.fit_transform(X=samples_df.iloc[:, 1:])
+        pca_df = pd.DataFrame(data=transformed_samples, columns=["PCA1", "PCA2"])
+        pca_df["SampleID"] = samples_df["SampleID"]
+        pca_df.set_index("SampleID")
+        return pca_df
+
+    def _use_names_for_feature_selection(self, name_one: str, name_two: str):
         samples: List[Sample] = db.get(Dataset, self.dataset_id).samples
         all_samples: pd.DataFrame = pd.DataFrame([
             {
                 "SampleID": smpl.id,
-                "Feature1": smpl.feature_dict()[features[0]],
-                "Feature2": smpl.feature_dict()[features[1]]
+                name_one: smpl.feature_dict()[name_one],
+                name_two: smpl.feature_dict()[name_two]
             }
             for smpl in samples]
         )
         all_samples.set_index("SampleID")
+        return all_samples
+
+    def get_vector_space_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+        """ @return for each experiment for each iteration a data-frame with columns:
+                <feature-one>, <feature-two>, SampleID, Color"""
+        self.assert_finished()
+        self._poll_results_if_not_present()
+
+        two_feature_df = self._use_pca_for_feature_selection() \
+            if self.config.PLOT_CONFIG.FEATURES is None \
+            else self._use_names_for_feature_selection(*self.config.PLOT_CONFIG.FEATURES)
 
         def classify(ID, selected_ids, labeled_ids):
             return 'Selected' if ID in selected_ids \
@@ -134,7 +156,7 @@ class ExperimentManager:
             labeled_ids = r.initially_labeled
             iterations = []
             for metric_data in r.metric_data:
-                it_df: pd.DataFrame = all_samples.copy()
+                it_df: pd.DataFrame = two_feature_df.copy()
                 selected_ids = metric_data.sample_ids
                 labeled_ids += selected_ids
                 it_df['Color'] = it_df['SampleID'].apply(lambda ID: classify(ID, selected_ids, labeled_ids))
