@@ -1,7 +1,6 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
 import time
-from enum import Enum, IntEnum
 from math import ceil
 from multiprocessing import Process
 from multiprocessing import Queue
@@ -11,7 +10,7 @@ import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
-from sklearn.metrics import accuracy_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
 
 from ..config import db
 from ..models import (
@@ -19,33 +18,19 @@ from ..models import (
     ALBattleConfig,
     AlExperimentConfig,
     QueryStrategyAbstraction,
-    MetricData,
+    MetaData,
+    MetricsDFKeys,
+    EventType,
+    MapKeys,
     Dataset,
     StoppingCriteriaOption)
 from ..utils import timeit
 
 
-class MetricsDFKeys(str, Enum):
-    ACC = 'ACC',
-    F1 = 'F1'
-
-
-class MapKeys(str, Enum):
-    PERC_LABELED = 'percentage_labeled',
-    TIME = 'training_time'
-    SAMPLES = 'select_index'
-
-
-class EventType(IntEnum):
-    SETUP_COMPLETED = 1
-    INFO = 2,
-    RESULT = 3
-
-
 class ResultType:
     def __init__(self, raw_predictions: pd.DataFrame, initially_labeled, classes=None):
-        self.df: pd.DataFrame = pd.DataFrame(columns=[MetricsDFKeys.ACC, MetricsDFKeys.F1])
-        self.metric_data: List[MetricData] = []
+        self.metric_scores: pd.DataFrame = pd.DataFrame(columns=[metric_key for metric_key in MetricsDFKeys])
+        self.meta_data: List[MetaData] = []
         self.classes: List[str] = classes if (classes is not None) else []
         self.raw_predictions = raw_predictions
         self.correct_labelAsIdx: Dict[int, int] = dict()
@@ -286,18 +271,27 @@ class ALExperimentProcess(Process):
                                      for idx, label_str in self.y_test.items()}
         metrics_tmp = []
         for idx, row in self.prediction_history.iterrows():
-            y_pred = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
-            acc = accuracy_score(self.y_test.to_list(), y_pred=y_pred)
-            f1 = f1_score(self.y_test.to_list(), y_pred, average="micro")
-            metrics_tmp.append({MetricsDFKeys.ACC: acc, MetricsDFKeys.F1: f1})
-        result.df = pd.DataFrame(metrics_tmp)
-        state_data = result.metric_data
+            y_pred: List = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
+            y_truth: List = self.y_test.to_list()
+            assert len(y_pred) == len(y_truth)
+            acc = accuracy_score(y_truth, y_pred=y_pred)
+            f1 = f1_score(y_truth, y_pred, average='macro', zero_division=0)
+            recall = recall_score(y_truth, y_pred, average='macro', zero_division=0)
+            precision = precision_score(y_truth, y_pred, average='macro', zero_division=0)
+            metrics_tmp.append({
+                MetricsDFKeys.Acc: acc,
+                MetricsDFKeys.F1: f1,
+                MetricsDFKeys.Recall: recall,
+                MetricsDFKeys.Precision: precision
+            })
+        result.metric_scores = pd.DataFrame(metrics_tmp)
+        state_data = result.meta_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
             selected_samples = [self.idx2IDTrain[i] for i in state.get_value(MapKeys.SAMPLES)]
-            metric_dp: MetricData = MetricData(time=state.get_value(MapKeys.TIME),
-                                               percentage_labeled=state.get_value(MapKeys.PERC_LABELED),
-                                               sample_ids=selected_samples)
+            metric_dp: MetaData = MetaData(time=state.get_value(MapKeys.TIME),
+                                           percentage_labeled=state.get_value(MapKeys.PERC_LABELED),
+                                           sample_ids=selected_samples)
             state_data.append(metric_dp)
         return result
 

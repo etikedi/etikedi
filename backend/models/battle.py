@@ -3,6 +3,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import List, Tuple, Optional, Union, Dict
 
+import pandas as pd
 from pydantic import (
     confloat as constrained_float,
     BaseModel as Schema,
@@ -25,6 +26,7 @@ from .al_model import (
     ALModel,
     StoppingCriteriaOption
 )
+from .battleTypes import MetricsDFKeys
 
 ZeroToOne = constrained_float(ge=0, le=1)
 
@@ -89,14 +91,37 @@ class Status(Schema):
     time: Optional[float] = None  # last reported trainings time
 
 
-class MetricData(Schema):
+class MetaData(Schema):
     time: NonNegativeFloat  # model training time in seconds
     percentage_labeled: ZeroToOne
     sample_ids: List[NonNegativeInt]
 
 
+class MetricScoresIteration(Schema):
+    Acc: ZeroToOne
+    F1: ZeroToOne
+    Precision: ZeroToOne
+    Recall: ZeroToOne
+
+    @staticmethod
+    def of(series: pd.Series):
+        return MetricScoresIteration(
+            Acc=series[MetricsDFKeys.Acc],
+            F1=series[MetricsDFKeys.F1],
+            Precision=series[MetricsDFKeys.Precision],
+            Recall=series[MetricsDFKeys.Recall]
+        )
+
+
+class MetricIteration(Schema):
+    meta: MetaData
+    metrics: MetricScoresIteration
+
+
+# A list over all iterations (max of both experiments)
+# For each iteration for both experiments: the metric scores and the metadata
 class Metric(Schema):
-    iterations: List  # List[Tuple[Optional[MetricData],Optional[MetricData]]]
+    iterations: List[Tuple[Optional[MetricIteration], Optional[MetricIteration]]]
 
 
 class ValidStrategiesReturnSchema(Schema):

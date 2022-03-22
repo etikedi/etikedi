@@ -10,8 +10,8 @@ from sklearn.decomposition import PCA
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
 from ..config import db, logger
-from ..models import ALBattleConfig, Metric, Status, Dataset, Sample
-from ..utils import ValidationError
+from ..models import ALBattleConfig, Metric, Status, Dataset, Sample, MetricIteration, MetricScoresIteration
+from ..utils import ValidationError, zip_unequal
 
 
 class ExperimentManager:
@@ -55,12 +55,16 @@ class ExperimentManager:
             return self.metric
         self.assert_finished()
         self._poll_results_if_not_present()
-        combined: List = []
-        m0 = self.results[0].metric_data
-        m1 = self.results[1].metric_data
-        for idx in range(max(len(m0), len(m1))):
-            combined.append((m0[idx] if idx < len(m0) else None, m1[idx] if idx < len(m1) else None))
-        self.metric = Metric(iterations=combined)
+
+        def extract_per_exp(idx: int):
+            r = self.results[idx]
+            assert len(r.meta_data) == len(r.metric_scores.index)
+            scores: List = [MetricScoresIteration.of(row[1]) for row in r.metric_scores.iterrows()]
+            return [MetricIteration(meta=r.meta_data[i], metrics=scores[i]) for i in range(len(scores))]
+
+        self.metric = Metric(iterations=list(zip_unequal(
+            extract_per_exp(0),
+            extract_per_exp(1))))
         return self.metric
 
     def get_learning_curve_data(self) -> pd.DataFrame:
@@ -69,7 +73,7 @@ class ExperimentManager:
         self._poll_results_if_not_present()
 
         def gen(idx, key):
-            return [(it, key, item[MetricsDFKeys.ACC]) for it, item in self.results[idx].df.iterrows()]
+            return [(it, key, item[MetricsDFKeys.Acc]) for it, item in self.results[idx].metric_scores.iterrows()]
 
         rows = gen(0, "First")
         rows += gen(1, "Second")
@@ -155,7 +159,7 @@ class ExperimentManager:
             r = self.results[exp_idx]
             labeled_ids = r.initially_labeled
             iterations = []
-            for metric_data in r.metric_data:
+            for metric_data in r.meta_data:
                 it_df: pd.DataFrame = two_feature_df.copy()
                 selected_ids = metric_data.sample_ids
                 labeled_ids += selected_ids
