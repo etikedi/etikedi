@@ -10,7 +10,7 @@ import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, auc
 
 from ..config import db
 from ..models import (
@@ -284,7 +284,13 @@ class ALExperimentProcess(Process):
                 MetricsDFKeys.Recall: recall,
                 MetricsDFKeys.Precision: precision
             })
+
         result.metric_scores = pd.DataFrame(metrics_tmp)
+        result.metric_scores[MetricsDFKeys.F1_AUC] = 0
+        for idx in result.metric_scores.index:
+            # idx +1 because current iteration should be included in calculation
+            result.metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0\
+                else auc(list(range(idx+1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx+1])
         state_data = result.meta_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database

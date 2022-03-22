@@ -100,6 +100,7 @@ class MetaData(Schema):
 class MetricScoresIteration(Schema):
     Acc: ZeroToOne
     F1: ZeroToOne
+    F1_AUC: NonNegativeFloat
     Precision: ZeroToOne
     Recall: ZeroToOne
 
@@ -108,6 +109,7 @@ class MetricScoresIteration(Schema):
         return MetricScoresIteration(
             Acc=series[MetricsDFKeys.Acc],
             F1=series[MetricsDFKeys.F1],
+            F1_AUC=series[MetricsDFKeys.F1_AUC],
             Precision=series[MetricsDFKeys.Precision],
             Recall=series[MetricsDFKeys.Recall]
         )

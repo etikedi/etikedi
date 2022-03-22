@@ -6,6 +6,7 @@ from enum import Enum, IntEnum
 class MetricsDFKeys(str, Enum):
     Acc = 'Acc',
     F1 = 'F1',
+    F1_AUC = 'F1_AUC'
     Precision = 'Precision',
     Recall = 'Recall'
 
