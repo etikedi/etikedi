@@ -7,7 +7,7 @@ from typing import List, Type
 from alipy.query_strategy.query_labels import QueryInstanceSPAL, QueryInstanceUncertainty, QueryInstanceLAL, \
     QueryInstanceBMDR, QueryInstanceRandom, QueryInstanceQUIRE, QueryInstanceQBC, \
     QueryExpectedErrorReduction, QueryInstanceGraphDensity
-from fastapi.openapi.models import Schema
+from fastapi.openapi.models import BaseModel
 from pydantic import PositiveInt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
@@ -118,12 +118,12 @@ class QueryStrategyAbstraction(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         pass
 
 
 class QueryInstanceSPALHolder(QueryStrategyAbstraction):
-    class SPALConfig(Schema):
+    class SPALConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + ".QueryInstanceSPAL.html"
         mu: float = 0.1
         gamma: float = 0.1
@@ -149,12 +149,12 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceSPALHolder.SPALConfig
 
 
 class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
-    class UncertaintyConfig(Schema):
+    class UncertaintyConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
         measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
 
@@ -167,12 +167,12 @@ class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceUncertaintyHolder.UncertaintyConfig
 
 
 class QueryInstanceLALHolder(QueryStrategyAbstraction):
-    class LALConfig(Schema):
+    class LALConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryInstanceLAL.html"
         mode: QLALMode = QLALMode.LAL_ITERATIVE
         data_path = "/data/alipy"
@@ -188,12 +188,12 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceLALHolder.LALConfig
 
 
 class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
-    class BMDRConfig(Schema):
+    class BMDRConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryInstanceBMDR.html"
         beta: float = 1000.0
         gamma: float = 0.1
@@ -212,12 +212,12 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceBMDRHolder.BMDRConfig
 
 
 class QueryInstanceRandomHolder(QueryStrategyAbstraction):
-    class RandomConfig(Schema):
+    class RandomConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryInstanceRandom.html"
 
     def __init__(self, X, y, config: RandomConfig):
@@ -228,12 +228,12 @@ class QueryInstanceRandomHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceRandomHolder.RandomConfig
 
 
 class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
-    class GraphDensityConfig(Schema):
+    class GraphDensityConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
         train_idx: List = []  # injected by experiment
         metric: QMetric = QMetric.MANHATTAN
@@ -248,12 +248,12 @@ class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceGraphDensityHolder.GraphDensityConfig
 
 
 class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
-    class QUIREConfig(Schema):
+    class QUIREConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + 'QueryInstanceQUIRE.html'
         train_idx: List = []  # injected by experiment
         lambda_arg: float = 1.0
@@ -273,12 +273,12 @@ class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
             results + self.qs.select(label_index, unlabel_index)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceQUIREHolder.QUIREConfig
 
 
 class QueryInstanceQBCHolder(QueryStrategyAbstraction):
-    class QBCConfig(Schema):
+    class QBCConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + 'QueryInstanceQBC.html'
         method: QMethod = QMethod.QUERY_BY_BAGGING
         disagreement: QDisagreement
@@ -294,12 +294,12 @@ class QueryInstanceQBCHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, model, batch_size, self.n_jobs)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryInstanceQBCHolder.QBCConfig
 
 
 class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
-    class ExpectedErrorReductionConfig(Schema):
+    class ExpectedErrorReductionConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
@@ -310,7 +310,7 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[Schema]:
+    def get_config_schema() -> Type[BaseModel]:
         return QueryExpectedErrorReductionHolder.ExpectedErrorReductionConfig
 
 
@@ -350,7 +350,7 @@ class QueryStrategyType(str, Enum):
                self == QueryStrategyType.QUERY_INSTANCE_LAL
 
     # returns all config options for this query strategy
-    def get_config_schema(self) -> Type[Schema]:
+    def get_config_schema(self) -> Type[BaseModel]:
         return self.get_class().get_config_schema()
 
     def get_default_config(self):
