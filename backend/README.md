@@ -41,7 +41,7 @@ makes the setup a lot easier and more deterministic. The only thing needed is ru
 
 While the first start will take some time, future runs will be a lot faster. Further docker commands to control the backend are:
 
-```
+```bash
 > docker-compose up -d      # Starts the backend and database in the background
 > docker-compose down       # Shutsdown the backend
 > docker-compose down -v    # Shutsdown and removes all volumes (all persisted data), convenient for starting all over

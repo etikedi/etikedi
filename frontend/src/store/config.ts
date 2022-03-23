@@ -13,6 +13,23 @@ const PositiveInt = IntBetween(0, undefined)
 const IntBetween0_2000 = IntBetween(0, 2000)
 const Bool = { type: 'bool' }
 
+export const GeneralConfig = {
+  STOPPING_CRITERIA_VALUE: PositiveFloat,
+  STOPPING_CRITERIA: Choice(['all_labeled', 'num_of_queries', 'percent_of_unlabel', 'cost_limit', 'time_limit']),
+  BATCH_SIZE: PositiveInt,
+}
+
+export const ProcessConfig = {
+  AL_MODEL: Choice(['DecisionTreeClassifier', 'RandomForestClassifier', 'LogisticRegression', 'NaiveBayes', 'SVC']),
+}
+
+export const MockSchema = {
+  beta: PositiveFloat,
+  gamma: PositiveFloat,
+  rho: PositiveFloat,
+  kernel: Choice(['linear', 'poly', 'rbf']),
+}
+
 export const ALConfig = {
   QUERY_STRATEGY: Choice([
     'QueryInstanceBMDR',

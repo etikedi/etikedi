@@ -22,11 +22,13 @@
     sliderValue = 1,
     inputValue = 1,
     currentIteration = 1,
+    stepSize = 1,
     sample_1,
     sample_2,
     config1 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config1`)),
     config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`)),
-    sliderDiv
+    sliderDiv,
+    sampleIndexes = { process1: 0, process2: 0 }
 
   // TODO: From store
   const metrics = {
@@ -132,7 +134,11 @@
     sample_2 = await getSpecificSample(id_2)
   }
 
-  let stepSize = 1
+  async function getSampleFromId(sample_id: number, process: 1 | 2) {
+    const sample = await getSpecificSample(sample_id)
+    if (process === 1) sample_1 = sample
+    else sample_2 = sample
+  }
 
   function getStepSize(length: number) {
     const pxPerStep = sliderDiv.offsetWidth / length
@@ -220,7 +226,33 @@
           <div class="sample">
             {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
               <div class="data">
-                <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+                {#if sampleIndexes.process1 > 0}
+                  <ion-icon
+                    name="arrow-back-circle-outline"
+                    on:click={() => {
+                      sampleIndexes.process1 = sampleIndexes.process1 - 1
+                      getSampleFromId(
+                        $metricData['iterations'][currentIteration - 1][0]['sample_ids'][sampleIndexes.process1],
+                        1
+                      )
+                    }}
+                  />
+                {/if}
+                <div>
+                  <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+                </div>
+                {#if sampleIndexes.process1 < $metricData['iterations'][currentIteration - 1][0]['sample_ids'].length}
+                  <ion-icon
+                    name="arrow-forward-circle-outline"
+                    on:click={() => {
+                      sampleIndexes.process1 = sampleIndexes.process1 + 1
+                      getSampleFromId(
+                        $metricData['iterations'][currentIteration - 1][0]['sample_ids'][sampleIndexes.process1],
+                        1
+                      )
+                    }}
+                  />
+                {/if}
               </div>
               <span>Sample ID: {sample_1.id}</span>
             {:else if sample_1}
@@ -251,7 +283,33 @@
           <div class="sample">
             {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
               <div class="data">
-                <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+                {#if sampleIndexes.process2 > 0}
+                  <ion-icon
+                    name="arrow-back-circle-outline"
+                    on:click={() => {
+                      sampleIndexes.process2 = sampleIndexes.process2 - 1
+                      getSampleFromId(
+                        $metricData['iterations'][currentIteration - 1][1]['sample_ids'][sampleIndexes.process2],
+                        2
+                      )
+                    }}
+                  />
+                {/if}
+                <div>
+                  <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+                </div>
+                {#if sampleIndexes.process2 < $metricData['iterations'][currentIteration - 1][1]['sample_ids'].length}
+                  <ion-icon
+                    name="arrow-forward-circle-outline"
+                    on:click={() => {
+                      sampleIndexes.process2 = sampleIndexes.process2 + 1
+                      getSampleFromId(
+                        $metricData['iterations'][currentIteration - 1][1]['sample_ids'][sampleIndexes.process2],
+                        2
+                      )
+                    }}
+                  />
+                {/if}
               </div>
               <span>Sample ID: {sample_2.id}</span>
             {:else if sample_2}
@@ -376,6 +434,13 @@
   }
 
   .data {
+    overflow: auto;
+    display: flex;
+    flex-direction: row;
+    column-gap: 5px;
+  }
+
+  .data > div {
     overflow: auto;
   }
 

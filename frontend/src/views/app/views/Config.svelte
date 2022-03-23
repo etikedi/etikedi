@@ -10,7 +10,17 @@
   import Select from '../../../ui/Select.svelte'
 
   import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
-  import { get, save, loading as loadingConfig, BattleConfig, ALConfig, StrategyConfig } from '../../../store/config'
+  import {
+    get,
+    save,
+    loading as loadingConfig,
+    BattleConfig,
+    ALConfig,
+    StrategyConfig,
+    GeneralConfig,
+    ProcessConfig,
+    MockSchema,
+  } from '../../../store/config'
 
   const { id } = router.params()
 
@@ -20,7 +30,7 @@
 
   let spec
 
-  if (alWar) spec = BattleConfig
+  if (alWar) spec = { ...GeneralConfig, ...ProcessConfig, ...MockSchema }
   else spec = ALConfig
 
   $: dataset = $data[id]
@@ -76,6 +86,7 @@
       {#if !alWar}
         <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
       {:else}
+        <!--
         <h3>Query Strategy Config</h3>
         {#each Object.entries(StrategyConfig) as [key, { type, ...props }]}
           {#if type === 'number'}
@@ -86,6 +97,8 @@
             <Checkbox bind:value={strategyConfig[key]} disabled={loading} label={sentenceCase(key)} />
           {/if}
         {/each}
+        -->
+        
       {/if}
     </form>
     <br />

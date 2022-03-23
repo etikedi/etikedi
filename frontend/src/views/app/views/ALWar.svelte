@@ -12,11 +12,15 @@
     metricData,
     getDiagrams,
     diagrams,
+    getValidStrategies,
+    valid_strategies,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
   import Card from '../../../ui/Card.svelte'
+  import Select from '../../../ui/Select.svelte'
+  import { mockSendConfig } from '../../../lib/al_configs'
 
   let showCache = false,
     showConfig = true,
@@ -26,7 +30,9 @@
     remainingTime,
     interval,
     starting = false,
-    progressElement
+    progressElement,
+    chosenStrategies = [],
+    configs = []
 
   /**
    * DEV
@@ -37,9 +43,22 @@
   const { id } = router.params()
 
   $: dataset = $datasets[id]
-  $: ready = dataset && config1 && config2
+  $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
+  $: if (chosenStrategies[0]) {
+    console.debug('first:', JSON.parse($valid_strategies[chosenStrategies[0]]))
+    configs[0] = mockSendConfig
+  }
+
+  $: if (chosenStrategies[1]) {
+    console.debug('second:', JSON.parse($valid_strategies[chosenStrategies[1]]))
+    configs[1] = mockSendConfig
+  }
+
+  // Existing cache
   if (localStorage.getItem(`battle-${id}-diagrams`) && localStorage.getItem(`battle-${id}-metrics`)) showCache = true
+
+  // Running battle
   if (localStorage.getItem(`running-battle-${id}`)) {
     showCache = false
     showConfig = false
@@ -47,48 +66,16 @@
     checkStatus()
   }
 
-  let config1 = {
-    QUERY_STRATEGY: 'QueryInstanceRandom',
-    AL_MODEL: 'RandomForestClassifier',
-    STOPPING_CRITERIA_VALUE: 10,
-    STOPPING_CRITERIA: 'all_labeled',
-    BATCH_SIZE: 5,
-  }
-
-  let strategyConfig1 = {
-    beta: 1000,
-    cls_est: 50,
-    disagreement: 'vote_entropy',
-    gamma: 0.1,
-    lambda_init: 0.1,
-    lambda_pace: 0.01,
-    measure: 'least_confident',
-    method: 'query_by_bagging',
-    metric: 'manhattan',
-    mode: 'LAL_iterative',
-    mu: 0.1,
-    rho: 0.1,
-    train_slt: true,
-  }
-
-  let config2 = { ...config1 }
-  let strategyConfig2 = { ...strategyConfig1 }
+  // Get valid strategies
+  getValidStrategies(id)
 
   async function start() {
-    const sendConf1 = {
-      ...config1,
-      QUERY_STRATEGY_CONFIG: { ...strategyConfig1 },
-    }
-    const sendConf2 = {
-      ...config2,
-      QUERY_STRATEGY_CONFIG: { ...strategyConfig2 },
-    }
-    console.debug('Config 1', sendConf1, 'Config 2', sendConf2)
-    localStorage.setItem(`battle-${id}-config1`, JSON.stringify(sendConf1))
-    localStorage.setItem(`battle-${id}-config2`, JSON.stringify(sendConf2))
+    console.debug('Mock Send:', mockSendConfig)
+    localStorage.setItem(`battle-${id}-config1`, JSON.stringify(mockSendConfig))
+    localStorage.setItem(`battle-${id}-config2`, JSON.stringify(mockSendConfig))
     showConfig = false
     starting = true
-    const started = await startBattle(id, sendConf1, sendConf2)
+    const started = await startBattle(id, mockSendConfig)
     if (started === null) {
       starting = false
       checkStatus()
@@ -186,8 +173,30 @@
   <div class="wrapper">
     {#if showConfig}
       <div class="config-wrapper">
-        <Config bind:config={config1} bind:strategyConfig={strategyConfig1} alWar />
-        <Config bind:config={config2} bind:strategyConfig={strategyConfig2} alWar />
+        {#if $valid_strategies}
+          <div>
+            <Select
+              bind:value={chosenStrategies[0]}
+              values={Object.keys($valid_strategies)}
+              emptyFirst
+              label="Query strategy"
+            />
+            {#if chosenStrategies[0] && configs[0]}
+              <Config bind:config={configs[0]} alWar />
+            {/if}
+          </div>
+          <div>
+            <Select
+              bind:value={chosenStrategies[1]}
+              values={Object.keys($valid_strategies)}
+              emptyFirst
+              label="Query strategy"
+            />
+            {#if chosenStrategies[1] && configs[1]}
+              <Config bind:config={configs[1]} alWar />
+            {/if}
+          </div>
+        {/if}
       </div>
       {#if ready}
         <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />

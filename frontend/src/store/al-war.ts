@@ -93,14 +93,28 @@ export const isFinished = writable<boolean | number>(false)
 export const diagrams = writable<any>(null)
 export const metricData = writable<any>(null)
 export const loading = writable(null)
+export const valid_strategies = writable(null)
 
-export async function startBattle(dataset_id: number | string, config1: BattleConfig, config2: BattleConfig) {
+export async function getValidStrategies(dataset_id: number) {
+  try {
+    loading.set(true)
+    const { data: strategies } = await axios({
+      url: `${dataset_id}/al-wars/valid_strategies`,
+      method: 'get',
+    })
+    if (strategies && strategies['strategies']) valid_strategies.set(strategies['strategies'])
+  } finally {
+    loading.set(false)
+  }
+}
+
+export async function startBattle(dataset_id: number | string, battle_config) {
   try {
     loading.set(true)
     const { data: success } = await axios({
       method: 'post',
       url: `${dataset_id}/al-wars/start`,
-      data: { config1, config2 },
+      data: { ...battle_config },
     })
     return success
   } catch {
