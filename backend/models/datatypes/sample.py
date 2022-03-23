@@ -2,7 +2,7 @@ import base64
 import json
 from typing import Union, Optional, List, Dict
 
-from pydantic import BaseModel as Schema, validator
+from pydantic import BaseModel, validator
 from sqlalchemy import ForeignKey, Column, Integer, VARCHAR, Text
 from sqlalchemy.orm import relationship
 
@@ -66,7 +66,7 @@ class Sample(Base):
         return list(self.feature_dict().values())
 
 
-class SampleDTO(Schema):
+class SampleDTO(BaseModel):
     id: int
     dataset_id: int
     type: str
@@ -96,6 +96,6 @@ class SampleDTOwLabel(SampleDTO):
         return current_associations
 
 
-class UnlabelDTO(Schema):
+class UnlabelDTO(BaseModel):
     label_id: Optional[int]
     all: bool = False

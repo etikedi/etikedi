@@ -1,7 +1,7 @@
 import json
 from dataclasses import dataclass
 from typing import List, Optional
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel
 from sqlalchemy import Column, Text, String, Integer, JSON
 from sqlalchemy.orm import relationship
 
@@ -52,7 +52,7 @@ class Dataset(Base):
         self.config = json.dumps(config.dict(), default=lambda x: x.value)
 
 
-class BaseDatasetSchema(Schema):
+class BaseDatasetSchema(BaseModel):
     name: str
 
 

@@ -1,4 +1,4 @@
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 
@@ -24,13 +24,13 @@ class Association(Base):
     __mapper_args__ = {"confirm_deleted_rows": False}
 
 
-class AssociationBase(Schema):
+class AssociationBase(BaseModel):
     sample_id: int
     label_id: int
     user_id: int
 
 
-class AssociationCurrentLabel(Schema):
+class AssociationCurrentLabel(BaseModel):
     label: LabelDTO
     is_current: bool
 

@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, VARCHAR, Text, Boolean
 
 from ..config import Base
@@ -19,7 +19,7 @@ class User(Base):
     is_active = Column(Boolean, default=True, server_default="true", nullable=False)
 
 
-class BaseUserSchema(Schema):
+class BaseUserSchema(BaseModel):
     username: str
     email: Optional[str] = None
     fullname: Optional[str] = None
@@ -39,7 +39,7 @@ class UserInDB(BaseUserSchema):
     password: str
 
 
-class Token(Schema):
+class Token(BaseModel):
     access_token: str
     token_type: str
 

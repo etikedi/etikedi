@@ -1,4 +1,4 @@
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -22,7 +22,7 @@ class Label(Base):
     )
 
 
-class BaseLabelSchema(Schema):
+class BaseLabelSchema(BaseModel):
     name: str
 
 

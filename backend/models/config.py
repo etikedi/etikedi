@@ -3,7 +3,7 @@ from __future__ import annotations  # necessary for self referencing annotations
 from typing import Optional, Union
 
 from pydantic import (
-    BaseModel as Schema,
+    BaseModel,
     PositiveInt, validator, )
 
 from .al_model import (
@@ -21,7 +21,7 @@ from .al_model import (
 from .battle import AlExperimentConfig
 
 
-class ActiveLearningConfig(Schema):
+class ActiveLearningConfig(BaseModel):
     QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
     QUERY_STRATEGY_CONFIG: Union[
         QueryInstanceBMDRHolder.BMDRConfig,

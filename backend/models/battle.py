@@ -6,7 +6,7 @@ from typing import List, Tuple, Optional, Union, Dict
 import pandas as pd
 from pydantic import (
     confloat as constrained_float,
-    BaseModel as Schema,
+    BaseModel,
     PositiveInt,
     NonNegativeInt, NonNegativeFloat, validator,
     ValidationError
@@ -31,7 +31,7 @@ from .battleTypes import MetricsDFKeys
 ZeroToOne = constrained_float(ge=0, le=1)
 
 
-class AlExperimentConfig(Schema):
+class AlExperimentConfig(BaseModel):
     QUERY_STRATEGY: QueryStrategyType = QueryStrategyType.QUERY_INSTANCE_RANDOM
     QUERY_STRATEGY_CONFIG: Union[
         QueryInstanceBMDRHolder.BMDRConfig,
@@ -61,11 +61,11 @@ class AlExperimentConfig(Schema):
             raise ValueError("Config did not match strategy: " + str(e))
 
 
-class BattlePlotConfig(Schema):
+class BattlePlotConfig(BaseModel):
     FEATURES: Optional[Tuple[str, str]] = None
 
 
-class ALBattleConfig(Schema):
+class ALBattleConfig(BaseModel):
     exp_configs: Tuple[AlExperimentConfig, AlExperimentConfig]
     STOPPING_CRITERIA_VALUE: Union[None, float, int] = None
     STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
@@ -81,7 +81,7 @@ class ALBattleConfig(Schema):
         return criteria
 
 
-class Status(Schema):
+class Status(BaseModel):
     class Code(IntEnum):
         IN_SETUP = 0,
         TRAINING = 1,
@@ -91,13 +91,13 @@ class Status(Schema):
     time: Optional[float] = None  # last reported trainings time
 
 
-class MetaData(Schema):
+class MetaData(BaseModel):
     time: NonNegativeFloat  # model training time in seconds
     percentage_labeled: ZeroToOne
     sample_ids: List[NonNegativeInt]
 
 
-class MetricScoresIteration(Schema):
+class MetricScoresIteration(BaseModel):
     Acc: ZeroToOne
     F1: ZeroToOne
     F1_AUC: NonNegativeFloat
@@ -115,26 +115,26 @@ class MetricScoresIteration(Schema):
         )
 
 
-class MetricIteration(Schema):
+class MetricIteration(BaseModel):
     meta: MetaData
     metrics: MetricScoresIteration
 
 
 # A list over all iterations (max of both experiments)
 # For each iteration for both experiments: the metric scores and the metadata
-class Metric(Schema):
+class Metric(BaseModel):
     iterations: List[Tuple[Optional[MetricIteration], Optional[MetricIteration]]]
 
 
-class ValidStrategiesReturnSchema(Schema):
+class ValidStrategiesReturnSchema(BaseModel):
     """
     Represents all valid strategies for this dataset.
-    Json represents the config options as Schema.schema_json()
+    Json represents the config options as BaseModel.schema_json()
     """
     strategies: Dict[QueryStrategyType, str]
 
 
-class ChartReturnSchema(Schema):
+class ChartReturnSchema(BaseModel):
     acc: str
     conf: Tuple[List[str], List[str]]
     data_maps: Tuple[str, str]
