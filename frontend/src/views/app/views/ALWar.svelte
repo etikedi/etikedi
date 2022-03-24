@@ -21,6 +21,7 @@
   import Card from '../../../ui/Card.svelte'
   import Select from '../../../ui/Select.svelte'
   import { mockSendConfig } from '../../../lib/al_configs'
+  import { ProcessConfig } from '../../../store/config'
 
   let showCache = false,
     showConfig = true,
@@ -32,13 +33,16 @@
     starting = false,
     progressElement,
     chosenStrategies = [],
-    configs = []
+    configs = [{}, {}],
+    strategySchemas = [],
+    strategyDefinitions = []
 
   /**
    * DEV
    */
   $: if ($metricData) console.debug($metricData)
   $: if ($diagrams) console.debug($diagrams)
+  $: if (configs) console.debug('configs', configs)
 
   const { id } = router.params()
 
@@ -46,13 +50,13 @@
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
   $: if (chosenStrategies[0]) {
-    console.debug('first:', JSON.parse($valid_strategies[chosenStrategies[0]]))
-    configs[0] = mockSendConfig
+    strategySchemas[0] = { ...ProcessConfig, ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'] }
+    strategyDefinitions[0] = JSON.parse($valid_strategies[chosenStrategies[0]])['definitions']
   }
 
   $: if (chosenStrategies[1]) {
-    console.debug('second:', JSON.parse($valid_strategies[chosenStrategies[1]]))
-    configs[1] = mockSendConfig
+    strategySchemas[0] = { ...ProcessConfig, ...JSON.parse($valid_strategies[chosenStrategies[1]])['properties'] }
+    strategyDefinitions[1] = JSON.parse($valid_strategies[chosenStrategies[1]])['definitions']
   }
 
   // Existing cache
@@ -181,8 +185,13 @@
               emptyFirst
               label="Query strategy"
             />
-            {#if chosenStrategies[0] && configs[0]}
-              <Config bind:config={configs[0]} alWar />
+            {#if chosenStrategies[0] && strategySchemas[0]}
+              <Config
+                bind:config={configs[0]}
+                strategySchema={strategySchemas[0]}
+                strategyDefinitions={strategyDefinitions[0]}
+                alWar
+              />
             {/if}
           </div>
           <div>
@@ -192,8 +201,13 @@
               emptyFirst
               label="Query strategy"
             />
-            {#if chosenStrategies[1] && configs[1]}
-              <Config bind:config={configs[1]} alWar />
+            {#if chosenStrategies[1] && strategySchemas[1]}
+              <Config
+                bind:config={configs[1]}
+                strategySchema={strategySchemas[1]}
+                strategyDefinitions={strategyDefinitions[1]}
+                alWar
+              />
             {/if}
           </div>
         {/if}

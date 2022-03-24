@@ -10,35 +10,50 @@
   import Select from '../../../ui/Select.svelte'
 
   import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
-  import {
-    get,
-    save,
-    loading as loadingConfig,
-    BattleConfig,
-    ALConfig,
-    StrategyConfig,
-    GeneralConfig,
-    ProcessConfig,
-    MockSchema,
-  } from '../../../store/config'
+  import { get, save, loading as loadingConfig, ALConfig } from '../../../store/config'
+  import { BMDRConfig } from '../../../lib/al_configs'
 
   const { id } = router.params()
 
   export let alWar = false
-  export let config = null
-  export let strategyConfig = null
+  export let config = {}
+  export let strategySchema = null
+  export let strategyDefinitions = null
 
   let spec
 
-  if (alWar) spec = { ...GeneralConfig, ...ProcessConfig, ...MockSchema }
-  else spec = ALConfig
+  $: if (strategySchema) console.debug('strat schema', strategySchema)
+  if (alWar && strategySchema) {
+    config = {}
+    spec = { ...strategySchema }
+  } else spec = ALConfig
 
   $: dataset = $data[id]
   $: loading = $loadingConfig || $loadingDatasets
 
   onMount(async () => {
     if (!alWar) config = await get(id)
+    else prepareSchema()
   })
+
+  function prepareSchema() {
+    for (const key of Object.keys(spec)) {
+      // Set default values
+      if (spec[key]['default']) {
+        config[key] = spec[key]['default']
+      }
+
+      // Set select options
+      if (spec[key]['allOf'] && strategyDefinitions) {
+        const ref = spec[key]['allOf'][0]['$ref'].split('/')
+        const definitionKey = ref[ref.length - 1]
+        const values = strategyDefinitions[definitionKey]['enum']
+        spec[key]['type'] = values
+      }
+
+      // TODO: min, max, steps, ...
+    }
+  }
 
   async function submit() {
     try {
@@ -98,7 +113,6 @@
           {/if}
         {/each}
         -->
-        
       {/if}
     </form>
     <br />

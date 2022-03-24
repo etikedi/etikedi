@@ -23,13 +23,6 @@ export const ProcessConfig = {
   AL_MODEL: Choice(['DecisionTreeClassifier', 'RandomForestClassifier', 'LogisticRegression', 'NaiveBayes', 'SVC']),
 }
 
-export const MockSchema = {
-  beta: PositiveFloat,
-  gamma: PositiveFloat,
-  rho: PositiveFloat,
-  kernel: Choice(['linear', 'poly', 'rbf']),
-}
-
 export const ALConfig = {
   QUERY_STRATEGY: Choice([
     'QueryInstanceBMDR',

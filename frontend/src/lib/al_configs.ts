@@ -8,15 +8,8 @@ export interface ProcessConfig {
   AL_MODEL: 'DecisionTreeClassifier' | 'RandomForestClassifier' | 'LogisticRegression' | 'NaiveBayes' | 'SVC'
 }
 
-export interface MockSchema {
-  beta: number
-  gamma: number
-  rho: number
-  kernel: 'linear' | 'poly' | 'rbf'
-}
-
 export let MockQuerySchema = {
-  measure: "least_confident"
+  measure: 'least_confident',
 }
 
 export let mockBattleConfig = {
@@ -32,5 +25,49 @@ export let mockSendConfig = {
   BATCH_SIZE: 5,
   PLOT_CONFIG: {
     FEATURES: undefined,
+  },
+}
+
+export const BMDRConfig = {
+  title: 'BMDRConfig',
+  type: 'object',
+  properties: {
+    beta: {
+      title: 'Beta',
+      default: 1000,
+      type: 'number',
+    },
+    gamma: {
+      title: 'Gamma',
+      default: 0.1,
+      type: 'number',
+    },
+    rho: {
+      title: 'Rho',
+      default: 1,
+      type: 'number',
+    },
+    kernel: {
+      default: 'rbf',
+      allOf: [
+        {
+          $ref: '#/definitions/QKernel',
+        },
+      ],
+    },
+    description: {
+      title: 'Description',
+      default:
+        'https://parnec.nuaa.edu.cn/_upload/tpl/02/db/731/template731/pages/huangsj/alipy/page_reference/api_classes/api_query_strategy.query_labels QueryInstanceBMDR.html',
+      type: 'string',
+    },
+  },
+  definitions: {
+    QKernel: {
+      title: 'QKernel',
+      description: 'An enumeration.',
+      enum: ['linear', 'poly', 'rbf'],
+      type: 'string',
+    },
   },
 }
