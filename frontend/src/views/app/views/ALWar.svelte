@@ -33,7 +33,7 @@
     starting = false,
     progressElement,
     chosenStrategies = [],
-    configs = [{}, {}],
+    processConfigs = [{}, {}],
     strategySchemas = [],
     strategyDefinitions = []
 
@@ -42,7 +42,9 @@
    */
   $: if ($metricData) console.debug($metricData)
   $: if ($diagrams) console.debug($diagrams)
-  $: if (configs) console.debug('configs', configs)
+  $: if (processConfigs) console.debug('processConfigs', processConfigs)
+  $: if (chosenStrategies) console.debug('chosenStrategies', chosenStrategies)
+  $: if (strategySchemas) console.debug('strategySchemas', strategySchemas)
 
   const { id } = router.params()
 
@@ -50,12 +52,24 @@
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
   $: if (chosenStrategies[0]) {
-    strategySchemas[0] = { ...ProcessConfig, ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'] }
+    strategySchemas[0] = null
+    setTimeout(() => {
+      strategySchemas[0] = {
+        ...ProcessConfig,
+        ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'],
+      }
+    }, 300)
     strategyDefinitions[0] = JSON.parse($valid_strategies[chosenStrategies[0]])['definitions']
   }
 
   $: if (chosenStrategies[1]) {
-    strategySchemas[0] = { ...ProcessConfig, ...JSON.parse($valid_strategies[chosenStrategies[1]])['properties'] }
+    strategySchemas[1] = null
+    setTimeout(() => {
+      strategySchemas[1] = {
+        ...ProcessConfig,
+        ...JSON.parse($valid_strategies[chosenStrategies[1]])['properties'],
+      }
+    }, 300)
     strategyDefinitions[1] = JSON.parse($valid_strategies[chosenStrategies[1]])['definitions']
   }
 
@@ -187,7 +201,7 @@
             />
             {#if chosenStrategies[0] && strategySchemas[0]}
               <Config
-                bind:config={configs[0]}
+                bind:config={processConfigs[0]}
                 strategySchema={strategySchemas[0]}
                 strategyDefinitions={strategyDefinitions[0]}
                 alWar
@@ -203,7 +217,7 @@
             />
             {#if chosenStrategies[1] && strategySchemas[1]}
               <Config
-                bind:config={configs[1]}
+                bind:config={processConfigs[1]}
                 strategySchema={strategySchemas[1]}
                 strategyDefinitions={strategyDefinitions[1]}
                 alWar

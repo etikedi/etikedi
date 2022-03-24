@@ -22,11 +22,12 @@
 
   let spec
 
-  $: if (strategySchema) console.debug('strat schema', strategySchema)
-  if (alWar && strategySchema) {
+  // Set schema initial
+  if (!alWar) spec = ALConfig
+  else if (alWar && strategySchema) {
     config = {}
     spec = { ...strategySchema }
-  } else spec = ALConfig
+  }
 
   $: dataset = $data[id]
   $: loading = $loadingConfig || $loadingDatasets
@@ -39,13 +40,13 @@
   function prepareSchema() {
     for (const key of Object.keys(spec)) {
       // Set default values
-      if (spec[key]['default']) {
-        config[key] = spec[key]['default']
+      if (strategySchema[key]['default']) {
+        config[key] = strategySchema[key]['default']
       }
 
       // Set select options
-      if (spec[key]['allOf'] && strategyDefinitions) {
-        const ref = spec[key]['allOf'][0]['$ref'].split('/')
+      if (strategySchema[key]['allOf'] && strategyDefinitions) {
+        const ref = strategySchema[key]['allOf'][0]['$ref'].split('/')
         const definitionKey = ref[ref.length - 1]
         const values = strategyDefinitions[definitionKey]['enum']
         spec[key]['type'] = values
