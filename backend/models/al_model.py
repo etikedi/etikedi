@@ -281,7 +281,7 @@ class QueryInstanceQBCHolder(QueryStrategyAbstraction):
     class QBCConfig(BaseModel):
         description = QueryStrategyAbstraction.base_url + 'QueryInstanceQBC.html'
         method: QMethod = QMethod.QUERY_BY_BAGGING
-        disagreement: QDisagreement
+        disagreement: QDisagreement = QDisagreement.VOTE_ENTROPY
 
     def __init__(self, X, y, config: QBCConfig):
         self.n_jobs = None
