@@ -2,7 +2,7 @@ from __future__ import annotations  # necessary for self referencing annotations
 
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import List, Type
+from typing import List, Type, Literal
 
 from alipy.query_strategy.query_labels import QueryInstanceSPAL, QueryInstanceUncertainty, QueryInstanceLAL, \
     QueryInstanceBMDR, QueryInstanceRandom, QueryInstanceQUIRE, QueryInstanceQBC, \
@@ -124,6 +124,7 @@ class QueryStrategyAbstraction(metaclass=ABCMeta):
 
 class QueryInstanceSPALHolder(QueryStrategyAbstraction):
     class SPALConfig(BaseModel):
+        query_type: Literal['QueryInstanceSPAL']
         description = QueryStrategyAbstraction.base_url + ".QueryInstanceSPAL.html"
         mu: float = 0.1
         gamma: float = 0.1
@@ -155,6 +156,7 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
 
 class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
     class UncertaintyConfig(BaseModel):
+        query_type: Literal['QueryInstanceUncertainty']
         description = QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
         measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
 
@@ -173,6 +175,7 @@ class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
 
 class QueryInstanceLALHolder(QueryStrategyAbstraction):
     class LALConfig(BaseModel):
+        query_type: Literal['QueryInstanceLAL']
         description = QueryStrategyAbstraction.base_url + "QueryInstanceLAL.html"
         mode: QLALMode = QLALMode.LAL_ITERATIVE
         data_path = "/data/alipy"
@@ -194,6 +197,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
 
 class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
     class BMDRConfig(BaseModel):
+        query_type: Literal['QueryInstanceBMDR']
         description = QueryStrategyAbstraction.base_url + "QueryInstanceBMDR.html"
         beta: float = 1000.0
         gamma: float = 0.1
@@ -218,6 +222,7 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
 
 class QueryInstanceRandomHolder(QueryStrategyAbstraction):
     class RandomConfig(BaseModel):
+        query_type: Literal['QueryInstanceRandom']
         description = QueryStrategyAbstraction.base_url + "QueryInstanceRandom.html"
 
     def __init__(self, X, y, config: RandomConfig):
@@ -234,6 +239,7 @@ class QueryInstanceRandomHolder(QueryStrategyAbstraction):
 
 class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
     class GraphDensityConfig(BaseModel):
+        query_type: Literal['QueryInstanceGraphDensity']
         description = QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
         train_idx: List = []  # injected by experiment
         metric: QMetric = QMetric.MANHATTAN
@@ -254,6 +260,7 @@ class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
 
 class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
     class QUIREConfig(BaseModel):
+        query_type: Literal['QueryInstanceQUIRE']
         description = QueryStrategyAbstraction.base_url + 'QueryInstanceQUIRE.html'
         train_idx: List = []  # injected by experiment
         lambda_arg: float = 1.0
@@ -279,6 +286,7 @@ class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
 
 class QueryInstanceQBCHolder(QueryStrategyAbstraction):
     class QBCConfig(BaseModel):
+        query_type: Literal['QueryInstanceQBC']
         description = QueryStrategyAbstraction.base_url + 'QueryInstanceQBC.html'
         method: QMethod = QMethod.QUERY_BY_BAGGING
         disagreement: QDisagreement = QDisagreement.VOTE_ENTROPY
@@ -300,6 +308,7 @@ class QueryInstanceQBCHolder(QueryStrategyAbstraction):
 
 class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
     class ExpectedErrorReductionConfig(BaseModel):
+        query_type: Literal['QueryExpectedErrorReduction']
         description = QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
@@ -354,5 +363,5 @@ class QueryStrategyType(str, Enum):
         return self.get_class().get_config_schema()
 
     def get_default_config(self):
-        ConfiClass = self.get_class().get_config_schema()
-        return ConfiClass()  # instance of Schema
+        ConfigClass = self.get_class().get_config_schema()
+        return ConfigClass(query_type=self.value)  # instance of Schema

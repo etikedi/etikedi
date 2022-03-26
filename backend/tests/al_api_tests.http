@@ -8,6 +8,7 @@ Content-Type: application/json
     {
       "QUERY_STRATEGY": "QueryInstanceUncertainty",
       "QUERY_STRATEGY_CONFIG": {
+        "query_type": "QueryInstanceUncertainty",
         "measure": "least_confident"
       },
       "AL_MODEL": "RandomForestClassifier"
@@ -15,6 +16,7 @@ Content-Type: application/json
     {
       "QUERY_STRATEGY": "QueryInstanceRandom",
       "QUERY_STRATEGY_CONFIG": {
+        "query_type": "QueryInstanceRandom"
       },
       "AL_MODEL": "RandomForestClassifier"
     }
@@ -23,7 +25,10 @@ Content-Type: application/json
   "STOPPING_CRITERIA": "percent_of_unlabel",
   "BATCH_SIZE": 10,
   "PLOT_CONFIG": {
-    "FEATURES": ["shall", "man"]
+    "FEATURES": [
+      "shall",
+      "man"
+    ]
   }
 }
 

@@ -9,7 +9,7 @@ from pydantic import (
     BaseModel,
     PositiveInt,
     NonNegativeInt, NonNegativeFloat, validator,
-    ValidationError
+    ValidationError, Field
 )
 
 from .al_model import (
@@ -43,7 +43,7 @@ class AlExperimentConfig(BaseModel):
         QueryInstanceUncertaintyHolder.UncertaintyConfig,
         QueryInstanceRandomHolder.RandomConfig,
         QueryExpectedErrorReductionHolder.ExpectedErrorReductionConfig,
-    ] = QUERY_STRATEGY.get_default_config()
+    ] = Field(default=QUERY_STRATEGY.get_default_config(), discriminator='query_type')
     AL_MODEL: ALModel = ALModel.RANDOM_FOREST_CLASSIFIER
 
     @validator('QUERY_STRATEGY_CONFIG', pre=True)
