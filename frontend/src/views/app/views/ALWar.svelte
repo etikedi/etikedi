@@ -52,24 +52,18 @@
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
   $: if (chosenStrategies[0]) {
-    strategySchemas[0] = null
-    setTimeout(() => {
-      strategySchemas[0] = {
-        ...ProcessConfig,
-        ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'],
-      }
-    }, 300)
+    strategySchemas[0] = {
+      ...ProcessConfig,
+      ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'],
+    }
     strategyDefinitions[0] = JSON.parse($valid_strategies[chosenStrategies[0]])['definitions']
   }
 
   $: if (chosenStrategies[1]) {
-    strategySchemas[1] = null
-    setTimeout(() => {
-      strategySchemas[1] = {
-        ...ProcessConfig,
-        ...JSON.parse($valid_strategies[chosenStrategies[1]])['properties'],
-      }
-    }, 300)
+    strategySchemas[1] = {
+      ...ProcessConfig,
+      ...JSON.parse($valid_strategies[chosenStrategies[1]])['properties'],
+    }
     strategyDefinitions[1] = JSON.parse($valid_strategies[chosenStrategies[1]])['definitions']
   }
 
@@ -199,13 +193,15 @@
               emptyFirst
               label="Query strategy"
             />
-            {#if chosenStrategies[0] && strategySchemas[0]}
-              <Config
-                bind:config={processConfigs[0]}
-                strategySchema={strategySchemas[0]}
-                strategyDefinitions={strategyDefinitions[0]}
-                alWar
-              />
+            {#if strategySchemas[0]}
+              {#key strategySchemas[0]}
+                <Config
+                  bind:config={processConfigs[0]}
+                  strategySchema={strategySchemas[0]}
+                  strategyDefinitions={strategyDefinitions[0]}
+                  alWar
+                />
+              {/key}
             {/if}
           </div>
           <div>
@@ -215,13 +211,15 @@
               emptyFirst
               label="Query strategy"
             />
-            {#if chosenStrategies[1] && strategySchemas[1]}
-              <Config
-                bind:config={processConfigs[1]}
-                strategySchema={strategySchemas[1]}
-                strategyDefinitions={strategyDefinitions[1]}
-                alWar
-              />
+            {#if strategySchemas[1]}
+              {#key strategySchemas[1]}
+                <Config
+                  bind:config={processConfigs[1]}
+                  strategySchema={strategySchemas[1]}
+                  strategyDefinitions={strategyDefinitions[1]}
+                  alWar
+                />
+              {/key}
             {/if}
           </div>
         {/if}
