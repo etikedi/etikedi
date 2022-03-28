@@ -11,7 +11,7 @@ from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
 from math import ceil
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, auc
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, auc, pairwise_distances
 
 from ..config import db
 from ..models import (
@@ -282,6 +282,13 @@ class ALExperimentProcess(Process):
         result.cb_predictions = self.cb_sample_predictions
         result.correct_labelAsIdx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
                                      for idx, label_str in self.y_test.items()}
+        result.metric_scores = self._calc_metrics_scores()
+        result.meta_data = self._convert_states_data()
+
+        return result
+
+    def _calc_metrics_scores(self) -> pd.DataFrame:
+        # Calculate Acc, F1, Recall, Precision
         metrics_tmp = []
         for idx, row in self.prediction_history.iterrows():
             y_pred: List = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
@@ -298,14 +305,51 @@ class ALExperimentProcess(Process):
                 MetricsDFKeys.Precision: precision
             })
 
-        result.metric_scores = pd.DataFrame(metrics_tmp)
-        result.metric_scores[MetricsDFKeys.F1_AUC] = 0
-        for idx in result.metric_scores.index:
+        metric_scores = pd.DataFrame(metrics_tmp)
+        # Calculate F1-AUC
+        metric_scores[MetricsDFKeys.F1_AUC] = 0
+        for idx in metric_scores.index:
             # idx +1 because current iteration should be included in calculation
             # auc(...) / idx in order to normalize the area under the curve
-            result.metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0 \
-                else auc(list(range(idx + 1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx + 1]) / idx
-        state_data = result.meta_data
+            metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0 \
+                else auc(list(range(idx + 1)), metric_scores[MetricsDFKeys.F1].iloc[:idx + 1]) / idx
+        metric_scores[MetricsDFKeys.AvgDistanceLabeled] = self._calc_average_distance(labeled=True)
+        metric_scores[MetricsDFKeys.AvgDistanceUnLabeled] = self._calc_average_distance(labeled=False)
+        return metric_scores
+
+    def _calc_average_distance(self, labeled: bool = True) -> List[float]:
+        # if labeled continuously add all new labeled samples
+        # else continuously remove the newly labeled samples
+        initial = self.state_saver.init_L if labeled else self.state_saver.init_U
+        # 2D array of samples, where each sample is a vector of all features
+        selected_until_now = self.all_training_samples.iloc[initial].to_numpy()
+        selected_idx_until_now = initial  # only kept for !labeled
+        avg_dist: List[float] = []
+        for _, state in enumerate(self.state_saver):
+            selected_idx = state.get_value(MapKeys.SAMPLES)  # list of indices
+            # same shape as selected_until_now
+            selected = self.all_training_samples.iloc[selected_idx, :].to_numpy()
+            if len(selected.shape) == 1:
+                selected = selected.reshape(1, -1)
+            avg_dist_iter = np.sum(
+                pairwise_distances(
+                    selected_until_now,
+                    selected,
+                    metric='euclidean'
+                ),
+                axis=(0, 1)
+            )
+            # normalize by the amount of labeled samples and the amount of queries we sampled
+            normalized = avg_dist_iter / (len(selected_until_now) * len(selected))
+            avg_dist.append(normalized)
+            if not labeled:
+                selected_idx_until_now = [idx for idx in selected_idx_until_now if idx not in selected_idx]
+            selected_until_now = np.vstack([selected_until_now, selected]) if labeled \
+                else self.all_training_samples.iloc[selected_idx_until_now]
+        return avg_dist
+
+    def _convert_states_data(self):
+        state_data = []
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
             selected_samples = [self.idx2IDTrain[i] for i in state.get_value(MapKeys.SAMPLES)]
@@ -313,7 +357,7 @@ class ALExperimentProcess(Process):
                                            percentage_labeled=state.get_value(MapKeys.PERC_LABELED),
                                            sample_ids=selected_samples)
             state_data.append(metric_dp)
-        return result
+        return state_data
 
 
 def _predicted_class(model, pred_proba: List):

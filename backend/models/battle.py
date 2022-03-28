@@ -103,6 +103,8 @@ class MetricScoresIteration(BaseModel):
     F1_AUC: NonNegativeFloat
     Precision: ZeroToOne
     Recall: ZeroToOne
+    AvgDistanceLabeled: NonNegativeFloat
+    AvgDistanceUnLabeled: NonNegativeFloat
 
     @staticmethod
     def of(series: pd.Series):
@@ -111,7 +113,9 @@ class MetricScoresIteration(BaseModel):
             F1=series[MetricsDFKeys.F1],
             F1_AUC=series[MetricsDFKeys.F1_AUC],
             Precision=series[MetricsDFKeys.Precision],
-            Recall=series[MetricsDFKeys.Recall]
+            Recall=series[MetricsDFKeys.Recall],
+            AvgDistanceLabeled=series[MetricsDFKeys.AvgDistanceLabeled],
+            AvgDistanceUnLabeled=series[MetricsDFKeys.AvgDistanceUnLabeled]
         )
 
 

@@ -7,6 +7,7 @@ from typing import List, Dict, Tuple, Optional
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
+from sklearn.metrics import pairwise_distances
 
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
@@ -88,6 +89,30 @@ class ExperimentManager:
             exp.start()
         self.started_flags = [True for _ in self.started_flags]
 
+    def get_status(self) -> Status:
+        """ @return
+                -1 if both are finished
+                -2 if no (new) data is available
+                time in seconds if at least one has finished one iteration
+                """
+        self.assert_started()
+        times = [self.poll_process(i) for i in [0, 1]]
+        if not all(self.setup_completed_flags):
+            return Status(code=Status.Code.IN_SETUP)
+        if all(self.finished_flags):
+            return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
+        if all(t is None for t in times):
+            return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
+        if self.last_reported_time is None:
+            times = list(filter(lambda t: t is not None, times))
+            t = max(times)
+            self.last_reported_time = t, times.index(t)
+            return Status(code=Status.Code.TRAINING, time=max(times))
+        for i, t in enumerate(times):
+            if t is not None and (t > self.last_reported_time[0] or i == self.last_reported_time[1]):
+                self.last_reported_time = t, i
+        return Status(code=Status.Code.TRAINING, time=self.last_reported_time[0])
+
     def get_metrics(self) -> Metric:
         if self.metric is not None:
             return self.metric
@@ -105,6 +130,7 @@ class ExperimentManager:
             extract_per_exp(1))))
         return self.metric
 
+    # Methods for plot related data
     def get_learning_curve_data(self) -> pd.DataFrame:
         # convert to long form for altair
         self.assert_finished()
@@ -234,30 +260,7 @@ class ExperimentManager:
 
         return ClassificationBoundariesDTO(reduced_features, gen(0), gen(1))
 
-    def get_status(self) -> Status:
-        """ @return
-                -1 if both are finished
-                -2 if no (new) data is available
-                time in seconds if at least one has finished one iteration
-                """
-        self.assert_started()
-        times = [self.poll_process(i) for i in [0, 1]]
-        if not all(self.setup_completed_flags):
-            return Status(code=Status.Code.IN_SETUP)
-        if all(self.finished_flags):
-            return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
-        if all(t is None for t in times):
-            return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
-        if self.last_reported_time is None:
-            times = list(filter(lambda t: t is not None, times))
-            t = max(times)
-            self.last_reported_time = t, times.index(t)
-            return Status(code=Status.Code.TRAINING, time=max(times))
-        for i, t in enumerate(times):
-            if t is not None and (t > self.last_reported_time[0] or i == self.last_reported_time[1]):
-                self.last_reported_time = t, i
-        return Status(code=Status.Code.TRAINING, time=self.last_reported_time[0])
-
+    # assertions
     def assert_started(self):
         if not all(self.started_flags):
             raise ValidationError(

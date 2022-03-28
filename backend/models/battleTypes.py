@@ -9,6 +9,8 @@ class MetricsDFKeys(str, Enum):
     F1_AUC = 'F1_AUC'
     Precision = 'Precision',
     Recall = 'Recall'
+    AvgDistanceLabeled = 'AvgDistanceLabeled'
+    AvgDistanceUnLabeled = 'AvgDistanceUnlabeled'
 
 
 class MapKeys(str, Enum):
