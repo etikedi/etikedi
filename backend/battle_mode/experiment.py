@@ -302,8 +302,9 @@ class ALExperimentProcess(Process):
         result.metric_scores[MetricsDFKeys.F1_AUC] = 0
         for idx in result.metric_scores.index:
             # idx +1 because current iteration should be included in calculation
+            # auc(...) / idx in order to normalize the area under the curve
             result.metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0 \
-                else auc(list(range(idx + 1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx + 1])
+                else auc(list(range(idx + 1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx + 1]) / idx
         state_data = result.meta_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
