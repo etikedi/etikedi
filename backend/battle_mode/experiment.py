@@ -1,15 +1,16 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
 import time
-from math import ceil
 from multiprocessing import Process
 from multiprocessing import Queue
 from typing import List, Dict
 
+import numpy as np
 import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
+from math import ceil
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, auc
 
 from ..config import db
@@ -35,6 +36,8 @@ class ResultType:
         self.raw_predictions = raw_predictions
         self.correct_labelAsIdx: Dict[int, int] = dict()
         self.initially_labeled: List[int] = initially_labeled  # all initially labeled samples as SampleIDs
+        # 3D data-frame: row = iteration, column = sample, value = tuple of confidence per class
+        self.cb_predictions: pd.DataFrame = pd.DataFrame()
 
 
 @timeit
@@ -96,7 +99,8 @@ class ALExperimentProcess(Process):
             # not one to one what alipy is using but necessary for estimation
             self._start_time = time.perf_counter_ns()
 
-    def __init__(self, exp_id: int, dataset_id: int, battle_config: ALBattleConfig, queue: Queue):
+    def __init__(self, exp_id: int, dataset_id: int, battle_config: ALBattleConfig, queue: Queue,
+                 cb_sample: pd.DataFrame):
         """
          The dataset is first filtered by hasLabel and split into training and test.
          The test-set is further split into initially_unlabeled and initially_labeled.
@@ -108,6 +112,9 @@ class ALExperimentProcess(Process):
           4. save current iteration in history.
         """
         super().__init__()
+        self.cb_sample: pd.DataFrame = cb_sample
+        self.cb_sample_as_numpy: np.ndarray = cb_sample.to_numpy()
+        self.cb_sample_predictions = pd.DataFrame()
         self.exp_id = exp_id
         self.battle_config: ALBattleConfig = battle_config
         self.exp_config: AlExperimentConfig = battle_config.exp_configs[exp_id]
@@ -165,8 +172,9 @@ class ALExperimentProcess(Process):
         self.idx2IDTest = {idx: d_frame.iloc[idx]['DB_ID'] for idx in test_idx}
 
         # initiate configurable experiment setting
-        self.exp_config.QUERY_STRATEGY_CONFIG.train_idx = list(
-            map(lambda old_idx: adjusted_idx_map[old_idx], train_idx))
+        if hasattr(self.exp_config.QUERY_STRATEGY_CONFIG, 'train_idx'):
+            self.exp_config.QUERY_STRATEGY_CONFIG.train_idx = list(
+                map(lambda old_idx: adjusted_idx_map[old_idx], train_idx))
         self.al_strategy = QueryStrategyAbstraction.build(qs_type=self.exp_config.QUERY_STRATEGY,
                                                           X=self.all_training_samples.to_numpy(),
                                                           y=self.all_training_labels.to_numpy(),
@@ -198,6 +206,7 @@ class ALExperimentProcess(Process):
 
         iteration = 1
         predictions = []
+        cb_sample_predictions = []
         if self.battle_config.STOPPING_CRITERIA == StoppingCriteriaOption.CPU_TIME:
             self.stopping_criteria.reset()  # reset cpu start time 
             self.rte.start_timer()
@@ -243,6 +252,8 @@ class ALExperimentProcess(Process):
             predictions.append(
                 {self.idx2IDTest[x]: pred for (x, pred) in zip(self.state_saver.test_idx, map(tuple, pred_proba))}
             )
+            # classify the random sample used for classification boundaries
+            cb_sample_predictions.append(list(map(tuple, self.model.predict_proba(self.cb_sample_as_numpy))))
 
             iteration += 1
             # update stopping_criteria
@@ -251,6 +262,7 @@ class ALExperimentProcess(Process):
         print(f"[{self.exp_id}] Stopped after {iteration} iterations")
         print(f"[{self.exp_id}] Training took {round((time.time_ns() - starting_time) * 1e-9, 4)} seconds")
         self.prediction_history = pd.DataFrame(predictions)
+        self.cb_sample_predictions = pd.DataFrame(cb_sample_predictions)
 
     def get_training_data(self):
         return (
@@ -267,6 +279,7 @@ class ALExperimentProcess(Process):
             classes=self.model.classes_,
             initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L]
         )
+        result.cb_predictions = self.cb_sample_predictions
         result.correct_labelAsIdx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
                                      for idx, label_str in self.y_test.items()}
         metrics_tmp = []
@@ -289,8 +302,8 @@ class ALExperimentProcess(Process):
         result.metric_scores[MetricsDFKeys.F1_AUC] = 0
         for idx in result.metric_scores.index:
             # idx +1 because current iteration should be included in calculation
-            result.metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0\
-                else auc(list(range(idx+1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx+1])
+            result.metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0 \
+                else auc(list(range(idx + 1)), result.metric_scores[MetricsDFKeys.F1].iloc[:idx + 1])
         state_data = result.meta_data
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database

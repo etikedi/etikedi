@@ -1,5 +1,6 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
+from dataclasses import dataclass
 from multiprocessing import Queue
 from typing import List, Dict, Tuple, Optional
 
@@ -12,6 +13,14 @@ from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultTyp
 from ..config import db, logger
 from ..models import ALBattleConfig, Metric, Status, Dataset, Sample, MetricIteration, MetricScoresIteration
 from ..utils import ValidationError, zip_unequal
+
+
+# Dataclasses
+@dataclass
+class ClassificationBoundariesDTO:
+    reduced_features: pd.DataFrame
+    exp_one_iterations: List[pd.DataFrame]
+    exp_two_iterations: List[pd.DataFrame]
 
 
 class ExperimentManager:
@@ -38,12 +47,41 @@ class ExperimentManager:
         self.last_reported_time: Optional[Tuple[float, bool]] = None  # reported time, true if experiment one
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
+        self.cb_sample = self._classification_boundaries_raster(100)
         self.experiments: List[ALExperimentProcess] = [
-            ALExperimentProcess(i, dataset_id, self.config, self.queues[i]) for i in [0, 1]]
+            ALExperimentProcess(i, dataset_id, self.config, self.queues[i], self.cb_sample) for i in [0, 1]]
         if dataset_id in ExperimentManager._manager:
             logger.warn(f"Replacing existent manager for id {dataset_id}")
             ExperimentManager._manager[dataset_id].terminate()
         ExperimentManager._manager[dataset_id] = self
+
+    def _classification_boundaries_raster(self, size: int):
+        labelled = list(filter(lambda smpl: smpl.labels != [], db.get(Dataset, self.dataset_id).samples))
+        feature_df = pd.DataFrame([
+            sample.feature_dict() for sample in labelled
+        ])
+        feature_domains = {}
+        for feature in feature_df.columns:
+            dtype = feature_df.dtypes[feature]
+            if dtype == int or dtype == float:
+                feature_domains[feature] = np.array([feature_df[feature].min(), feature_df[feature].max()],
+                                                    dtype)
+            else:
+                feature_domains[feature] = feature_df[feature].unique()
+        random_sample_tmp = []
+        for i in range(size):
+            new_sample = {}
+            for feature in feature_df.columns:
+                domain = feature_domains[feature]
+                if domain.dtype == int:
+                    new_sample[feature] = np.random.randint(low=domain[0], high=domain[1] + 1)
+                elif domain.dtype == float:
+                    new_sample[feature] = np.random.uniform(low=domain[0], high=domain[1])
+                else:
+                    new_sample[feature] = np.random.choice(domain)
+            random_sample_tmp.append(new_sample)
+
+        return pd.DataFrame(columns=feature_df.columns, data=random_sample_tmp)
 
     def start(self):
         for exp in self.experiments:
@@ -168,6 +206,33 @@ class ExperimentManager:
             return iterations
 
         return gen(0), gen(1)
+
+    def get_classification_boundary_data(self) -> ClassificationBoundariesDTO:
+        self.assert_finished()
+        self._poll_results_if_not_present()
+
+        if self.config.PLOT_CONFIG.FEATURES is None:
+            # ndarray with list of rows of [feature_1, feature_2]
+            reduced_features = pd.DataFrame(
+                PCA(n_components=2).fit_transform(self.cb_sample),
+                columns=['PCA1', 'PCA2'])
+        else:
+            reduced_features = self.cb_sample.loc[:, self.config.PLOT_CONFIG.FEATURES]
+
+        def for_each_iteration(iteration: pd.Series, classes):
+            return pd.DataFrame(data={
+                'Class': [classes[item.index(max(item))] for _, item in iteration.iteritems()],
+                'Confidence': [max(item) for _, item in iteration.iteritems()]
+            })
+
+        def gen(exp_idx):
+            result = self.results[exp_idx]
+            assert len(result.cb_predictions.columns) == len(self.cb_sample)
+            # get predicted class and confidence for pseudo samples
+            iteration_list = [for_each_iteration(row, result.classes) for _, row in result.cb_predictions.iterrows()]
+            return iteration_list
+
+        return ClassificationBoundariesDTO(reduced_features, gen(0), gen(1))
 
     def get_status(self) -> Status:
         """ @return

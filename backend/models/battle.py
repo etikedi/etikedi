@@ -139,3 +139,5 @@ class ChartReturnSchema(BaseModel):
     conf: Tuple[List[str], List[str]]
     data_maps: Tuple[str, str]
     vector_space: Tuple[List[str], List[str]]
+    classification_boundaries: Tuple[List[str], List[str]]
+

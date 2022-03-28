@@ -70,11 +70,15 @@ async def get_diagrams(dataset_id: int):
     # vector_space: scatter plot x=feature_1, y=feature_2
     vector_space_plots = plotting.vector_space(manager.get_vector_space_data())
 
+    classification_boundaries = plotting.classification_boundaries(manager.get_classification_boundary_data())
+
     return ChartReturnSchema(
         acc=learning_curve,
         conf=confidence_plots,
         data_maps=data_maps,
-        vector_space=vector_space_plots)
+        vector_space=vector_space_plots,
+        classification_boundaries=classification_boundaries
+    )
 
 
 @battle_router.get("/get_metrics", response_model=Metric)
