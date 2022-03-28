@@ -128,6 +128,7 @@ class MetricIteration(BaseModel):
 # For each iteration for both experiments: the metric scores and the metadata
 class Metric(BaseModel):
     iterations: List[Tuple[Optional[MetricIteration], Optional[MetricIteration]]]
+    percentage_similar: List[ZeroToOne]
 
 
 class ValidStrategiesReturnSchema(BaseModel):
@@ -144,4 +145,3 @@ class ChartReturnSchema(BaseModel):
     data_maps: Tuple[str, str]
     vector_space: Tuple[List[str], List[str]]
     classification_boundaries: Tuple[List[str], List[str]]
-

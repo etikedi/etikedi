@@ -7,7 +7,6 @@ from typing import List, Dict, Tuple, Optional
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-from sklearn.metrics import pairwise_distances
 
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ResultType
@@ -125,9 +124,12 @@ class ExperimentManager:
             scores: List = [MetricScoresIteration.of(row[1]) for row in r.metric_scores.iterrows()]
             return [MetricIteration(meta=r.meta_data[i], metrics=scores[i]) for i in range(len(scores))]
 
-        self.metric = Metric(iterations=list(zip_unequal(
-            extract_per_exp(0),
-            extract_per_exp(1))))
+        self.metric = Metric(
+            iterations=list(zip_unequal(
+                extract_per_exp(0),
+                extract_per_exp(1))),
+            percentage_similar=self._percentage_similar_samples()
+        )
         return self.metric
 
     # Methods for plot related data
@@ -275,6 +277,23 @@ class ExperimentManager:
             if not all(self.finished_flags):
                 raise ValidationError(
                     f"At least one experiment is not finished ({[e for e in [0, 1] if not self.finished_flags[e]]})")
+
+    # other
+    def _percentage_similar_samples(self):
+        self.assert_finished()
+        self._poll_results_if_not_present()
+
+        samples_one = [r.sample_ids for r in self.results[0].meta_data]
+        samples_two = [r.sample_ids for r in self.results[1].meta_data]
+        assert len(samples_one) == len(samples_two)
+        similar_per_iteration = []
+        for i in range(15):
+            s_one = set(np.concatenate(samples_one[:i + 1]))
+            s_two = set(np.concatenate(samples_two[:i + 1]))
+            similar_samples = len(s_one.intersection(s_two))
+            similar_percentage = similar_samples / len(s_one.union(s_two))
+            similar_per_iteration.append(similar_percentage)
+        return similar_per_iteration
 
     def _poll_results_if_not_present(self):
         self.assert_finished()
