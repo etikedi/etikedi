@@ -1,5 +1,5 @@
 ### Start experiment
-POST http://localhost:8000/3/al-wars/start
+POST http://localhost:8000/al-wars/start?dataset_id=3
 accept: application/json
 Content-Type: application/json
 
@@ -33,21 +33,21 @@ Content-Type: application/json
 }
 
 ### check status
-GET http://localhost:8000/3/al-wars/status
+GET http://localhost:8000/al-wars/3/status
 accept: application/json
 
 ### get diagrams
 # curl -X 'GET'
 #  'http://localhost:8000/3/al-wars/get_diagrams'
 #  -H 'accept: application/json'
-GET http://localhost:8000/3/al-wars/get_diagrams
+GET http://localhost:8000/al-wars/0/diagrams
 accept: application/json
 
 ### get metrics
 # curl -X 'GET'
 #  'http://localhost:8000/3/al-wars/get_metrics'
 #  -H 'accept: application/json'
-GET http://localhost:8000/3/al-wars/get_metrics
+GET http://localhost:8000/al-wars/3/metrics/
 accept: application/json
 
 ### get strategies

@@ -28,16 +28,24 @@ from ..models import (
 from ..utils import timeit
 
 
-class ResultType:
-    def __init__(self, raw_predictions: pd.DataFrame, initially_labeled, classes=None):
-        self.metric_scores: pd.DataFrame = pd.DataFrame(columns=[metric_key for metric_key in MetricsDFKeys])
-        self.meta_data: List[MetaData] = []
-        self.classes: List[str] = classes if (classes is not None) else []
-        self.raw_predictions = raw_predictions
-        self.correct_labelAsIdx: Dict[int, int] = dict()
+class ExperimentResults:
+    def __init__(self,
+                 raw_predictions: pd.DataFrame,
+                 initially_labeled,
+                 cb_predictions: pd.DataFrame = None,
+                 metric_scores: pd.DataFrame = None,
+                 correct_label_as_idx: Dict[int, int] = None,
+                 meta_data: List[MetaData] = None,
+                 classes=None):
+        self.metric_scores: pd.DataFrame = pd.DataFrame(columns=[metric_key for metric_key in MetricsDFKeys]) \
+            if metric_scores is None else metric_scores
+        self.meta_data: List[MetaData] = [] if meta_data is None else meta_data
+        self.classes: List[str] = classes if classes is not None else []
+        self.raw_predictions: pd.DataFrame = raw_predictions
+        self.correct_label_as_idx: Dict[int, int] = dict() if correct_label_as_idx is None else correct_label_as_idx
         self.initially_labeled: List[int] = initially_labeled  # all initially labeled samples as SampleIDs
         # 3D data-frame: row = iteration, column = sample, value = tuple of confidence per class
-        self.cb_predictions: pd.DataFrame = pd.DataFrame()
+        self.cb_predictions: pd.DataFrame = pd.DataFrame() if cb_predictions is None else cb_predictions
 
 
 @timeit
@@ -269,19 +277,18 @@ class ALExperimentProcess(Process):
             self.all_training_samples.iloc[self.label_ind.index].to_numpy(),
             self.all_training_labels.iloc[self.label_ind.index].to_numpy())
 
-    def get_result(self) -> ResultType:
-        # TODO
+    def get_result(self) -> ExperimentResults:
         # pandas dataframe: every column is one sample, every row is one prediction
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
-        result = ResultType(
+        result = ExperimentResults(
             raw_predictions=self.prediction_history,
             classes=self.model.classes_,
             initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L]
         )
         result.cb_predictions = self.cb_sample_predictions
-        result.correct_labelAsIdx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
-                                     for idx, label_str in self.y_test.items()}
+        result.correct_label_as_idx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
+                                       for idx, label_str in self.y_test.items()}
         result.metric_scores = self._calc_metrics_scores()
         result.meta_data = self._convert_states_data()
 
