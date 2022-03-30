@@ -92,14 +92,15 @@ export interface DiagramData {
 export const isFinished = writable<boolean | number>(false)
 export const diagrams = writable<any>(null)
 export const metricData = writable<any>(null)
+export const finishedExperiments = writable<any>(null)
 export const loading = writable(null)
 export const valid_strategies = writable(null)
 
-export async function getValidStrategies(dataset_id: number) {
+export async function getValidStrategies(dataset_id: number | string) {
   try {
     loading.set(true)
     const { data: strategies } = await axios({
-      url: `${dataset_id}/al-wars/valid_strategies`,
+      url: `al-wars/valid_strategies/${dataset_id}`,
       method: 'get',
     })
     if (strategies && strategies['strategies']) valid_strategies.set(strategies['strategies'])
@@ -113,9 +114,11 @@ export async function startBattle(dataset_id: number | string, battle_config) {
     loading.set(true)
     const { data: success } = await axios({
       method: 'post',
-      url: `${dataset_id}/al-wars/start`,
+      url: `al-wars/start`,
       data: { ...battle_config },
+      params: { dataset_id },
     })
+    localStorage.setItem(`battle-on-dataset-${dataset_id}`, success)
     return success
   } catch {
     return false
@@ -124,11 +127,11 @@ export async function startBattle(dataset_id: number | string, battle_config) {
   }
 }
 
-export async function getStatus(dataset_id: number | string) {
+export async function getStatus(experiment_id: number | string) {
   try {
     loading.set(true)
     const { data: status } = await axios({
-      url: `${dataset_id}/al-wars/status`,
+      url: `al-wars/${experiment_id}/status`,
       method: 'get',
     })
     /**
@@ -142,34 +145,60 @@ export async function getStatus(dataset_id: number | string) {
      * }
      */
     isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2)
+    if (status.code === 2) localStorage.removeItem(`experiment-${experiment_id}-running`)
   } finally {
     loading.set(false)
   }
 }
 
-export async function getDiagrams(dataset_id: number | string) {
+export async function getDiagrams(experiment_id: number | string) {
   try {
     loading.set(true)
     const { data: d } = await axios({
-      url: `${dataset_id}/al-wars/get_diagrams`,
+      url: `al-wars/${experiment_id}/diagrams`,
       method: 'get',
     })
     diagrams.set(d)
-    localStorage.setItem(`battle-${dataset_id}-diagrams`, JSON.stringify(d))
+    // localStorage.setItem(`battle-${dataset_id}-diagrams`, JSON.stringify(d))
   } finally {
     loading.set(false)
   }
 }
 
-export async function getMetrics(dataset_id: number | string) {
+export async function getMetrics(experiment_id: number | string) {
   try {
     loading.set(true)
     const { data: d } = await axios({
-      url: `${dataset_id}/al-wars/get_metrics`,
+      url: `al-wars/${experiment_id}/metrics`,
       method: 'get',
     })
     metricData.set(d)
-    localStorage.setItem(`battle-${dataset_id}-metrics`, JSON.stringify(d))
+  } finally {
+    loading.set(false)
+  }
+}
+
+export async function getFinishedExperiments() {
+  try {
+    loading.set(true)
+    const { data: d } = await axios({
+      url: `al-wars/persisted`,
+      method: 'get',
+    })
+    finishedExperiments.set(d)
+  } finally {
+    loading.set(false)
+  }
+}
+
+export async function getExperiment(experiment_id: number | string) {
+  try {
+    loading.set(true)
+    const { data: d } = await axios({
+      url: `al-wars/persisted/${experiment_id}`,
+      method: 'get',
+    })
+    return d
   } finally {
     loading.set(false)
   }

@@ -3,7 +3,7 @@
   import Config from './Config.svelte'
   import { data as datasets } from '../../../store/datasets'
   import { router } from 'tinro'
-  import { onDestroy, onMount } from 'svelte'
+  import { onDestroy, getContext } from 'svelte'
   import {
     getStatus,
     isFinished,
@@ -18,13 +18,14 @@
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import AlWarComponent from '../components/ALWarComponent.svelte'
+  import Popup from '../components/Modal.svelte'
   import Card from '../../../ui/Card.svelte'
   import Select from '../../../ui/Select.svelte'
   import { mockSendConfig } from '../../../lib/al_configs'
   import { ProcessConfig } from '../../../store/config'
 
   let showCache = false,
-    showConfig = true,
+    showConfig = false,
     ready,
     dataset,
     training = false,
@@ -35,7 +36,10 @@
     chosenStrategies = [],
     processConfigs = [{}, {}],
     strategySchemas = [],
-    strategyDefinitions = []
+    strategyDefinitions = [],
+    { open } = getContext('simple-modal'),
+    { close } = getContext('simple-modal'),
+    { id } = router.params()
 
   /**
    * DEV
@@ -46,12 +50,11 @@
   $: if (chosenStrategies) console.debug('chosenStrategies', chosenStrategies)
   $: if (strategySchemas) console.debug('strategySchemas', strategySchemas)
 
-  const { id } = router.params()
-
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
   $: if (chosenStrategies[0]) {
+    console.debug($valid_strategies)
     strategySchemas[0] = {
       ...ProcessConfig,
       ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'],
@@ -70,12 +73,19 @@
   // Existing cache
   if (localStorage.getItem(`battle-${id}-diagrams`) && localStorage.getItem(`battle-${id}-metrics`)) showCache = true
 
+  const openModal = () => {
+    open(Popup, { label: 'Do you want to terminate the battle?', button: 'Yes' })
+    console.debug(open)
+  }
+
+  const runningExperiment = localStorage.getItem(`battle-on-dataset-${id}`)
+
   // Running battle
-  if (localStorage.getItem(`running-battle-${id}`)) {
+  if (runningExperiment) {
     showCache = false
     showConfig = false
     starting = false
-    checkStatus()
+    checkStatus(runningExperiment)
   }
 
   // Get valid strategies
@@ -83,30 +93,32 @@
 
   async function start() {
     console.debug('Mock Send:', mockSendConfig)
-    localStorage.setItem(`battle-${id}-config1`, JSON.stringify(mockSendConfig))
+    localStorage.setItem(`experiment-${id}-config1`, JSON.stringify(mockSendConfig))
     localStorage.setItem(`battle-${id}-config2`, JSON.stringify(mockSendConfig))
     showConfig = false
     starting = true
-    const started = await startBattle(id, mockSendConfig)
-    if (started === null) {
+
+    // For backend pydantic stuff
+    mockSendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+    mockSendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+    const experiment_id = await startBattle(id, mockSendConfig)
+    if (typeof experiment_id === 'number') {
       starting = false
-      checkStatus()
+      checkStatus(experiment_id)
     } else {
       notifier.danger('Something went wrong in the backend.', 6000)
       router.goto('/app/')
     }
   }
 
-  async function checkStatus() {
+  async function checkStatus(experiment_id) {
     training = true
-    localStorage.setItem(`running-battle-${id}`, 'true')
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
-        localStorage.removeItem(`running-battle-${id}`)
-        getData()
+        getData(experiment_id)
       } else {
-        await getStatus(id)
+        await getStatus(experiment_id)
         if (typeof $isFinished === 'number') {
           remainingTime = formatTime($isFinished)
         } else {
@@ -116,9 +128,9 @@
     }, 3000)
   }
 
-  async function getData() {
+  async function getData(experiment_id) {
     try {
-      await Promise.all([getMetrics(id), getDiagrams(id)])
+      await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
       training = false
     } catch (e) {
       console.warn('Error while loading data:', e)
@@ -236,7 +248,19 @@
       <div class="progress-bar">
         <div bind:this={progressElement} class="progress" />
       </div>
-      <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+      <div style="display: flex; justify-content: space-between;">
+        <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+        <Button
+          icon="close-outline"
+          on:click={() => {
+            /*
+            localStorage.removeItem(`running-battle-${id}`)
+            router.goto('/app/')
+            */
+            openModal()
+          }}
+        />
+      </div>
       {#if remainingTime}
         <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
       {/if}

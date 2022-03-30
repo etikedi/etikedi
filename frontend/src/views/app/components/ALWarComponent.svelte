@@ -127,8 +127,8 @@
   }
 
   async function getSamples() {
-    const id_1 = $metricData['iterations'][currentIteration - 1][0]['sample_ids'][0]
-    const id_2 = $metricData['iterations'][currentIteration - 1][1]['sample_ids'][0]
+    const id_1 = $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][0]
+    const id_2 = $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][0]
 
     sample_1 = await getSpecificSample(id_1)
     sample_2 = await getSpecificSample(id_2)
@@ -154,9 +154,17 @@
     /**
      * DEV
      */
-    if (!$diagrams && localStorage.getItem(`battle-${dataset_id}-diagrams`)) {
-      $diagrams = JSON.parse(localStorage.getItem(`battle-${dataset_id}-diagrams`))
+    const loadMock = true
+    if (loadMock && !$diagrams && !$metricData) {
+      const diag = await fetch('/data/diagrams.json')
+      const diagJson = await diag.json()
+      $diagrams = diagJson
+      const metr = await fetch('/data/metricData.json')
+      const metrJson = await metr.json()
+      $metricData = metrJson
+      /*
       $metricData = JSON.parse(localStorage.getItem(`battle-${dataset_id}-metrics`))
+      */
     }
 
     getSamples()
@@ -232,7 +240,7 @@
                     on:click={() => {
                       sampleIndexes.process1 = sampleIndexes.process1 - 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['sample_ids'][sampleIndexes.process1],
+                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][sampleIndexes.process1],
                         1
                       )
                     }}
@@ -241,13 +249,13 @@
                 <div>
                   <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
                 </div>
-                {#if sampleIndexes.process1 < $metricData['iterations'][currentIteration - 1][0]['sample_ids'].length}
+                {#if sampleIndexes.process1 < $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'].length}
                   <ion-icon
                     name="arrow-forward-circle-outline"
                     on:click={() => {
                       sampleIndexes.process1 = sampleIndexes.process1 + 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['sample_ids'][sampleIndexes.process1],
+                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][sampleIndexes.process1],
                         1
                       )
                     }}
@@ -289,7 +297,7 @@
                     on:click={() => {
                       sampleIndexes.process2 = sampleIndexes.process2 - 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['sample_ids'][sampleIndexes.process2],
+                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][sampleIndexes.process2],
                         2
                       )
                     }}
@@ -298,13 +306,13 @@
                 <div>
                   <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
                 </div>
-                {#if sampleIndexes.process2 < $metricData['iterations'][currentIteration - 1][1]['sample_ids'].length}
+                {#if sampleIndexes.process2 < $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'].length}
                   <ion-icon
                     name="arrow-forward-circle-outline"
                     on:click={() => {
                       sampleIndexes.process2 = sampleIndexes.process2 + 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['sample_ids'][sampleIndexes.process2],
+                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][sampleIndexes.process2],
                         2
                       )
                     }}
