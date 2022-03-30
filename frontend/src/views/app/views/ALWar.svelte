@@ -121,8 +121,8 @@
     }
 
     // For backend pydantic stuff
-    sendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
-    sendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+    sendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = sendConfig.exp_configs[0].QUERY_STRATEGY
+    sendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = sendConfig.exp_configs[1].QUERY_STRATEGY
 
     console.debug('Start battle with config:', sendConfig)
     experiment_id = await startBattle(id, sendConfig)
