@@ -9,10 +9,9 @@ import pandas as pd
 from pydantic import BaseModel
 
 from .ExperimentManager import FinishedExperimentManager, ExperimentManager
-from .experiment import ExperimentResults
 from ..config import logger
 from ..importing import DATA_PATH
-from ..models import ALBattleConfig, MetaData, MetricsDFKeys
+from ..models import ALBattleConfig, MetaData, MetricsDFKeys, ExperimentResults
 
 
 class ExperimentMetaPersistence(BaseModel):

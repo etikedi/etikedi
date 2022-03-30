@@ -3,15 +3,17 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import List, Tuple, Optional, Union, Dict
 
+import numpy as np
 import pandas as pd
 from pydantic import (
     confloat as constrained_float,
     BaseModel,
     PositiveInt,
     NonNegativeInt, NonNegativeFloat, validator,
-    ValidationError, Field
+    ValidationError, Field, root_validator
 )
 
+from .battleTypes import MetricsDFKeys
 from .al_model import (
     QueryStrategyType,
     QueryInstanceBMDRHolder,
@@ -26,7 +28,6 @@ from .al_model import (
     ALModel,
     StoppingCriteriaOption
 )
-from .battleTypes import MetricsDFKeys
 
 ZeroToOne = constrained_float(ge=0, le=1)
 
@@ -145,3 +146,52 @@ class ChartReturnSchema(BaseModel):
     data_maps: Tuple[str, str]
     vector_space: Tuple[List[str], List[str]]
     classification_boundaries: Tuple[List[str], List[str]]
+
+
+class ExperimentResults(BaseModel):
+    # 3D data-frame: row = iteration, column = sample, value = tuple of confidence per class
+    # columns = SampleID
+    raw_predictions: pd.DataFrame
+    # columns = 0..n index of randomly generated samples
+    cb_predictions: pd.DataFrame
+    # row = iteration, columns = list(MetricDFKeys)
+    metric_scores: pd.DataFrame
+    # A list of all SampleIDs that were initially labeled
+    initially_labeled: List[int]
+    # SampleID -> range(classes)
+    # For all test-samples is stored which index of classes would be the right one
+    correct_label_as_idx: Dict[int, int]
+    # Each entry is one iteration
+    meta_data: List[MetaData]
+    # List of all possible labels as used by the al_model
+    classes: Union[List[str], np.ndarray]
+
+    class Config:
+        arbitrary_types_allowed = True
+
+    @validator("metric_scores")
+    def validate_metric_scores(cls, metric_scores):
+        for key in MetricsDFKeys:
+            if key not in metric_scores.columns:
+                raise ValidationError("Dataframe should contain all keys as column")
+        return metric_scores
+
+    @validator("raw_predictions")
+    def validate_raw_predictions(cls, raw_predictions):
+        if not all(isinstance(col, int) for col in raw_predictions.columns):
+            raise ValidationError("All columns should be database-ids of samples.")
+        return raw_predictions
+
+    @root_validator()
+    def validate_all(cls, values):
+        if 'raw_predictions' not in values or 'cb_predictions' not in values or 'metric_scores' not in values:
+            return values
+        raw_predictions = values['raw_predictions']
+        cb_predictions = values['cb_predictions']
+        metric_scores = values['metric_scores']
+        meta_data = values['meta_data']
+        if len(raw_predictions) != len(cb_predictions) \
+                or len(cb_predictions) != len(metric_scores) \
+                or len(metric_scores) != len(meta_data):
+            raise ValidationError("Each item should contain all iterations.")
+        return values

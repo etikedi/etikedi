@@ -1,6 +1,5 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
-from dataclasses import dataclass
 from multiprocessing import Queue
 from typing import List, Dict, Tuple, Optional
 
@@ -11,16 +10,16 @@ from sklearn.decomposition import PCA
 from .additional_experiment_validation import validate_else_throw
 from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ExperimentResults
 from ..config import db, logger
-from ..models import ALBattleConfig, Metric, Status, Dataset, Sample, MetricIteration, MetricScoresIteration
+from ..models import (
+    ALBattleConfig,
+    Metric,
+    Status,
+    Dataset,
+    Sample,
+    MetricIteration,
+    MetricScoresIteration,
+    ClassificationBoundariesDTO)
 from ..utils import ValidationError, zip_unequal
-
-
-# Dataclasses
-@dataclass
-class ClassificationBoundariesDTO:
-    reduced_features: pd.DataFrame
-    exp_one_iterations: List[pd.DataFrame]
-    exp_two_iterations: List[pd.DataFrame]
 
 
 class ExperimentManager:
