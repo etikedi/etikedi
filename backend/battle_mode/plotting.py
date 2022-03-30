@@ -68,7 +68,7 @@ def classification_boundaries(cb_data: ClassificationBoundariesDTO):
             color=alt.Color('Class:O', scale=alt.Scale(scheme='tableau10')),
             shape='Class:O',
             opacity='Confidence:Q'
-        ).to_json()
+        ).properties(width='container').to_json()
 
     return [classification_boundaries_iteration(it) for it in cb_data.exp_one_iterations], \
            [classification_boundaries_iteration(it) for it in cb_data.exp_two_iterations]

@@ -61,14 +61,16 @@
     inputValue = parseInt(currentIteration, 10)
 
     // Label percentage
-    const labeled = Math.round($metricData['iterations'][currentIteration - 1][0]['percentage_labeled'] * 10000) / 100
+    const labeled =
+      Math.round($metricData['iterations'][currentIteration - 1][0]['meta']['percentage_labeled'] * 10000) / 100
     sample_info['Percentage labeled'] = labeled + '%'
     sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
 
     // Annotation cost
-    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['time'] * 100) / 100
-    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['time'] * 100) / 100
-    metrics['Mean Annotation Cost'] = [cost_1 + 's', cost_2 + 's']
+    const cost_1 = Math.round($metricData['iterations'][currentIteration - 1][0]['meta']['time'] * 100) / 100
+    const cost_2 = Math.round($metricData['iterations'][currentIteration - 1][1]['meta']['time'] * 100) / 100
+    metrics[0]['Training Time'] = cost_1 + 's'
+    metrics[1]['Training Time'] = cost_2 + 's'
 
     // Fetch sample (hopefully in background)
     getSamples()
@@ -95,28 +97,28 @@
     }
     const conf_1 = JSON.parse($diagrams['conf'][0][currentIteration - 1])
     const conf_2 = JSON.parse($diagrams['conf'][1][currentIteration - 1])
+    const classBound1 = JSON.parse($diagrams['classification_boundaries'][0][currentIteration - 1])
+    const classBound2 = JSON.parse($diagrams['classification_boundaries'][1][currentIteration - 1])
+    const vector1 = JSON.parse($diagrams['vector_space'][0][currentIteration - 1])
+    const vector2 = JSON.parse($diagrams['vector_space'][1][currentIteration - 1])
     const dmap_1 = JSON.parse($diagrams['data_maps'][0])
     const dmap_2 = JSON.parse($diagrams['data_maps'][1])
 
     vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
     vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
 
-    /**
-     * TODO: Embed actual diagrams and not the same for every slot
-     */
+    vega_views['classBound1'] = await embed(dia_elements_one[1], classBound1, vega_options)
+    vega_views['classBound2'] = await embed(dia_elements_two[1], classBound2, vega_options)
 
-    vega_views['mock_2'] = await embed(dia_elements_one[1], conf_2, vega_options)
-    vega_views['mock_4'] = await embed(dia_elements_two[1], conf_1, vega_options)
-
-    // vega_views['mock_3'] = await embed(dia_elements_one[3], conf_1, vega_options)
-    // vega_views['mock_5'] = await embed(dia_elements_two[3], conf_2, vega_options)
+    vega_views['vector1'] = await embed(dia_elements_one[2], vector1, { ...vega_options, actions: true })
+    vega_views['vector2'] = await embed(dia_elements_two[2], vector2, { ...vega_options, actions: true })
 
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
       getStepSize($metricData['iterations'].length)
       vega_views['acc'] = await embed(acc_element, acc, { height: 140, logLevel })
-      vega_views['dmap_1'] = await embed(dia_elements_one[2], dmap_1, { ...vega_options, actions: true })
-      vega_views['dmap_2'] = await embed(dia_elements_two[2], dmap_2, { ...vega_options, actions: true })
+      vega_views['dmap_1'] = await embed(dia_elements_one[3], dmap_1, { ...vega_options, actions: true })
+      vega_views['dmap_2'] = await embed(dia_elements_two[3], dmap_2, { ...vega_options, actions: true })
     }
   }
 
@@ -206,14 +208,14 @@
           <tr>
             <th />
             <th>
-              <span class="heading">
+              <div class="heading">
                 {config['exp_configs'][0]['QUERY_STRATEGY']}
-              </span>
+              </div>
             </th>
             <th>
-              <span class="heading">
+              <div class="heading">
                 {config['exp_configs'][1]['QUERY_STRATEGY']}
-              </span>
+              </div>
             </th>
           </tr>
 
@@ -221,12 +223,12 @@
             {#each Object.keys(metrics[0]) as key}
               <tr>
                 <td style="font-weight: bold;">{key}</td>
-                <td style="padding: 0 5px"
-                  >{typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}</td
-                >
-                <td style="padding: 0 5px"
-                  >{typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}</td
-                >
+                <td style="padding: 5px 10px; text-align: center">
+                  {typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}
+                </td>
+                <td style="padding: 5px 10px; text-align: center">
+                  {typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}
+                </td>
               </tr>
             {/each}
           {/if}
@@ -297,10 +299,8 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_one[0]} />
             <div class="diagram" bind:this={dia_elements_one[1]} />
-            <div class="diagram datamap" bind:this={dia_elements_one[2]} />
-            <!--
-              <div class="diagram" bind:this={dia_elements_one[3]} />
-              -->
+            <div class="diagram" bind:this={dia_elements_one[2]} />
+            <div class="diagram" bind:this={dia_elements_one[3]} />
           </div>
         </div>
         <div class="process">
@@ -355,10 +355,8 @@
           <div class="diagrams">
             <div class="diagram" bind:this={dia_elements_two[0]} />
             <div class="diagram" bind:this={dia_elements_two[1]} />
-            <div class="diagram datamap" bind:this={dia_elements_two[2]} />
-            <!--
-              <div class="diagram" bind:this={dia_elements_two[3]} />
-              -->
+            <div class="diagram" bind:this={dia_elements_two[2]} />
+            <div class="diagram" bind:this={dia_elements_two[3]} />
           </div>
         </div>
       </div>
@@ -502,12 +500,13 @@
   }
 
   .heading {
-    display: block;
+    width: 100%;
+    display: flex;
+    align-items: center;
     writing-mode: vertical-lr;
     transform: rotate(-180deg);
-    text-align: center;
     font-weight: normal;
-    padding: 5px 10px;
+    padding: 5px 0;
   }
   table {
     border-collapse: collapse;
@@ -557,12 +556,15 @@
   .diagram {
     display: flex;
     justify-content: center;
+    /* max-width: 250px; */
   }
 
-  .datamap {
+  .span2 {
     grid-column: span 2;
+    max-width: 350px;
   }
 
+  /*
   .diagram:nth-child(even) {
     margin: 0 2em 0 0.5em;
   }
@@ -570,6 +572,7 @@
   .diagram:nth-child(odd) {
     margin: 0 0.5em 0 2em;
   }
+  */
 
   .iteration-input {
     display: grid;
