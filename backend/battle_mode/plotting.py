@@ -1,6 +1,7 @@
 from typing import List, Tuple
 
 import altair as alt
+import numpy as np
 import pandas as pd
 
 from .ExperimentManager import ClassificationBoundariesDTO
@@ -22,8 +23,9 @@ def confidence_histogram_iteration(data: List[List[float]]):
     plots = []
     for it in data:
         chart = alt.Chart(data=pd.DataFrame({'Confidence': it})).mark_bar().encode(
-            x=alt.X('Confidence', bin=alt.BinParams(maxbins=20), scale=alt.Scale(0.0, 1.0)),
-            y=alt.Y('count()', type='ordinal')
+            x=alt.X('Confidence', bin=alt.BinParams(maxbins=20), scale=alt.Scale(domain=[0.0, 1.0]),
+                    axis=alt.Axis(values=np.arange(0, 1, .05))),
+            y="count()"
         ).properties(width='container').to_json()
         plots.append(chart)
     return plots

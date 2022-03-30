@@ -256,7 +256,7 @@ class FinishedExperimentManager:
         def gen(experiment_idx: int):
             data_over_iterations = []
             for _, row in self.results[experiment_idx].raw_predictions.iterrows():
-                data_over_iterations.append(list(np.max(row)))
+                data_over_iterations.append(list(row.map(lambda cell: max(cell))))
             return data_over_iterations
 
         return gen(0), gen(1)
@@ -344,9 +344,10 @@ class FinishedExperimentManager:
         else:
             reduced_features = self.cb_sample.loc[:, self.config.PLOT_CONFIG.FEATURES]
 
-        def for_each_iteration(iteration: pd.Series, classes):
+        def for_each_iteration(iteration: pd.Series, classes: List[str]):
             return pd.DataFrame(data={
-                'Class': [classes[item.index(max(item))] for _, item in iteration.iteritems()],
+                'Class': [classes[confidence_scores.index(max(confidence_scores))] for _, confidence_scores in
+                          iteration.iteritems()],
                 'Confidence': [max(item) for _, item in iteration.iteritems()]
             })
 
