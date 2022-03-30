@@ -41,7 +41,7 @@
   }
 
   const sample_info = {
-    '# Similar samples': '32/240',
+    'Similar samples': '0%',
     'Percentage labeled': '0.51%',
     'Percentage unlabeled': '99.48%',
   }
@@ -63,6 +63,7 @@
     // Label percentage
     const labeled =
       Math.round($metricData['iterations'][currentIteration - 1][0]['meta']['percentage_labeled'] * 10000) / 100
+    sample_info['Similar samples'] = ($metricData['percentage_similar'][currentIteration - 1] * 100).toFixed(1) + '%'
     sample_info['Percentage labeled'] = labeled + '%'
     sample_info['Percentage unlabeled'] = Math.round((100 - labeled) * 100) / 100 + '%'
 
