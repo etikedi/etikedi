@@ -1,3 +1,4 @@
+import ast
 import pickle
 import shutil
 from dataclasses import dataclass
@@ -11,7 +12,7 @@ from .ExperimentManager import FinishedExperimentManager, ExperimentManager
 from .experiment import ExperimentResults
 from ..config import logger
 from ..importing import DATA_PATH
-from ..models import ALBattleConfig, MetaData
+from ..models import ALBattleConfig, MetaData, MetricsDFKeys
 
 
 class ExperimentMetaPersistence(BaseModel):
@@ -127,30 +128,43 @@ class Persistence:
 
     @staticmethod
     def _deserialize_single_exp(path: Path) -> ExperimentResults:
-        raw_predictions_path = path / 'raw_predictions'
-        raw_predictions = pd.read_csv(raw_predictions_path.absolute(), index_col=0)
+        # minus one because the index column is represented too
+        raw_predictions = Persistence._deserialize_predictions_dataframe(path, 'raw_predictions')
 
-        cb_predictions_path = path / 'cb_predictions'
-        cb_predictions = pd.read_csv(cb_predictions_path.absolute(), index_col=0)
+        cb_predictions = Persistence._deserialize_predictions_dataframe(path, 'cb_predictions')
 
         metric_scores_path = path / 'metric_scores'
         metric_scores = pd.read_csv(metric_scores_path.absolute(), index_col=0)
+        metric_scores.columns = metric_scores.columns.map(MetricsDFKeys)
 
         pickle_file_path = path / 'pickle'
 
         with pickle_file_path.open(mode='rb') as file:
             persisted_obj: ExperimentResultsPersistence = pickle.load(file=file)
-            persisted_obj.metric_scores = metric_scores
-            persisted_obj.cb_predictions = cb_predictions
             exp_results = ExperimentResults(
                 raw_predictions=raw_predictions,
                 initially_labeled=persisted_obj.initially_labeled,
                 cb_predictions=cb_predictions,
                 metric_scores=metric_scores,
                 correct_label_as_idx=persisted_obj.correct_label_as_idx,
-                meta_data=persisted_obj.meta_data
+                meta_data=persisted_obj.meta_data,
+                classes=persisted_obj.classes
             )
             return exp_results
+
+    @staticmethod
+    def _deserialize_predictions_dataframe(path: Path, name: str):
+        dataframe_path = path / name
+        # convert all tuples to real tuples
+        nbr_of_columns = len(dataframe_path.open(mode='r').readline().split(","))
+        dataframe = pd.read_csv(
+            dataframe_path.absolute(),
+            index_col=0,
+            converters={col: ast.literal_eval for col in range(nbr_of_columns)}
+        )
+        # columns should be integer instead of strings
+        dataframe.columns = dataframe.columns.astype(int)
+        return dataframe
 
     @staticmethod
     def _load_experiments(exp_path: Path) -> Tuple[ExperimentResults, ExperimentResults]:
