@@ -31,8 +31,6 @@
   $: sample = $samples_to_label[0]
   $: ready = dataset && sample != null
 
-  $: console.log($samples_to_label)
-
   onMount(() => {
     if (!$samples_to_label || $samples_to_label.length === 0) {
       load()

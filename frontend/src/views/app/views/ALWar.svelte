@@ -39,7 +39,8 @@
     strategyDefinitions = [],
     { open } = getContext('simple-modal'),
     { close } = getContext('simple-modal'),
-    { id } = router.params()
+    { id } = router.params(),
+    experiment_id = undefined
 
   /**
    * DEV
@@ -47,8 +48,6 @@
   $: if ($metricData) console.debug($metricData)
   $: if ($diagrams) console.debug($diagrams)
   $: if (processConfigs) console.debug('processConfigs', processConfigs)
-  $: if (chosenStrategies) console.debug('chosenStrategies', chosenStrategies)
-  $: if (strategySchemas) console.debug('strategySchemas', strategySchemas)
 
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
@@ -78,47 +77,48 @@
     console.debug(open)
   }
 
-  const runningExperiment = localStorage.getItem(`battle-on-dataset-${id}`)
+  experiment_id = localStorage.getItem(`battle-on-dataset-${id}`)
 
   // Running battle
-  if (runningExperiment) {
+  if (experiment_id) {
     showCache = false
     showConfig = false
     starting = false
-    checkStatus(runningExperiment)
+    checkStatus()
   }
 
   // Get valid strategies
   getValidStrategies(id)
 
   async function start() {
-    console.debug('Mock Send:', mockSendConfig)
-    localStorage.setItem(`experiment-${id}-config1`, JSON.stringify(mockSendConfig))
-    localStorage.setItem(`battle-${id}-config2`, JSON.stringify(mockSendConfig))
     showConfig = false
     starting = true
 
     // For backend pydantic stuff
     mockSendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
     mockSendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
-    const experiment_id = await startBattle(id, mockSendConfig)
+
+    console.debug('Start battle with config:', mockSendConfig)
+    experiment_id = await startBattle(id, mockSendConfig)
+
     if (typeof experiment_id === 'number') {
       starting = false
-      checkStatus(experiment_id)
+      localStorage.setItem(`experiment-${experiment_id}-config`, JSON.stringify(mockSendConfig))
+      checkStatus()
     } else {
       notifier.danger('Something went wrong in the backend.', 6000)
       router.goto('/app/')
     }
   }
 
-  async function checkStatus(experiment_id) {
+  async function checkStatus() {
     training = true
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
         getData(experiment_id)
       } else {
-        await getStatus(experiment_id)
+        await getStatus(id, experiment_id)
         if (typeof $isFinished === 'number') {
           remainingTime = formatTime($isFinished)
         } else {

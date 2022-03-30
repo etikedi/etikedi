@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
+  import { vega } from 'vega-embed'
   import { diagrams, metricData } from '../../../store/al-war'
   import Table from '../components/labeling/Table.svelte'
   import Image from '../components/labeling/Image.svelte'
@@ -10,8 +11,8 @@
   import Card from '../../../ui/Card.svelte'
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
+  import { keys } from 'vega-lite'
 
-  export let algorithmNames = ['Uncertainty (LC)', 'Random']
   export let dataset_name = 'Unknown dataset'
   export let dataset_id
 
@@ -25,16 +26,18 @@
     stepSize = 1,
     sample_1,
     sample_2,
-    config1 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config1`)),
-    config2 = JSON.parse(localStorage.getItem(`battle-${dataset_id}-config2`)),
+    config = JSON.parse(localStorage.getItem(`experiment-2-config`)),
     sliderDiv,
-    sampleIndexes = { process1: 0, process2: 0 }
+    sampleIndexes = { process1: 0, process2: 0 },
+    metrics = []
 
   // TODO: From store
-  const metrics = {
-    Acc: ['61%', '58%'],
-    'Mean Annotation Cost': ['6s', '9s'],
-    'F1-AUC (test)': ['63%', '60%'],
+  $: if ($metricData) {
+    metrics = $metricData['iterations'][currentIteration - 1].map((process) => {
+      return {
+        ...process['metrics'],
+      }
+    })
   }
 
   const sample_info = {
@@ -50,6 +53,7 @@
   }
 
   $: if ($metricData && $metricData['iterations'] && currentIteration) changeIteration()
+  $: console.debug('Config:', config)
 
   async function changeIteration() {
     // Sync values
@@ -82,10 +86,12 @@
   }
 
   async function pushDiagrams(update?: boolean) {
+    const logLevel = vega.Error
     const vega_options = {
       height: 150,
       tooltip: { theme: 'dark' },
       actions: false,
+      logLevel,
     }
     const conf_1 = JSON.parse($diagrams['conf'][0][currentIteration - 1])
     const conf_2 = JSON.parse($diagrams['conf'][1][currentIteration - 1])
@@ -108,7 +114,7 @@
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
       getStepSize($metricData['iterations'].length)
-      vega_views['acc'] = await embed(acc_element, acc, { height: 140 })
+      vega_views['acc'] = await embed(acc_element, acc, { height: 140, logLevel })
       vega_views['dmap_1'] = await embed(dia_elements_one[2], dmap_1, { ...vega_options, actions: true })
       vega_views['dmap_2'] = await embed(dia_elements_two[2], dmap_2, { ...vega_options, actions: true })
     }
@@ -184,30 +190,47 @@
           <h4>Dataset:</h4>
           <p>{dataset_name}</p>
         </div>
-        <div>
-          <h4>AL Cycle:</h4>
-          {#if $metricData && $metricData['iterations']}
+        {#if $metricData && $metricData['iterations']}
+          <div>
+            <h4>AL Cycle:</h4>
             <p>{currentIteration}/{$metricData['iterations'].length}</p>
-          {/if}
+          </div>
+        {/if}
+        <div>
+          <h4>Batch size:</h4>
+          <p>{config['BATCH_SIZE']}</p>
         </div>
       </div>
       <div class="metrics">
-        {#if algorithmNames.length === 2 && metrics}
-          <table>
-            <tr style="height: 100px">
-              <th />
-              <th class="heading">{algorithmNames[0]}</th>
-              <th class="heading">{algorithmNames[1]}</th>
-            </tr>
-            {#each Object.entries(metrics) as metric}
+        <table>
+          <tr>
+            <th />
+            <th>
+              <span class="heading">
+                {config['exp_configs'][0]['QUERY_STRATEGY']}
+              </span>
+            </th>
+            <th>
+              <span class="heading">
+                {config['exp_configs'][1]['QUERY_STRATEGY']}
+              </span>
+            </th>
+          </tr>
+
+          {#if metrics.length > 1}
+            {#each Object.keys(metrics[0]) as key}
               <tr>
-                <td style="font-weight: bold; text-align: end;">{metric[0]}</td>
-                <td style="text-align: center">{metric[1][0]}</td>
-                <td style="text-align: center">{metric[1][1]}</td>
+                <td style="font-weight: bold;">{key}</td>
+                <td style="padding: 0 5px"
+                  >{typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}</td
+                >
+                <td style="padding: 0 5px"
+                  >{typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}</td
+                >
               </tr>
             {/each}
-          </table>
-        {/if}
+          {/if}
+        </table>
       </div>
       <div class="info">
         {#each Object.entries(sample_info) as info}
@@ -224,11 +247,8 @@
       <div class="battle">
         <div class="process">
           <div class="process-info">
-            <h2>{config1.QUERY_STRATEGY}</h2>
-            <div style="display: flex; align-items: center;">
-              <h4>Batch size:</h4>
-              <span>{config1.BATCH_SIZE}</span>
-            </div>
+            <h2>{config['exp_configs'][0]['QUERY_STRATEGY']}</h2>
+            <span><b>AL Model: </b>{config['exp_configs'][0]['AL_MODEL']}</span>
           </div>
           <hr />
           <div class="sample">
@@ -240,7 +260,9 @@
                     on:click={() => {
                       sampleIndexes.process1 = sampleIndexes.process1 - 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][sampleIndexes.process1],
+                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
+                          sampleIndexes.process1
+                        ],
                         1
                       )
                     }}
@@ -255,7 +277,9 @@
                     on:click={() => {
                       sampleIndexes.process1 = sampleIndexes.process1 + 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][sampleIndexes.process1],
+                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
+                          sampleIndexes.process1
+                        ],
                         1
                       )
                     }}
@@ -281,11 +305,8 @@
         </div>
         <div class="process">
           <div class="process-info">
-            <h2>{config2.QUERY_STRATEGY}</h2>
-            <div style="display: flex; align-items: center;">
-              <h4>Batch size:</h4>
-              <span>{config2.BATCH_SIZE}</span>
-            </div>
+            <h2>{config['exp_configs'][1]['QUERY_STRATEGY']}</h2>
+            <span><b>AL Model: </b>{config['exp_configs'][1]['AL_MODEL']}</span>
           </div>
           <hr />
           <div class="sample">
@@ -297,7 +318,9 @@
                     on:click={() => {
                       sampleIndexes.process2 = sampleIndexes.process2 - 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][sampleIndexes.process2],
+                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
+                          sampleIndexes.process2
+                        ],
                         2
                       )
                     }}
@@ -312,7 +335,9 @@
                     on:click={() => {
                       sampleIndexes.process2 = sampleIndexes.process2 + 1
                       getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][sampleIndexes.process2],
+                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
+                          sampleIndexes.process2
+                        ],
                         2
                       )
                     }}
@@ -472,14 +497,28 @@
     align-items: center;
   }
 
-  .heading {
-    transform: rotate(-90deg);
-    font-weight: normal;
-    margin-bottom: 10px;
-  }
-
   .metrics {
     border: 1px solid lightgray;
+  }
+
+  .heading {
+    display: block;
+    writing-mode: vertical-lr;
+    transform: rotate(-180deg);
+    text-align: center;
+    font-weight: normal;
+    padding: 5px 10px;
+  }
+  table {
+    border-collapse: collapse;
+  }
+
+  tr {
+    border-bottom: 1px solid lightgray;
+  }
+
+  tr:last-child {
+    border-bottom: none;
   }
 
   .info {
@@ -530,18 +569,6 @@
 
   .diagram:nth-child(odd) {
     margin: 0 0.5em 0 2em;
-  }
-
-  table {
-    border-collapse: collapse;
-  }
-
-  tr {
-    border-bottom: 1px solid lightgray;
-  }
-
-  tr:last-child {
-    border-bottom: none;
   }
 
   .iteration-input {

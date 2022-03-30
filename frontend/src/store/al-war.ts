@@ -127,7 +127,7 @@ export async function startBattle(dataset_id: number | string, battle_config) {
   }
 }
 
-export async function getStatus(experiment_id: number | string) {
+export async function getStatus(dataset_id: number | string, experiment_id: number | string) {
   try {
     loading.set(true)
     const { data: status } = await axios({
@@ -145,7 +145,7 @@ export async function getStatus(experiment_id: number | string) {
      * }
      */
     isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2)
-    if (status.code === 2) localStorage.removeItem(`experiment-${experiment_id}-running`)
+    if (status.code === 2) localStorage.removeItem(`battle-on-dataset-${dataset_id}`)
   } finally {
     loading.set(false)
   }
