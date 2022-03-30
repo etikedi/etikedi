@@ -379,12 +379,18 @@ class FinishedExperimentManager:
         return self.metric
 
     def _percentage_similar_samples(self):
-
+        """
+        In each experiment n sample get labeled, which is determined by the al-query.
+        For each iteration it: this method compares the similarity of those n sample for each iteration until it.
+        100 % would mean that the pool of labeled samples is the same for both experiments in iteration it,
+        which would also be true if the samples were picked in different iterations (as long as before it).
+        Returns: The similarity in percent for each iteration.
+        """
         samples_one = [r.sample_ids for r in self.results[0].meta_data]
         samples_two = [r.sample_ids for r in self.results[1].meta_data]
         assert len(samples_one) == len(samples_two)
         similar_per_iteration = []
-        for i in range(15):
+        for i in range(len(samples_one)):
             s_one = set(np.concatenate(samples_one[:i + 1]))
             s_two = set(np.concatenate(samples_two[:i + 1]))
             similar_samples = len(s_one.intersection(s_two))
