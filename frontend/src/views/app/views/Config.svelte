@@ -19,6 +19,7 @@
   export let config = {}
   export let strategySchema = null
   export let strategyDefinitions = null
+  export let name
 
   let spec
 
@@ -88,7 +89,7 @@
   {/if}
   <br />
   {#if dataset && config}
-    <h2><b>{dataset.name}</b> Config</h2>
+    <h2><b>{name ?? dataset.name}</b> Config</h2>
     <form on:submit|preventDefault={submit}>
       {#each Object.entries(spec) as [key, { type, ...props }]}
         {#if type === 'number'}

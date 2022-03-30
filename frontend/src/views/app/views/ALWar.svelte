@@ -22,10 +22,10 @@
   import Card from '../../../ui/Card.svelte'
   import Select from '../../../ui/Select.svelte'
   import { mockSendConfig } from '../../../lib/al_configs'
-  import { ProcessConfig } from '../../../store/config'
+  import { GeneralConfig, ProcessConfig } from '../../../store/config'
 
   let showCache = false,
-    showConfig = false,
+    showConfig = true,
     ready,
     dataset,
     training = false,
@@ -34,6 +34,7 @@
     starting = false,
     progressElement,
     chosenStrategies = [],
+    generalConfig,
     processConfigs = [{}, {}],
     strategySchemas = [],
     strategyDefinitions = [],
@@ -94,16 +95,41 @@
     showConfig = false
     starting = true
 
-    // For backend pydantic stuff
-    mockSendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
-    mockSendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+    // TODO: Features?
+    let sendConfig
 
-    console.debug('Start battle with config:', mockSendConfig)
-    experiment_id = await startBattle(id, mockSendConfig)
+    const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[0]['AL_MODEL']]
+    const queryConfigs = processConfigs
+    delete queryConfigs[0]['AL_MODEL']
+    delete queryConfigs[1]['AL_MODEL']
+
+    // sendConf = mockSendConfig
+    sendConfig = {
+      ...generalConfig,
+      exp_configs: [
+        {
+          AL_MODEL: al_models[0],
+          QUERY_STRATEGY: chosenStrategies[0],
+          QUERY_STRATEGY_CONFIG: queryConfigs[0],
+        },
+        {
+          AL_MODEL: al_models[1],
+          QUERY_STRATEGY: chosenStrategies[1],
+          QUERY_STRATEGY_CONFIG: queryConfigs[1],
+        },
+      ],
+    }
+
+    // For backend pydantic stuff
+    sendConfig.exp_configs[0].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+    sendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = mockSendConfig.exp_configs[0].QUERY_STRATEGY
+
+    console.debug('Start battle with config:', sendConfig)
+    experiment_id = await startBattle(id, sendConfig)
 
     if (typeof experiment_id === 'number') {
       starting = false
-      localStorage.setItem(`experiment-${experiment_id}-config`, JSON.stringify(mockSendConfig))
+      localStorage.setItem(`experiment-${experiment_id}-config`, JSON.stringify(sendConfig))
       checkStatus()
     } else {
       notifier.danger('Something went wrong in the backend.', 6000)
@@ -196,9 +222,11 @@
 {:else}
   <div class="wrapper">
     {#if showConfig}
+      <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} name="General" />
       <div class="config-wrapper">
         {#if $valid_strategies}
           <div>
+            <h2><b>Process 1</b> Config</h2>
             <Select
               bind:value={chosenStrategies[0]}
               values={Object.keys($valid_strategies)}
@@ -212,11 +240,13 @@
                   strategySchema={strategySchemas[0]}
                   strategyDefinitions={strategyDefinitions[0]}
                   alWar
+                  name="Strategy"
                 />
               {/key}
             {/if}
           </div>
           <div>
+            <h2><b>Process 2</b> Config</h2>
             <Select
               bind:value={chosenStrategies[1]}
               values={Object.keys($valid_strategies)}
@@ -230,6 +260,7 @@
                   strategySchema={strategySchemas[1]}
                   strategyDefinitions={strategyDefinitions[1]}
                   alWar
+                  name="Strategy"
                 />
               {/key}
             {/if}
