@@ -23,7 +23,7 @@ battle_router = APIRouter()
 async def valid_strategies(dataset_id: int):
     number_of_labels = db.query(Label).filter(Label.dataset_id == dataset_id).distinct(Label.name).count()
     valid: List[QueryStrategyType] = list(
-        filter(lambda strategy: number_of_labels != 2 or not strategy.only_binary_classification(), QueryStrategyType))
+        filter(lambda strategy: number_of_labels == 2 or not strategy.only_binary_classification(), QueryStrategyType))
     return ValidStrategiesReturnSchema(
         strategies={strategy: strategy.get_config_schema().schema_json() for strategy in valid}
     )

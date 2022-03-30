@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from enum import Enum, IntEnum
+from typing import List, Dict
 
+import pandas as pd
 
 class MetricsDFKeys(str, Enum):
     Acc = 'Acc',
@@ -23,3 +26,11 @@ class EventType(IntEnum):
     SETUP_COMPLETED = 1
     INFO = 2,
     RESULT = 3
+
+
+# Dataclasses
+@dataclass
+class ClassificationBoundariesDTO:
+    reduced_features: pd.DataFrame
+    exp_one_iterations: List[pd.DataFrame]
+    exp_two_iterations: List[pd.DataFrame]

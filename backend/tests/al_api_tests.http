@@ -33,7 +33,7 @@ Content-Type: application/json
 }
 
 ### check status
-GET http://localhost:8000/al-wars/3/status
+GET http://localhost:8000/al-wars/0/status
 accept: application/json
 
 ### get diagrams
@@ -54,7 +54,7 @@ accept: application/json
 # curl -X 'GET'
 #  'http://localhost:8000/3/al-wars/valid_strategies'
 #  -H 'accept: application/json'
-GET http://localhost:8000/1/al-wars/valid_strategies
+GET http://localhost:8000/al-wars/valid_strategies/0
 accept: application/json
 
 ###

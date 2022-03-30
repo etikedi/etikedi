@@ -3,7 +3,7 @@ from __future__ import annotations  # necessary in order to use ExperimentManage
 import time
 from multiprocessing import Process
 from multiprocessing import Queue
-from typing import List, Dict
+from typing import List
 
 import numpy as np
 import pandas as pd
@@ -23,29 +23,10 @@ from ..models import (
     MetricsDFKeys,
     EventType,
     MapKeys,
+    ExperimentResults,
     Dataset,
     StoppingCriteriaOption)
 from ..utils import timeit
-
-
-class ExperimentResults:
-    def __init__(self,
-                 raw_predictions: pd.DataFrame,
-                 initially_labeled,
-                 cb_predictions: pd.DataFrame = None,
-                 metric_scores: pd.DataFrame = None,
-                 correct_label_as_idx: Dict[int, int] = None,
-                 meta_data: List[MetaData] = None,
-                 classes=None):
-        self.metric_scores: pd.DataFrame = pd.DataFrame(columns=[metric_key for metric_key in MetricsDFKeys]) \
-            if metric_scores is None else metric_scores
-        self.meta_data: List[MetaData] = [] if meta_data is None else meta_data
-        self.classes: List[str] = classes if classes is not None else []
-        self.raw_predictions: pd.DataFrame = raw_predictions
-        self.correct_label_as_idx: Dict[int, int] = dict() if correct_label_as_idx is None else correct_label_as_idx
-        self.initially_labeled: List[int] = initially_labeled  # all initially labeled samples as SampleIDs
-        # 3D data-frame: row = iteration, column = sample, value = tuple of confidence per class
-        self.cb_predictions: pd.DataFrame = pd.DataFrame() if cb_predictions is None else cb_predictions
 
 
 @timeit
@@ -281,17 +262,22 @@ class ALExperimentProcess(Process):
         # pandas dataframe: every column is one sample, every row is one prediction
         # every cell is a tuple of (predicted_label, certainty)
         assert len(self.state_saver) == len(self.prediction_history)
+        cb_predictions = self.cb_sample_predictions
+        correct_label_as_idx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
+                                for idx, label_str in self.y_test.items()}
+        assert all([smpl_id in correct_label_as_idx for smpl_id in self.prediction_history.columns])
+        metric_scores = self._calc_metrics_scores()
+        meta_data = self._convert_states_data()
+
         result = ExperimentResults(
             raw_predictions=self.prediction_history,
+            cb_predictions=cb_predictions,
+            metric_scores=metric_scores,
+            initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L],
+            correct_label_as_idx=correct_label_as_idx,
+            meta_data=meta_data,
             classes=self.model.classes_,
-            initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L]
         )
-        result.cb_predictions = self.cb_sample_predictions
-        result.correct_label_as_idx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
-                                       for idx, label_str in self.y_test.items()}
-        result.metric_scores = self._calc_metrics_scores()
-        result.meta_data = self._convert_states_data()
-
         return result
 
     def _calc_metrics_scores(self) -> pd.DataFrame:
