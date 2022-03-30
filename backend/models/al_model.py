@@ -356,7 +356,8 @@ class QueryStrategyType(str, Enum):
 
     def only_binary_classification(self):
         return self == QueryStrategyType.QUERY_INSTANCE_BMDR or \
-               self == QueryStrategyType.QUERY_INSTANCE_LAL
+               self == QueryStrategyType.QUERY_INSTANCE_LAL or \
+               self == QueryStrategyType.QUERY_INSTANCE_SPAL
 
     # returns all config options for this query strategy
     def get_config_schema(self) -> Type[BaseModel]:
