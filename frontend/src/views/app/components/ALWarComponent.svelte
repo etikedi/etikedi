@@ -163,7 +163,7 @@
     /**
      * DEV
      */
-    const loadMock = true
+    const loadMock = false
     if (loadMock && !$diagrams && !$metricData) {
       const diag = await fetch('/data/diagrams.json')
       const diagJson = await diag.json()
