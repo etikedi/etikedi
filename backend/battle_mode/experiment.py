@@ -301,11 +301,13 @@ class ALExperimentProcess(Process):
         metric_scores = pd.DataFrame(metrics_tmp)
         # Calculate F1-AUC
         metric_scores[MetricsDFKeys.F1_AUC] = 0
-        for idx in metric_scores.index:
+        for idx in metric_scores.index[1:]:
             # idx +1 because current iteration should be included in calculation
+            auc_ = auc(list(range(idx + 1)), metric_scores[MetricsDFKeys.F1].iloc[:idx + 1])
             # auc(...) / idx in order to normalize the area under the curve
-            metric_scores[MetricsDFKeys.F1_AUC][idx] = 0 if idx == 0 \
-                else auc(list(range(idx + 1)), metric_scores[MetricsDFKeys.F1].iloc[:idx + 1]) / idx
+            normalised_auc = auc_ / idx
+            metric_scores.loc[idx, MetricsDFKeys.F1_AUC] = normalised_auc
+
         metric_scores[MetricsDFKeys.AvgDistanceLabeled] = self._calc_average_distance(labeled=True)
         metric_scores[MetricsDFKeys.AvgDistanceUnLabeled] = self._calc_average_distance(labeled=False)
         return metric_scores
