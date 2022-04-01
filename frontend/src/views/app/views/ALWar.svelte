@@ -41,7 +41,8 @@
     { open } = getContext('simple-modal'),
     { close } = getContext('simple-modal'),
     { id } = router.params(),
-    experiment_id = undefined
+    experiment_id = undefined,
+    sendConfig
 
   /**
    * DEV
@@ -96,7 +97,6 @@
     starting = true
 
     // TODO: Features?
-    let sendConfig
 
     const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[0]['AL_MODEL']]
     const queryConfigs = processConfigs
@@ -129,7 +129,6 @@
 
     if (typeof experiment_id === 'number') {
       starting = false
-      localStorage.setItem(`experiment-${experiment_id}-config`, JSON.stringify(sendConfig))
       checkStatus()
     } else {
       notifier.danger('Something went wrong in the backend.', 6000)
@@ -296,7 +295,7 @@
         <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
       {/if}
     {:else if dataset}
-      <AlWarComponent dataset_name={dataset['name']} dataset_id={id} />
+      <AlWarComponent dataset_name={dataset['name']} config={sendConfig} />
     {/if}
   </div>
 {/if}

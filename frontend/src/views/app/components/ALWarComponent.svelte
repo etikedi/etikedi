@@ -14,7 +14,7 @@
   import { keys } from 'vega-lite'
 
   export let dataset_name = 'Unknown dataset'
-  export let dataset_id
+  export let config
 
   let acc_element,
     dia_elements_one = [],
@@ -26,7 +26,6 @@
     stepSize = 1,
     sample_1,
     sample_2,
-    config = JSON.parse(localStorage.getItem(`experiment-2-config`)),
     sliderDiv,
     sampleIndexes = { process1: 0, process2: 0 },
     metrics = []
