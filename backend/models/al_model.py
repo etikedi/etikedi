@@ -4,9 +4,17 @@ from abc import ABCMeta, abstractmethod
 from enum import Enum
 from typing import List, Type, Literal
 
-from alipy.query_strategy.query_labels import QueryInstanceSPAL, QueryInstanceUncertainty, QueryInstanceLAL, \
-    QueryInstanceBMDR, QueryInstanceRandom, QueryInstanceQUIRE, QueryInstanceQBC, \
-    QueryExpectedErrorReduction, QueryInstanceGraphDensity
+from alipy.query_strategy.query_labels import (
+    QueryInstanceSPAL,
+    QueryInstanceUncertainty,
+    QueryInstanceLAL,
+    QueryInstanceBMDR,
+    QueryInstanceRandom,
+    QueryInstanceQUIRE,
+    QueryInstanceQBC,
+    QueryExpectedErrorReduction,
+    QueryInstanceGraphDensity,
+)
 from fastapi.openapi.models import BaseModel
 from pydantic import PositiveInt
 from sklearn.ensemble import RandomForestClassifier
@@ -14,12 +22,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
 
 
 class QKernel(str, Enum):
-    linear = 'linear',
-    poly = 'poly',
-    rbf = 'rbf'
+    linear = ("linear",)
+    poly = ("poly",)
+    rbf = "rbf"
 
 
 class QMeasureType(str, Enum):
@@ -63,7 +72,7 @@ class QMetric(str, Enum):
 
 
 class QMethod(str, Enum):
-    QUERY_BY_BAGGING = 'query_by_bagging'
+    QUERY_BY_BAGGING = "query_by_bagging"
 
 
 class QDisagreement(str, Enum):
@@ -78,6 +87,7 @@ class ALModel(str, Enum):
     LOGISTIC_REGRESSION = "LogisticRegression"
     NAIVE_BAYES = "NaiveBayes"
     SVC = "SVC"
+    MLP = "MLPClassifier"
 
     def get_class(self):
         if self == ALModel.DECISION_TREE_CLASSIFIER:
@@ -90,6 +100,8 @@ class ALModel(str, Enum):
             return GaussianNB
         elif self == ALModel.SVC:
             return SVC
+        elif self == ALModel.MLP:
+            return MLP
 
 
 class StoppingCriteriaOption(str, Enum):
@@ -105,8 +117,10 @@ class StoppingCriteriaOption(str, Enum):
 
 
 class QueryStrategyAbstraction(metaclass=ABCMeta):
-    base_url = "https://parnec.nuaa.edu.cn/_upload/tpl/02/db/731/template731/pages/huangsj/alipy/page_reference" \
-               "/api_classes/api_query_strategy.query_labels "
+    base_url = (
+        "https://parnec.nuaa.edu.cn/_upload/tpl/02/db/731/template731/pages/huangsj/alipy/page_reference"
+        "/api_classes/api_query_strategy.query_labels "
+    )
 
     @abstractmethod
     def select(self, label_index, unlabel_index, model, batch_size):
@@ -124,7 +138,7 @@ class QueryStrategyAbstraction(metaclass=ABCMeta):
 
 class QueryInstanceSPALHolder(QueryStrategyAbstraction):
     class SPALConfig(BaseModel):
-        query_type: Literal['QueryInstanceSPAL']
+        query_type: Literal["QueryInstanceSPAL"]
         description = QueryStrategyAbstraction.base_url + ".QueryInstanceSPAL.html"
         mu: float = 0.1
         gamma: float = 0.1
@@ -138,13 +152,15 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
 
     def __init__(self, X, y, config: SPALConfig):
         self.qp_solver = None
-        self.qs = QueryInstanceSPAL(X=X,
-                                    y=y,
-                                    mu=config.mu,
-                                    gamma=config.gamma,
-                                    rho=config.rho,
-                                    lambda_init=config.lambda_init,
-                                    lambda_pace=config.lambda_pace)
+        self.qs = QueryInstanceSPAL(
+            X=X,
+            y=y,
+            mu=config.mu,
+            gamma=config.gamma,
+            rho=config.rho,
+            lambda_init=config.lambda_init,
+            lambda_pace=config.lambda_pace,
+        )
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
@@ -156,14 +172,14 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
 
 class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
     class UncertaintyConfig(BaseModel):
-        query_type: Literal['QueryInstanceUncertainty']
-        description = QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
+        query_type: Literal["QueryInstanceUncertainty"]
+        description = (
+            QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
+        )
         measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
 
     def __init__(self, X, y, config: UncertaintyConfig):
-        self.qs = QueryInstanceUncertainty(X=X,
-                                           y=y,
-                                           measure=config.measure.value)
+        self.qs = QueryInstanceUncertainty(X=X, y=y, measure=config.measure.value)
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
@@ -175,7 +191,7 @@ class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
 
 class QueryInstanceLALHolder(QueryStrategyAbstraction):
     class LALConfig(BaseModel):
-        query_type: Literal['QueryInstanceLAL']
+        query_type: Literal["QueryInstanceLAL"]
         description = QueryStrategyAbstraction.base_url + "QueryInstanceLAL.html"
         mode: QLALMode = QLALMode.LAL_ITERATIVE
         data_path = "/data/alipy"
@@ -183,9 +199,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         train_slt: bool = True
 
     def __init__(self, X, y, config: LALConfig):
-        self.qs = QueryInstanceLAL(X=X,
-                                   y=y,
-                                   **config.dict())
+        self.qs = QueryInstanceLAL(X=X, y=y, **config.dict())
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, batch_size)
@@ -197,7 +211,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
 
 class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
     class BMDRConfig(BaseModel):
-        query_type: Literal['QueryInstanceBMDR']
+        query_type: Literal["QueryInstanceBMDR"]
         description = QueryStrategyAbstraction.base_url + "QueryInstanceBMDR.html"
         beta: float = 1000.0
         gamma: float = 0.1
@@ -206,11 +220,9 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
 
     def __init__(self, X, y, config: BMDRConfig):
         self.qp_solver = None
-        self.qs = QueryInstanceBMDR(X=X,
-                                    y=y,
-                                    beta=config.beta,
-                                    gamma=config.gamma,
-                                    rho=config.rho)
+        self.qs = QueryInstanceBMDR(
+            X=X, y=y, beta=config.beta, gamma=config.gamma, rho=config.rho
+        )
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
@@ -222,12 +234,11 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
 
 class QueryInstanceRandomHolder(QueryStrategyAbstraction):
     class RandomConfig(BaseModel):
-        query_type: Literal['QueryInstanceRandom']
+        query_type: Literal["QueryInstanceRandom"]
         description = QueryStrategyAbstraction.base_url + "QueryInstanceRandom.html"
 
     def __init__(self, X, y, config: RandomConfig):
-        self.qs = QueryInstanceRandom(X=X,
-                                      y=y)
+        self.qs = QueryInstanceRandom(X=X, y=y)
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, batch_size)
@@ -239,16 +250,17 @@ class QueryInstanceRandomHolder(QueryStrategyAbstraction):
 
 class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
     class GraphDensityConfig(BaseModel):
-        query_type: Literal['QueryInstanceGraphDensity']
-        description = QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
+        query_type: Literal["QueryInstanceGraphDensity"]
+        description = (
+            QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
+        )
         train_idx: List = []  # injected by experiment
         metric: QMetric = QMetric.MANHATTAN
 
     def __init__(self, X, y, config: GraphDensityConfig):
-        self.qs = QueryInstanceGraphDensity(X=X,
-                                            y=y,
-                                            train_idx=config.train_idx,
-                                            metric=config.metric)
+        self.qs = QueryInstanceGraphDensity(
+            X=X, y=y, train_idx=config.train_idx, metric=config.metric
+        )
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, batch_size)
@@ -260,8 +272,8 @@ class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
 
 class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
     class QUIREConfig(BaseModel):
-        query_type: Literal['QueryInstanceQUIRE']
-        description = QueryStrategyAbstraction.base_url + 'QueryInstanceQUIRE.html'
+        query_type: Literal["QueryInstanceQUIRE"]
+        description = QueryStrategyAbstraction.base_url + "QueryInstanceQUIRE.html"
         train_idx: List = []  # injected by experiment
         lambda_arg: float = 1.0
         kernel: QKernel = QKernel.rbf
@@ -270,9 +282,7 @@ class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
         coef: float = 1.0  # only relevant for kernel = poly
 
     def __init__(self, X, y, config: QUIREConfig):
-        self.qs = QueryInstanceQUIRE(X=X,
-                                     y=y,
-                                     **config.dict())
+        self.qs = QueryInstanceQUIRE(X=X, y=y, **config.dict())
 
     def select(self, label_index, unlabel_index, model, batch_size):
         results = []
@@ -286,20 +296,21 @@ class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
 
 class QueryInstanceQBCHolder(QueryStrategyAbstraction):
     class QBCConfig(BaseModel):
-        query_type: Literal['QueryInstanceQBC']
-        description = QueryStrategyAbstraction.base_url + 'QueryInstanceQBC.html'
+        query_type: Literal["QueryInstanceQBC"]
+        description = QueryStrategyAbstraction.base_url + "QueryInstanceQBC.html"
         method: QMethod = QMethod.QUERY_BY_BAGGING
         disagreement: QDisagreement = QDisagreement.VOTE_ENTROPY
 
     def __init__(self, X, y, config: QBCConfig):
         self.n_jobs = None
-        self.qs = QueryInstanceQBC(X=X,
-                                   y=y,
-                                   method=config.method,
-                                   disagreement=config.disagreement.value)
+        self.qs = QueryInstanceQBC(
+            X=X, y=y, method=config.method, disagreement=config.disagreement.value
+        )
 
     def select(self, label_index, unlabel_index, model, batch_size):
-        return self.qs.select(label_index, unlabel_index, model, batch_size, self.n_jobs)
+        return self.qs.select(
+            label_index, unlabel_index, model, batch_size, self.n_jobs
+        )
 
     @staticmethod
     def get_config_schema() -> Type[BaseModel]:
@@ -308,12 +319,13 @@ class QueryInstanceQBCHolder(QueryStrategyAbstraction):
 
 class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
     class ExpectedErrorReductionConfig(BaseModel):
-        query_type: Literal['QueryExpectedErrorReduction']
-        description = QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
+        query_type: Literal["QueryExpectedErrorReduction"]
+        description = (
+            QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
+        )
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
-        self.qs = QueryExpectedErrorReduction(X=X,
-                                              y=y)
+        self.qs = QueryExpectedErrorReduction(X=X, y=y)
 
     def select(self, label_index, unlabel_index, model, batch_size):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
@@ -324,15 +336,19 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
 
 
 class QueryStrategyType(str, Enum):
-    QUERY_INSTANCE_BMDR = 'QueryInstanceBMDR',  # Requires pip cvxpy, only applicable for binary classification
-    QUERY_INSTANCE_GRAPH_DENSITY = 'QueryInstanceGraphDensity',
-    QUERY_INSTANCE_LAL = 'QueryInstanceLAL',  # Only applicable for binary classification
-    QUERY_INSTANCE_QBC = 'QueryInstanceQBC',
-    QUERY_INSTANCE_QUIRE = 'QueryInstanceQUIRE',
-    QUERY_INSTANCE_SPAL = 'QueryInstanceSPAL',
-    QUERY_INSTANCE_UNCERTAINTY = 'QueryInstanceUncertainty',
-    QUERY_INSTANCE_RANDOM = 'QueryInstanceRandom',
-    QUREY_EXPECTED_ERROR_REDUCTION = 'QueryExpectedErrorReduction'
+    QUERY_INSTANCE_BMDR = (
+        "QueryInstanceBMDR",
+    )  # Requires pip cvxpy, only applicable for binary classification
+    QUERY_INSTANCE_GRAPH_DENSITY = ("QueryInstanceGraphDensity",)
+    QUERY_INSTANCE_LAL = (
+        "QueryInstanceLAL",
+    )  # Only applicable for binary classification
+    QUERY_INSTANCE_QBC = ("QueryInstanceQBC",)
+    QUERY_INSTANCE_QUIRE = ("QueryInstanceQUIRE",)
+    QUERY_INSTANCE_SPAL = ("QueryInstanceSPAL",)
+    QUERY_INSTANCE_UNCERTAINTY = ("QueryInstanceUncertainty",)
+    QUERY_INSTANCE_RANDOM = ("QueryInstanceRandom",)
+    QUREY_EXPECTED_ERROR_REDUCTION = "QueryExpectedErrorReduction"
 
     def get_class(self):
         if self == QueryStrategyType.QUERY_INSTANCE_BMDR:
@@ -355,9 +371,11 @@ class QueryStrategyType(str, Enum):
             return QueryExpectedErrorReductionHolder
 
     def only_binary_classification(self):
-        return self == QueryStrategyType.QUERY_INSTANCE_BMDR or \
-               self == QueryStrategyType.QUERY_INSTANCE_LAL or \
-               self == QueryStrategyType.QUERY_INSTANCE_SPAL
+        return (
+            self == QueryStrategyType.QUERY_INSTANCE_BMDR
+            or self == QueryStrategyType.QUERY_INSTANCE_LAL
+            or self == QueryStrategyType.QUERY_INSTANCE_SPAL
+        )
 
     # returns all config options for this query strategy
     def get_config_schema(self) -> Type[BaseModel]:
