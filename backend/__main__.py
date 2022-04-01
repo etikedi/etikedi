@@ -13,7 +13,7 @@ def create_dummy_users():
         fullname="Ernst Haft",
         email="ernsthaft@example.com",
         password=get_password_hash("adminadmin"),
-        roles="admin"
+        roles="admin",
     )
     db.add(admin)
 
@@ -47,6 +47,9 @@ if __name__ == "__main__":
         import_test_datasets()
         db.commit()
 
+    import_test_datasets()
+    db.commit()
+
     log_config = {
         "version": 1,
         "disable_existing_loggers": False,
@@ -55,7 +58,6 @@ if __name__ == "__main__":
                 "()": "uvicorn.logging.DefaultFormatter",
                 "fmt": "%(levelprefix)s %(asctime)s %(message)s",
                 "datefmt": "%Y-%m-%d %H:%M:%S",
-
             },
         },
         "handlers": {
