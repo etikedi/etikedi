@@ -11,7 +11,6 @@
   import Card from '../../../ui/Card.svelte'
   import Input from '../../../ui/Input.svelte'
   import Button from '../../../ui/Button.svelte'
-  import { keys } from 'vega-lite'
 
   export let dataset_name = 'Unknown dataset'
   export let config
@@ -164,6 +163,19 @@
      */
     const loadMock = false
     if (loadMock && !$diagrams && !$metricData) {
+      config = {
+        BATCH_SIZE: 5,
+        exp_configs: [
+          {
+            QUERY_STRATEGY: 'QueryInstanceUncertainty',
+            AL_MODEL: 'DecisionTreeClassifier',
+          },
+          {
+            QUERY_STRATEGY: 'QueryInstanceRandom',
+            AL_MODEL: 'MLP',
+          },
+        ],
+      }
       const diag = await fetch('/data/diagrams.json')
       const diagJson = await diag.json()
       $diagrams = diagJson
@@ -184,223 +196,233 @@
   })
 </script>
 
-<div class="wrapper">
-  <Card>
-    <div class="left">
-      <div class="dataset-info">
-        <div>
-          <h4>Dataset:</h4>
-          <p>{dataset_name}</p>
-        </div>
-        {#if $metricData && $metricData['iterations']}
+{#if $metricData && $diagrams && config}
+  <div class="wrapper">
+    <Card>
+      <div class="left">
+        <div class="dataset-info">
           <div>
-            <h4>AL Cycle:</h4>
-            <p>{currentIteration}/{$metricData['iterations'].length}</p>
+            <h4>Dataset:</h4>
+            <p>{dataset_name}</p>
           </div>
-        {/if}
-        <div>
-          <h4>Batch size:</h4>
-          <p>{config['BATCH_SIZE']}</p>
-        </div>
-      </div>
-      <div class="metrics">
-        <table>
-          <tr>
-            <th />
-            <th>
-              <div class="heading">
-                {config['exp_configs'][0]['QUERY_STRATEGY']}
-              </div>
-            </th>
-            <th>
-              <div class="heading">
-                {config['exp_configs'][1]['QUERY_STRATEGY']}
-              </div>
-            </th>
-          </tr>
-
-          {#if metrics.length > 1}
-            {#each Object.keys(metrics[0]) as key}
-              <tr>
-                <td style="font-weight: bold;">{key}</td>
-                <td style="padding: 5px 10px; text-align: center">
-                  {typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}
-                </td>
-                <td style="padding: 5px 10px; text-align: center">
-                  {typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}
-                </td>
-              </tr>
-            {/each}
-          {/if}
-        </table>
-      </div>
-      <div class="info">
-        {#each Object.entries(sample_info) as info}
-          <div class="row">
-            <span style="font-weight: bold">{info[0]}</span>
-            <span>{info[1]}</span>
-          </div>
-        {/each}
-      </div>
-    </div>
-  </Card>
-  <Card>
-    <div class="right">
-      <div class="battle">
-        <div class="process">
-          <div class="process-info">
-            <h2>{config['exp_configs'][0]['QUERY_STRATEGY']}</h2>
-            <span><b>AL Model: </b>{config['exp_configs'][0]['AL_MODEL']}</span>
-          </div>
-          <hr />
-          <div class="sample">
-            {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
-              <div class="data">
-                {#if sampleIndexes.process1 > 0}
-                  <ion-icon
-                    name="arrow-back-circle-outline"
-                    on:click={() => {
-                      sampleIndexes.process1 = sampleIndexes.process1 - 1
-                      getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
-                          sampleIndexes.process1
-                        ],
-                        1
-                      )
-                    }}
-                  />
-                {/if}
-                <div>
-                  <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
-                </div>
-                {#if sampleIndexes.process1 < $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'].length}
-                  <ion-icon
-                    name="arrow-forward-circle-outline"
-                    on:click={() => {
-                      sampleIndexes.process1 = sampleIndexes.process1 + 1
-                      getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
-                          sampleIndexes.process1
-                        ],
-                        1
-                      )
-                    }}
-                  />
-                {/if}
-              </div>
-              <span>Sample ID: {sample_1.id}</span>
-            {:else if sample_1}
-              <p>Unsupported type {sample_1.type}</p>
-            {:else}
-              <Moon size="30" color="#002557" unit="px" duration="1s" />
-            {/if}
-          </div>
-          <hr />
-          <div class="diagrams">
-            <div class="diagram" bind:this={dia_elements_one[0]} />
-            <div class="diagram" bind:this={dia_elements_one[1]} />
-            <div class="diagram" bind:this={dia_elements_one[2]} />
-            <div class="diagram" bind:this={dia_elements_one[3]} />
-          </div>
-        </div>
-        <div class="process">
-          <div class="process-info">
-            <h2>{config['exp_configs'][1]['QUERY_STRATEGY']}</h2>
-            <span><b>AL Model: </b>{config['exp_configs'][1]['AL_MODEL']}</span>
-          </div>
-          <hr />
-          <div class="sample">
-            {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
-              <div class="data">
-                {#if sampleIndexes.process2 > 0}
-                  <ion-icon
-                    name="arrow-back-circle-outline"
-                    on:click={() => {
-                      sampleIndexes.process2 = sampleIndexes.process2 - 1
-                      getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
-                          sampleIndexes.process2
-                        ],
-                        2
-                      )
-                    }}
-                  />
-                {/if}
-                <div>
-                  <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
-                </div>
-                {#if sampleIndexes.process2 < $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'].length}
-                  <ion-icon
-                    name="arrow-forward-circle-outline"
-                    on:click={() => {
-                      sampleIndexes.process2 = sampleIndexes.process2 + 1
-                      getSampleFromId(
-                        $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
-                          sampleIndexes.process2
-                        ],
-                        2
-                      )
-                    }}
-                  />
-                {/if}
-              </div>
-              <span>Sample ID: {sample_2.id}</span>
-            {:else if sample_2}
-              <p>Unsupported type {sample_2.type}</p>
-            {:else}
-              <Moon size="30" color="#002557" unit="px" duration="1s" />
-            {/if}
-          </div>
-          <hr />
-          <div class="diagrams">
-            <div class="diagram" bind:this={dia_elements_two[0]} />
-            <div class="diagram" bind:this={dia_elements_two[1]} />
-            <div class="diagram" bind:this={dia_elements_two[2]} />
-            <div class="diagram" bind:this={dia_elements_two[3]} />
-          </div>
-        </div>
-      </div>
-      <hr />
-      <div class="accuracy">
-        <div bind:this={acc_element} />
-        <div class="iterations" bind:this={sliderDiv}>
           {#if $metricData && $metricData['iterations']}
-            <Slider
-              bind:value={sliderValue}
-              on:click={() => {
-                if (sliderValue !== currentIteration) currentIteration = sliderValue
-              }}
-              min={1}
-              max={$metricData['iterations'].length}
-              step={stepSize}
-              discrete
-              tickMarks
-              input$aria-label="Tick slider"
-            />
-            <div class="iteration-input">
-              <Input
-                label="Iteration"
-                bind:value={inputValue}
-                type="number"
-                min="1"
-                max={$metricData['iterations'].length}
-              />
-              <ion-icon
-                name="checkmark-circle-outline"
-                style="width: 100%; height: 100%; cursor: pointer;"
-                on:click={() => {
-                  if (inputValue > $metricData['iterations'].length) inputValue = $metricData['iterations'].length
-                  if (inputValue < 1) inputValue = 1
-                  if (inputValue !== currentIteration) currentIteration = inputValue
-                }}
-              />
+            <div>
+              <h4>AL Cycle:</h4>
+              <p>{currentIteration}/{$metricData['iterations'].length}</p>
             </div>
           {/if}
+          <div>
+            <h4>Batch size:</h4>
+            <p>{config['BATCH_SIZE']}</p>
+          </div>
+        </div>
+        <div class="metrics">
+          <table>
+            <tr>
+              <th />
+              <th>
+                <div class="heading">
+                  {config['exp_configs'][0]['QUERY_STRATEGY']}
+                </div>
+              </th>
+              <th>
+                <div class="heading">
+                  {config['exp_configs'][1]['QUERY_STRATEGY']}
+                </div>
+              </th>
+            </tr>
+
+            {#if metrics.length > 1}
+              {#each Object.keys(metrics[0]) as key}
+                <tr>
+                  <td style="font-weight: bold;">{key}</td>
+                  <td style="padding: 5px 10px; text-align: center">
+                    {typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}
+                  </td>
+                  <td style="padding: 5px 10px; text-align: center">
+                    {typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}
+                  </td>
+                </tr>
+              {/each}
+            {/if}
+          </table>
+        </div>
+        <div class="info">
+          {#each Object.entries(sample_info) as info}
+            <div class="row">
+              <span style="font-weight: bold">{info[0]}</span>
+              <span>{info[1]}</span>
+            </div>
+          {/each}
         </div>
       </div>
-    </div>
-  </Card>
-</div>
+    </Card>
+    <Card>
+      <div class="right">
+        <div class="battle">
+          <div class="process">
+            <div class="process-info">
+              <h2>{config['exp_configs'][0]['QUERY_STRATEGY']}</h2>
+              <span><b>AL Model: </b>{config['exp_configs'][0]['AL_MODEL']}</span>
+            </div>
+            <hr />
+            <div class="sample">
+              <div class="sample-navigation">
+                <div>
+                  {#if sampleIndexes.process1 > 0}
+                    <ion-icon
+                      name="arrow-back-circle-outline"
+                      on:click={() => {
+                        sampleIndexes.process1 = sampleIndexes.process1 - 1
+                        getSampleFromId(
+                          $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
+                            sampleIndexes.process1
+                          ],
+                          1
+                        )
+                      }}
+                    />
+                  {/if}
+                </div>
+                <div>
+                  {#if sampleIndexes.process1 < $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'].length - 1}
+                    <ion-icon
+                      name="arrow-forward-circle-outline"
+                      on:click={() => {
+                        sampleIndexes.process1 = sampleIndexes.process1 + 1
+                        getSampleFromId(
+                          $metricData['iterations'][currentIteration - 1][0]['meta']['sample_ids'][
+                            sampleIndexes.process1
+                          ],
+                          1
+                        )
+                      }}
+                    />
+                  {/if}
+                </div>
+              </div>
+              {#if sample_1 && Object.keys(mappings).includes(sample_1.type)}
+                <div class="data">
+                  <svelte:component this={mappings[sample_1.type]} data={sample_1.content} />
+                </div>
+                <span>Sample ID: {sample_1.id}</span>
+              {:else if sample_1}
+                <p>Unsupported type {sample_1.type}</p>
+              {:else}
+                <Moon size="30" color="#002557" unit="px" duration="1s" />
+              {/if}
+            </div>
+            <hr />
+            <div class="diagrams">
+              <div class="diagram" bind:this={dia_elements_one[0]} />
+              <div class="diagram" bind:this={dia_elements_one[1]} />
+              <div class="diagram" bind:this={dia_elements_one[2]} />
+              <div class="diagram" bind:this={dia_elements_one[3]} />
+            </div>
+          </div>
+          <div class="process">
+            <div class="process-info">
+              <h2>{config['exp_configs'][1]['QUERY_STRATEGY']}</h2>
+              <span><b>AL Model: </b>{config['exp_configs'][1]['AL_MODEL']}</span>
+            </div>
+            <hr />
+            <div class="sample">
+              <div class="sample-navigation">
+                <div>
+                  {#if sampleIndexes.process2 > 0}
+                    <ion-icon
+                      name="arrow-back-circle-outline"
+                      on:click={() => {
+                        sampleIndexes.process2 = sampleIndexes.process2 - 1
+                        getSampleFromId(
+                          $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
+                            sampleIndexes.process2
+                          ],
+                          2
+                        )
+                      }}
+                    />
+                  {/if}
+                </div>
+                <div>
+                  {#if sampleIndexes.process2 < $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'].length - 1}
+                    <ion-icon
+                      name="arrow-forward-circle-outline"
+                      on:click={() => {
+                        sampleIndexes.process2 = sampleIndexes.process2 + 1
+                        getSampleFromId(
+                          $metricData['iterations'][currentIteration - 1][1]['meta']['sample_ids'][
+                            sampleIndexes.process2
+                          ],
+                          2
+                        )
+                      }}
+                    />
+                  {/if}
+                </div>
+              </div>
+              {#if sample_2 && Object.keys(mappings).includes(sample_2.type)}
+                <div class="data">
+                  <svelte:component this={mappings[sample_2.type]} data={sample_2.content} />
+                </div>
+                <span>Sample ID: {sample_2.id}</span>
+              {:else if sample_2}
+                <p>Unsupported type {sample_2.type}</p>
+              {:else}
+                <Moon size="30" color="#002557" unit="px" duration="1s" />
+              {/if}
+            </div>
+            <hr />
+            <div class="diagrams">
+              <div class="diagram" bind:this={dia_elements_two[0]} />
+              <div class="diagram" bind:this={dia_elements_two[1]} />
+              <div class="diagram" bind:this={dia_elements_two[2]} />
+              <div class="diagram" bind:this={dia_elements_two[3]} />
+            </div>
+          </div>
+        </div>
+        <hr />
+        <div class="accuracy">
+          <div bind:this={acc_element} />
+          <div class="iterations" bind:this={sliderDiv}>
+            {#if $metricData && $metricData['iterations']}
+              <Slider
+                bind:value={sliderValue}
+                on:click={() => {
+                  if (sliderValue !== currentIteration) currentIteration = sliderValue
+                }}
+                min={1}
+                max={$metricData['iterations'].length}
+                step={stepSize}
+                discrete
+                tickMarks
+                input$aria-label="Tick slider"
+              />
+              <div class="iteration-input">
+                <Input
+                  label="Iteration"
+                  bind:value={inputValue}
+                  type="number"
+                  min="1"
+                  max={$metricData['iterations'].length}
+                />
+                <ion-icon
+                  name="checkmark-circle-outline"
+                  style="width: 100%; height: 100%; cursor: pointer;"
+                  on:click={() => {
+                    if (inputValue > $metricData['iterations'].length) inputValue = $metricData['iterations'].length
+                    if (inputValue < 1) inputValue = 1
+                    if (inputValue !== currentIteration) currentIteration = inputValue
+                  }}
+                />
+              </div>
+            {/if}
+          </div>
+        </div>
+      </div>
+    </Card>
+  </div>
+{/if}
 
 <style>
   .wrapper {
@@ -449,7 +471,7 @@
   }
   .process {
     display: grid;
-    grid-template-rows: auto 4em 250px 4em 1fr;
+    grid-template-rows: auto 4em 280px 4em 1fr;
   }
 
   .process-info,
@@ -471,8 +493,10 @@
     column-gap: 5px;
   }
 
-  .data > div {
-    overflow: auto;
+  .sample-navigation {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   .vs {
@@ -564,15 +588,10 @@
     max-width: 350px;
   }
 
-  /*
-  .diagram:nth-child(even) {
-    margin: 0 2em 0 0.5em;
+  ion-icon {
+    cursor: pointer;
+    font-size: 28px;
   }
-
-  .diagram:nth-child(odd) {
-    margin: 0 0.5em 0 2em;
-  }
-  */
 
   .iteration-input {
     display: grid;
