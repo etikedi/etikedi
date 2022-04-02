@@ -10,8 +10,8 @@
   import Select from '../../../ui/Select.svelte'
 
   import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
-  import { get, save, loading as loadingConfig, ALConfig } from '../../../store/config'
-  import { BMDRConfig } from '../../../lib/al_configs'
+  import { get, save, loading as loadingConfig } from '../../../store/config'
+  import { ALConfig } from '../../../lib/config'
 
   const { id } = router.params()
 
@@ -102,19 +102,6 @@
       {/each}
       {#if !alWar}
         <Button type="submit" {loading} disabled={loading} label="Update" icon="checkmark-circle-sharp" />
-      {:else}
-        <!--
-        <h3>Query Strategy Config</h3>
-        {#each Object.entries(StrategyConfig) as [key, { type, ...props }]}
-          {#if type === 'number'}
-            <Input {type} {...props} bind:value={strategyConfig[key]} disabled={loading} label={sentenceCase(key)} />
-          {:else if Array.isArray(type)}
-            <Select label={sentenceCase(key)} bind:value={strategyConfig[key]} disabled={loading} values={type} />
-          {:else if type === 'bool'}
-            <Checkbox bind:value={strategyConfig[key]} disabled={loading} label={sentenceCase(key)} />
-          {/if}
-        {/each}
-        -->
       {/if}
     </form>
     <br />

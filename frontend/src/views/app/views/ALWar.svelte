@@ -21,8 +21,7 @@
   import Popup from '../components/Modal.svelte'
   import Card from '../../../ui/Card.svelte'
   import Select from '../../../ui/Select.svelte'
-  import { mockSendConfig } from '../../../lib/al_configs'
-  import { GeneralConfig, ProcessConfig } from '../../../store/config'
+  import { GeneralConfig, ProcessConfig } from '../../../lib/config'
 
   let showCache = false,
     showConfig = true,
@@ -103,7 +102,6 @@
     delete queryConfigs[0]['AL_MODEL']
     delete queryConfigs[1]['AL_MODEL']
 
-    // sendConf = mockSendConfig
     sendConfig = {
       ...generalConfig,
       exp_configs: [
