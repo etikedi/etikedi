@@ -19,7 +19,7 @@ def import_dataset(
     features: IO,
     content: IO,
     user: User = None,
-    ensure_incomplete=True,
+    ensure_incomplete=False,
 ) -> Tuple[Dataset, int]:
     if not user:
         try:
