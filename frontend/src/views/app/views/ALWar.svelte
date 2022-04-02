@@ -14,6 +14,7 @@
     diagrams,
     getValidStrategies,
     valid_strategies,
+    terminate_experiment,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -70,11 +71,26 @@
     strategyDefinitions[1] = JSON.parse($valid_strategies[chosenStrategies[1]])['definitions']
   }
 
-  // Existing cache
-  if (localStorage.getItem(`battle-${id}-diagrams`) && localStorage.getItem(`battle-${id}-metrics`)) showCache = true
-
   const openModal = () => {
-    open(Popup, { label: 'Do you want to terminate the battle?', button: 'Yes' })
+    open(
+      Popup,
+      { label: 'Do you want to terminate the experiment?', button: ['Yes', 'Continue with training'] },
+      {
+        closeButton: true,
+        closeOnEsc: true,
+        closeOnOuterClick: true,
+      },
+      {
+        onClose: () => {
+          if ($terminate_experiment) {
+            localStorage.removeItem(`battle-on-dataset-${id}`)
+            router.goto('/app/')
+            /** TODO: Terminate experiment backend call */
+          }
+          $terminate_experiment = false
+        },
+      }
+    )
     console.debug(open)
   }
 
@@ -281,10 +297,6 @@
         <Button
           icon="close-outline"
           on:click={() => {
-            /*
-            localStorage.removeItem(`running-battle-${id}`)
-            router.goto('/app/')
-            */
             openModal()
           }}
         />

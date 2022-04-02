@@ -41,6 +41,7 @@ export const metricData = writable<MetricsResponse>(null)
 export const finishedExperiments = writable<any>(null)
 export const loading = writable(null)
 export const valid_strategies = writable(null)
+export const terminate_experiment = writable<boolean>(false)
 
 export async function getValidStrategies(dataset_id: number | string) {
   try {
@@ -64,6 +65,7 @@ export async function startBattle(dataset_id: number | string, battle_config) {
       data: { ...battle_config },
       params: { dataset_id },
     })
+    // success = experiment_id
     localStorage.setItem(`battle-on-dataset-${dataset_id}`, success)
     return success
   } catch {
@@ -105,7 +107,6 @@ export async function getDiagrams(experiment_id: number | string) {
       method: 'get',
     })
     diagrams.set(d)
-    // localStorage.setItem(`battle-${dataset_id}-diagrams`, JSON.stringify(d))
   } finally {
     loading.set(false)
   }

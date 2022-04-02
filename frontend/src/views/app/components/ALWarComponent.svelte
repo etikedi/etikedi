@@ -182,9 +182,6 @@
       const metr = await fetch('/data/metricData.json')
       const metrJson = await metr.json()
       $metricData = metrJson
-      /*
-      $metricData = JSON.parse(localStorage.getItem(`battle-${dataset_id}-metrics`))
-      */
     }
 
     getSamples()
