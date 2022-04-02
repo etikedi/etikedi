@@ -64,3 +64,4 @@ pydevd*.log
 nodeLanguageServer/**
 nodeLanguageServer.*/**
 dist/**
+frontend/public/data/*

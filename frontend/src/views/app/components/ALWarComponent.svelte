@@ -51,7 +51,6 @@
   }
 
   $: if ($metricData && $metricData['iterations'] && currentIteration) changeIteration()
-  $: console.debug('Config:', config)
 
   async function changeIteration() {
     // Sync values

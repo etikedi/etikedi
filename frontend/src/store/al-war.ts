@@ -125,6 +125,18 @@ export async function getMetrics(experiment_id: number | string) {
   }
 }
 
+export async function terminateExperiment(experiment_id: number | string) {
+  try {
+    loading.set(true)
+    await axios({
+      url: `al-wars/${experiment_id}`,
+      method: 'delete',
+    })
+  } finally {
+    loading.set(false)
+  }
+}
+
 export async function getFinishedExperiments() {
   try {
     loading.set(true)

@@ -30,7 +30,6 @@
   $: samplesReady = samples.length !== 0
 
   $: if (ready) {
-    console.log(dataset)
     labels = dataset.labels
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },

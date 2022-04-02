@@ -15,6 +15,7 @@
     getValidStrategies,
     valid_strategies,
     terminate_experiment,
+    terminateExperiment,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -47,15 +48,13 @@
   /**
    * DEV
    */
-  $: if ($metricData) console.debug($metricData)
-  $: if ($diagrams) console.debug($diagrams)
-  $: if (processConfigs) console.debug('processConfigs', processConfigs)
+  $: if ($metricData) console.debug('metrics:', $metricData)
+  $: if ($diagrams) console.debug('diagrams:', $diagrams)
 
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
 
   $: if (chosenStrategies[0]) {
-    console.debug($valid_strategies)
     strategySchemas[0] = {
       ...ProcessConfig,
       ...JSON.parse($valid_strategies[chosenStrategies[0]])['properties'],
@@ -81,17 +80,16 @@
         closeOnOuterClick: true,
       },
       {
-        onClose: () => {
+        onClose: async () => {
           if ($terminate_experiment) {
+            await terminateExperiment(experiment_id ?? localStorage.getItem(`battle-on-dataset-${id}`))
             localStorage.removeItem(`battle-on-dataset-${id}`)
             router.goto('/app/')
-            /** TODO: Terminate experiment backend call */
           }
           $terminate_experiment = false
         },
       }
     )
-    console.debug(open)
   }
 
   experiment_id = localStorage.getItem(`battle-on-dataset-${id}`)
@@ -155,7 +153,7 @@
     interval = setInterval(async () => {
       if ($isFinished === true) {
         clearInterval(interval)
-        getData(experiment_id)
+        await getData()
       } else {
         await getStatus(id, experiment_id)
         if (typeof $isFinished === 'number') {
@@ -167,7 +165,7 @@
     }, 3000)
   }
 
-  async function getData(experiment_id) {
+  async function getData() {
     try {
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
       training = false
@@ -202,15 +200,6 @@
     event.preventDefault()
     return (event.returnValue = '')
   }
-
-  /*
-  window.onpopstate = function (e) {
-    if (confirm('Do you want to terminate the training?')) {
-      console.debug("terminate")
-    }
-    return e
-  }
-  */
 
   onDestroy(() => {
     clearInterval(interval)
