@@ -1,5 +1,6 @@
 from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
 
+import random
 import time
 from multiprocessing import Process
 from multiprocessing import Queue
@@ -139,12 +140,26 @@ class ALExperimentProcess(Process):
 
         self.idx2Label = {idx: label for idx, label in enumerate(set(labels))}
 
+        # fix randomness
+        np.random.seed(self.battle_config.RANDOM_SEED)
+        random.seed(self.battle_config.RANDOM_SEED)
+        label_num = len(np.unique(labels))
+        number_of_instances = len(all_labeled_samples)
+        initially_labeled = self.battle_config.INITIALLY_LABELED
+        train_test_split = self.battle_config.TRAIN_TEST_SPLIT
+        if round((1 - train_test_split) * number_of_instances) < label_num:
+            train_test_split = (1 - label_num / number_of_instances)
+        # set initially_labeled such that at least one sample per class will be in the initially labeled training-set
+        if round((1 - train_test_split) * initially_labeled * number_of_instances) < label_num:
+            initially_labeled = (1 + label_num) / ((1 - train_test_split) * number_of_instances)
+
         train_idx, test_idx, label_idx, unlabel_idx = split(
             X=all_labeled_samples,
             y=labels.to_numpy(),
-            test_ratio=0.3,
+            test_ratio=train_test_split,
             split_count=1,
             all_class=True,
+            initial_label_rate=initially_labeled,
             saving_path=None)
         train_idx = train_idx[0]
         test_idx = test_idx[0]

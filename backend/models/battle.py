@@ -13,7 +13,6 @@ from pydantic import (
     ValidationError, Field, root_validator
 )
 
-from .battleTypes import MetricsDFKeys
 from .al_model import (
     QueryStrategyType,
     QueryInstanceBMDRHolder,
@@ -28,6 +27,7 @@ from .al_model import (
     ALModel,
     StoppingCriteriaOption
 )
+from .battleTypes import MetricsDFKeys
 
 ZeroToOne = constrained_float(ge=0, le=1)
 
@@ -71,6 +71,10 @@ class ALBattleConfig(BaseModel):
     STOPPING_CRITERIA_VALUE: Union[None, float, int] = None
     STOPPING_CRITERIA: StoppingCriteriaOption = StoppingCriteriaOption.ALL_LABELED
     BATCH_SIZE: PositiveInt = 5  # number of samples suggested per request
+    RANDOM_SEED: int = 42  # seed for generating train-test-split
+    TRAIN_TEST_SPLIT: ZeroToOne = 0.3
+    # percentage of trainings-set or exactly one sample per class
+    INITIALLY_LABELED: ZeroToOne = 0.05
     PLOT_CONFIG: BattlePlotConfig = BattlePlotConfig()
 
     @validator('STOPPING_CRITERIA')
