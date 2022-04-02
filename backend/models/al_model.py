@@ -26,8 +26,8 @@ from sklearn.neural_network import MLPClassifier
 
 
 class QKernel(str, Enum):
-    linear = ("linear",)
-    poly = ("poly",)
+    linear = "linear"
+    poly = "poly"
     rbf = "rbf"
 
 
@@ -44,7 +44,7 @@ class QLALMode(str, Enum):
 
 
 class QMetric(str, Enum):
-    EUCLIDEAN = ("euclidean",)
+    EUCLIDEAN = "euclidean"
     L2 = "l2"
     L1 = "l1"
     MANHATTAN = "manhattan"
@@ -101,7 +101,7 @@ class ALModel(str, Enum):
         elif self == ALModel.SVC:
             return SVC
         elif self == ALModel.MLP:
-            return MLP
+            return MLPClassifier
 
 
 class StoppingCriteriaOption(str, Enum):

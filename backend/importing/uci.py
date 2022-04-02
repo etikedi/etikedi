@@ -37,7 +37,7 @@ def import_uci(uci_dataset_name: str, data_path: Path):
     extracted_uci_datasets = uci_path / "extracted"
     extracted_uci_datasets.mkdir(parents=True, exist_ok=True)
 
-    if not extracted_uci_datasets.exists():
+    if not any(extracted_uci_datasets.iterdir()):  # only if the directory is empty
         # extract uci zip file
         uci_zip_handle = ZipFile(uci_datasets_zip)
 
