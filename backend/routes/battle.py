@@ -3,7 +3,7 @@ from typing import List, Dict
 from fastapi import APIRouter, HTTPException, status
 
 from ..battle_mode import FinishedExperimentManager, ExperimentManager, plotting, Persistence, ExperimentMetaPersistence
-from ..config import db
+from ..config import db, logger
 from ..models import (
     Dataset,
     ALBattleConfig,
@@ -21,6 +21,7 @@ battle_router = APIRouter()
 
 @battle_router.get("/valid_strategies/{dataset_id}", response_model=ValidStrategiesReturnSchema)
 async def valid_strategies(dataset_id: int):
+    "Return all al-strategies and their configuration options that are applicable for this dataset."
     number_of_labels = db.query(Label).filter(Label.dataset_id == dataset_id).distinct(Label.name).count()
     valid: List[QueryStrategyType] = list(
         filter(lambda strategy: number_of_labels == 2 or not strategy.only_binary_classification(), QueryStrategyType))
@@ -31,7 +32,7 @@ async def valid_strategies(dataset_id: int):
 
 @battle_router.post("/start")
 async def start_battle(battle_config: ALBattleConfig, dataset_id: int):
-    """Return if training started successfully."""
+    """Return the generated experiment-id."""
     _assert_dataset_exists(dataset_id)
     # start process
     try:
@@ -45,9 +46,9 @@ async def start_battle(battle_config: ALBattleConfig, dataset_id: int):
 async def is_finish(experiment_id: int):
     """ If an experiment started returns the last measured training-iteration-time
     @return
-                -1 if both are finished
-                -2 if no (new) data is available
-                time in seconds if at least one has finished one iteration
+         0 if the experiments are still in setup.
+         1 if at least one is still training, additionally returns a time in seconds.
+         2 if both are successfully completed.
                 """
     if ExperimentManager.has_finished_manager(experiment_id):
         return Status(code=Status.Code.COMPLETED)
@@ -55,10 +56,25 @@ async def is_finish(experiment_id: int):
     return ExperimentManager.get_active_manager(experiment_id).get_status()
 
 
+@battle_router.delete("/{experiment_id}")
+async def terminate(experiment_id: int):
+    """ Terminate an active experiment or remove a finished one.
+        This will not affect the persistence of experiments.
+    """
+    if ExperimentManager.has_active_manager(experiment_id):
+        ExperimentManager.get_active_manager(experiment_id).terminate()
+    elif ExperimentManager.has_finished_manager(experiment_id):
+        ExperimentManager.remove_finished(experiment_id)
+    else:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="No manager for this experiment ID")
+
+
 @battle_router.get("/{experiment_id}/diagrams", response_model=ChartReturnSchema)
 async def get_diagrams(experiment_id: int):
     """Return all diagrams."""
     _assert_completed(experiment_id)
+    logger.info("Requesting diagrams for experiment: " + str(experiment_id))
     manager = ExperimentManager.get_or_create_finished_manager(experiment_id)
     # create diagrams
 
@@ -94,14 +110,19 @@ async def get_metrics(experiment_id: int):
 
 @battle_router.get("/persisted", response_model=Dict[int, ExperimentMetaPersistence])
 async def get_persisted():
+    """Return meta-information about all experiments that are stored and can be loaded."""
     return Persistence.persisted_experiments
 
 
 @battle_router.get("/persisted/{experiment_id}")
 async def load_persisted(experiment_id: int):
+    """ Load the results of a persisted experiment, in order to generate diagrams and metrics.
+    @return the meta information about this experiment.
+     """
     _assert_experiment_persisted(experiment_id)
     manager: FinishedExperimentManager = Persistence.load_finished_experiments(experiment_id)
     ExperimentManager.set_finished_manager(manager)
+    return Persistence.persisted_experiments[experiment_id]
 
 
 @battle_router.post("/persisted/{experiment_id}")

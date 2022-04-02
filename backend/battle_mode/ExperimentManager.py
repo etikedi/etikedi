@@ -60,6 +60,12 @@ class ExperimentManager:
             ExperimentManager._manager[experiment_id]._create_finished_manager()
         return ExperimentManager._finished_manager[experiment_id]
 
+    @staticmethod
+    def remove_finished(experiment_id: int):
+        if experiment_id not in ExperimentManager._finished_manager:
+            return
+        del ExperimentManager._finished_manager[experiment_id]
+
     def __init__(self, dataset_id: int, battle_config: ALBattleConfig):
         self.dataset_id: int = dataset_id
         validate_else_throw(dataset_id, battle_config)
@@ -204,15 +210,16 @@ class ExperimentManager:
 
     def terminate(self):
         logger.info(f"Terminating experiment with ID: {getattr(self, 'experiment_id', 'Unknown')}")
-        if not hasattr(self, 'finished_flags') or hasattr(self, 'experiments'):
-            return
-        for exp_ind, finished in enumerate(self.finished_flags):
-            if not finished:
-                self.experiments[exp_ind].kill()
+        if hasattr(self, 'finished_flags') and hasattr(self, 'experiments'):
+            for exp_ind, finished in enumerate(self.finished_flags):
+                if not finished:
+                    self.experiments[exp_ind].kill()
         if not hasattr(self, 'queues'):
             return
         for q in self.queues:
             q.close()
+        if hasattr(self, 'experiment_id') and self.experiment_id in ExperimentManager._manager:
+            del ExperimentManager._manager[self.experiment_id]
 
     def __del__(self):
         self.terminate()
