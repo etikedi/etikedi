@@ -68,12 +68,7 @@ def delete_dataset(
             detail="You do not have the authorization to delete a dataset!"
         )
 
-    dataset = db.query(Dataset).get(dataset_id)
-    if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found for id: {}.".format(dataset_id)
-        )
+    dataset = get_dataset_or_throw(dataset_id)
 
     db.delete(dataset)
     db.commit()
@@ -82,12 +77,7 @@ def delete_dataset(
 
 @dataset_router.get("/{dataset_id}/first_sample", response_model=SampleDTO)
 def get_first_sample(dataset_id: int, user: User = Depends(get_current_active_user)):
-    dataset = db.query(Dataset).get(dataset_id)
-    if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found for id: {}.".format(dataset_id)
-        )
+    dataset = get_dataset_or_throw(dataset_id)
 
     worker = manager.get_or_else_load(dataset)
     first_sample_id = worker.get_next_sample_id()
@@ -139,13 +129,7 @@ def get_filtered_samples(
     # return only current associations, if changed code needs to be adapted
     only_current_associations = True
 
-    dataset = db.query(Dataset).filter(Dataset.id == dataset_id)
-
-    if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found for id: {}.".format(dataset_id)
-        )
+    dataset = get_dataset_or_throw(dataset_id)
 
     query = db.query(Sample).filter(Sample.dataset_id == dataset_id)
 
@@ -274,12 +258,7 @@ def get_worker_metrics(dataset_id: int, user=Depends(get_current_active_user)):
 
     The ith-entry in every list represents the value of this metric for the ith-run of the active learning worker.
     """
-    dataset = db.query(Dataset).filter(Dataset.id == dataset_id).first()
-    if not dataset:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dataset not found for id: {}.".format(dataset_id)
-        )
+    dataset = get_dataset_or_throw(dataset_id)
 
     worker = manager.get(dataset)
     if not worker:
@@ -289,3 +268,20 @@ def get_worker_metrics(dataset_id: int, user=Depends(get_current_active_user)):
         )
 
     return worker.metrics
+
+
+@dataset_router.get('/{dataset_id}/features', response_model=List[str])
+def get_dataset_features(dataset_id: int):
+    """Return all feature names for this dataset."""
+    dataset = get_dataset_or_throw(dataset_id)
+    return dataset.feature_names.split(',')
+
+
+def get_dataset_or_throw(dataset_id: int) -> Dataset:
+    dataset = db.query(Dataset).get(dataset_id)
+    if not dataset:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Dataset not found for id: {}.".format(dataset_id)
+        )
+    return dataset
