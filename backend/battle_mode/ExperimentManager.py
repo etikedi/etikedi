@@ -8,7 +8,7 @@ import pandas as pd
 from sklearn.decomposition import PCA
 
 from .additional_experiment_validation import validate_else_throw
-from .experiment import ALExperimentProcess, MetricsDFKeys, EventType, ExperimentResults
+from .experiment import ALExperimentProcess, ExperimentResults
 from ..config import db, logger
 from ..models import (
     ALBattleConfig,
@@ -18,6 +18,8 @@ from ..models import (
     Sample,
     MetricIteration,
     MetricScoresIteration,
+    MetricsDFKeys,
+    ExperimentQueueEventType,
     ClassificationBoundariesDTO,
     DataMapsDTO)
 from ..utils import ValidationError, zip_unequal
@@ -197,11 +199,11 @@ class ExperimentManager:
         queue = self.queues[exp_idx]
         while not queue.empty():
             event = queue.get_nowait()
-            if event['Type'] == EventType.INFO:
+            if event['Type'] == ExperimentQueueEventType.INFO:
                 last_time = event['Value']
-            elif event['Type'] == EventType.SETUP_COMPLETED:
+            elif event['Type'] == ExperimentQueueEventType.SETUP_COMPLETED:
                 self.setup_completed_flags[exp_idx] = True
-            elif event['Type'] == EventType.RESULT:
+            elif event['Type'] == ExperimentQueueEventType.RESULT:
                 self.results[exp_idx] = event['Value']
                 self.experiments[exp_idx].join()
                 self.finished_flags[exp_idx] = True
@@ -274,7 +276,7 @@ class FinishedExperimentManager:
             # use the last 10 iterations as input
             first_iteration = max(0, iteration - 10)
             # include current iteration
-            reduced_frame = raw_predictions.iloc[first_iteration:(iteration+1), :]
+            reduced_frame = raw_predictions.iloc[first_iteration:(iteration + 1), :]
             data = []
             for smpl in reduced_frame.columns:
                 confidence = reduced_frame[smpl].map(lambda x: max(x)).mean()
@@ -373,7 +375,10 @@ class FinishedExperimentManager:
             iteration_list = [for_each_iteration(row, result.classes) for _, row in result.cb_predictions.iterrows()]
             return iteration_list
 
-        return ClassificationBoundariesDTO(reduced_features, gen(0), gen(1))
+        return ClassificationBoundariesDTO(
+            reduced_features=reduced_features,
+            exp_one_iterations=gen(0),
+            exp_two_iterations=gen(1))
 
     def get_metrics(self) -> Metric:
         if self.metric is not None:

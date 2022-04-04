@@ -11,29 +11,24 @@ Content-Type: application/json
         "query_type": "QueryInstanceUncertainty",
         "measure": "least_confident"
       },
-      "AL_MODEL": "RandomForestClassifier"
+      "AL_MODEL": "DecisionTreeClassifier"
     },
     {
       "QUERY_STRATEGY": "QueryInstanceRandom",
       "QUERY_STRATEGY_CONFIG": {
         "query_type": "QueryInstanceRandom"
       },
-      "AL_MODEL": "RandomForestClassifier"
+      "AL_MODEL": "DecisionTreeClassifier"
     }
   ],
-  "STOPPING_CRITERIA_VALUE": 0.9,
-  "STOPPING_CRITERIA": "percent_of_unlabel",
+  "STOPPING_CRITERIA": "all_labeled",
   "BATCH_SIZE": 10,
   "PLOT_CONFIG": {
-    "FEATURES": [
-      "shall",
-      "man"
-    ]
   }
 }
 
 ### check status
-GET http://localhost:8000/al-wars/0/status
+GET http://localhost:8000/al-wars/4/status
 accept: application/json
 
 ### get diagrams
@@ -47,7 +42,7 @@ accept: application/json
 # curl -X 'GET'
 #  'http://localhost:8000/3/al-wars/get_metrics'
 #  -H 'accept: application/json'
-GET http://localhost:8000/al-wars/3/metrics/
+GET http://localhost:8000/al-wars/0/metrics/
 accept: application/json
 
 ### get strategies
@@ -56,8 +51,14 @@ accept: application/json
 #  -H 'accept: application/json'
 GET http://localhost:8000/al-wars/valid_strategies/0
 accept: application/json
+accept: application/json
+
+### load persisted
+GET http://localhost:8000/al-wars/persisted/0
+accept: application/json
 
 ###
+
 
 
 

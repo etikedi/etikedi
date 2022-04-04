@@ -21,12 +21,12 @@ from ..models import (
     AlExperimentConfig,
     QueryStrategyAbstraction,
     MetaData,
-    MetricsDFKeys,
-    EventType,
-    MapKeys,
     ExperimentResults,
     Dataset,
-    StoppingCriteriaOption)
+    StoppingCriteriaOption,
+    MetricsDFKeys,
+    StateIOValueKeys,
+    ExperimentQueueEventType)
 from ..utils import timeit
 
 
@@ -199,9 +199,9 @@ class ALExperimentProcess(Process):
     def run(self, verbose=0):
         # initial training
         self._setup()
-        self.queue.put({'Type': EventType.SETUP_COMPLETED, 'Value': True}, False)
+        self.queue.put({'Type': ExperimentQueueEventType.SETUP_COMPLETED, 'Value': True}, False)
         self._train(verbose)
-        self.queue.put({'Type': EventType.RESULT, 'Value': self.get_result()}, False)
+        self.queue.put({'Type': ExperimentQueueEventType.RESULT, 'Value': self.get_result()}, False)
         print(f"[{self.exp_id}] Process finished ")
 
     def _train(self, verbose):
@@ -236,15 +236,15 @@ class ALExperimentProcess(Process):
             diff_time = stop - start
             estimation = self.rte.remaining_time(diff_time)
             if iteration > 2:  # estimation not precise enough
-                self.queue.put({'Type': EventType.INFO, 'Value': estimation}, False)
+                self.queue.put({'Type': ExperimentQueueEventType.INFO, 'Value': estimation}, False)
                 if verbose > 0:
                     print(f"[{self.exp_id}] estimation: {estimation}")
             pred_proba = self.model.predict_proba(self.X_test)
             y_pred = _predicted_class(self.model, pred_proba)
             perf = accuracy_score(y_true=self.y_test.to_list(), y_pred=y_pred)
             state = State(select_index=selected_ind_list, performance=perf)
-            state.add_element(key=MapKeys.TIME, value=round(diff_time * 1e-9, 4))
-            state.add_element(key=MapKeys.PERC_LABELED,
+            state.add_element(key=StateIOValueKeys.TIME, value=round(diff_time * 1e-9, 4))
+            state.add_element(key=StateIOValueKeys.PERC_LABELED,
                               value=len(self.label_ind) / (len(self.unlab_ind) + len(self.label_ind)))
             self.state_saver.add_state(state)
             if verbose > 0:
@@ -336,7 +336,7 @@ class ALExperimentProcess(Process):
         selected_idx_until_now = initial  # only kept for !labeled
         avg_dist: List[float] = []
         for _, state in enumerate(self.state_saver):
-            selected_idx = state.get_value(MapKeys.SAMPLES)  # list of indices
+            selected_idx = state.get_value(StateIOValueKeys.SAMPLES)  # list of indices
             # same shape as selected_until_now
             selected = self.all_training_samples.iloc[selected_idx, :].to_numpy()
             if len(selected.shape) == 1:
@@ -362,9 +362,9 @@ class ALExperimentProcess(Process):
         state_data = []
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
-            selected_samples = [self.idx2IDTrain[i] for i in state.get_value(MapKeys.SAMPLES)]
-            metric_dp: MetaData = MetaData(time=state.get_value(MapKeys.TIME),
-                                           percentage_labeled=state.get_value(MapKeys.PERC_LABELED),
+            selected_samples = [self.idx2IDTrain[i] for i in state.get_value(StateIOValueKeys.SAMPLES)]
+            metric_dp: MetaData = MetaData(time=state.get_value(StateIOValueKeys.TIME),
+                                           percentage_labeled=state.get_value(StateIOValueKeys.PERC_LABELED),
                                            sample_ids=selected_samples)
             state_data.append(metric_dp)
         return state_data

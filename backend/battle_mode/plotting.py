@@ -4,7 +4,7 @@ import altair as alt
 import numpy as np
 import pandas as pd
 
-from ..models import DataMapsDTO, ClassificationBoundariesDTO
+from ..models import ClassificationBoundariesDTO, DataMapsDTO
 from ..utils import timeit
 
 

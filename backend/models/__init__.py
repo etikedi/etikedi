@@ -7,4 +7,3 @@ from .user import *
 from .labeling_function import *
 from .al_model import *
 from .battle import *
-from .battleTypes import *

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from .ExperimentManager import FinishedExperimentManager, ExperimentManager
 from ..config import logger
 from ..importing import DATA_PATH
-from ..models import ALBattleConfig, MetaData, MetricsDFKeys, ExperimentResults
+from ..models import ALBattleConfig, MetaData, ExperimentResults,MetricsDFKeys
 
 
 class ExperimentMetaPersistence(BaseModel):
