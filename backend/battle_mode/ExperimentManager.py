@@ -18,7 +18,8 @@ from ..models import (
     Sample,
     MetricIteration,
     MetricScoresIteration,
-    ClassificationBoundariesDTO)
+    ClassificationBoundariesDTO,
+    DataMapsDTO)
 from ..utils import ValidationError, zip_unequal
 
 
@@ -267,23 +268,31 @@ class FinishedExperimentManager:
 
         return gen(0), gen(1)
 
-    def get_data_map_data(self):
+    def get_data_map_data(self) -> DataMapsDTO:
 
-        def gen(exp_idx: int):
-            r = self.results[exp_idx]
-            raw_predicts = r.raw_predictions
+        def for_each_iteration(iteration: int, raw_predictions: pd.DataFrame, correct_label_as_idx):
+            # use the last 10 iterations as input
+            first_iteration = max(0, iteration - 10)
+            # include current iteration
+            reduced_frame = raw_predictions.iloc[first_iteration:(iteration+1), :]
             data = []
-            for smpl in raw_predicts.columns:
-                confidence = raw_predicts[smpl].map(lambda x: max(x)).mean()
-                variance = raw_predicts[smpl].map(lambda x: x.index(max(x))).var()
-                correctness = raw_predicts[smpl].map(lambda x: x.index(max(x)) == r.correct_label_as_idx[smpl]).mean()
+            for smpl in reduced_frame.columns:
+                confidence = reduced_frame[smpl].map(lambda x: max(x)).mean()
+                variance = reduced_frame[smpl].map(lambda x: x.index(max(x))).var()
+                correctness = reduced_frame[smpl].map(lambda x: x.index(max(x)) == correct_label_as_idx[smpl]).mean()
                 data.append({'Confidence': confidence,
                              'Variability': variance,
                              'Correctness': correctness,
                              'SampleID': smpl})
             return pd.DataFrame(data)
 
-        return gen(0), gen(1)
+        def gen(exp_idx: int) -> List[pd.DataFrame]:
+            r = self.results[exp_idx]
+            raw_predictions: pd.DataFrame = r.raw_predictions
+            return [for_each_iteration(iteration, raw_predictions, r.correct_label_as_idx)
+                    for iteration in raw_predictions.index]
+
+        return DataMapsDTO(exp_one_data=gen(0), exp_two_data=gen(1))
 
     def _use_pca_for_feature_selection(self):
         dataset = db.get(Dataset, self.dataset_id)

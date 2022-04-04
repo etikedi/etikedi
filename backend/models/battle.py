@@ -147,7 +147,7 @@ class ValidStrategiesReturnSchema(BaseModel):
 class ChartReturnSchema(BaseModel):
     acc: str
     conf: Tuple[List[str], List[str]]
-    data_maps: Tuple[str, str]
+    data_maps: Tuple[List[str], List[str]]
     vector_space: Tuple[List[str], List[str]]
     classification_boundaries: Tuple[List[str], List[str]]
 

@@ -4,9 +4,11 @@ import altair as alt
 import numpy as np
 import pandas as pd
 
-from .ExperimentManager import ClassificationBoundariesDTO
+from ..models import DataMapsDTO, ClassificationBoundariesDTO
+from ..utils import timeit
 
 
+@timeit
 def learning_curve_plot(learning_data: pd.DataFrame) -> str:
     return alt.Chart(learning_data).mark_line().encode(
         alt.X('Iteration:O'),
@@ -15,6 +17,7 @@ def learning_curve_plot(learning_data: pd.DataFrame) -> str:
     ).properties(width='container').to_json()
 
 
+@timeit
 def confidence_histograms(conf_data: Tuple[List[List[float]], List[List[float]]]):
     return tuple([confidence_histogram_iteration(d) for d in conf_data])
 
@@ -31,18 +34,29 @@ def confidence_histogram_iteration(data: List[List[float]]):
     return plots
 
 
-# noinspection PyTypeChecker
-def data_maps(data_map_data: Tuple[pd.DataFrame, pd.DataFrame]) -> Tuple[str, str]:
-    return tuple([
-        alt.Chart(data).mark_circle().encode(
-            x=alt.X('Variability:Q'),
-            y=alt.Y('Confidence:Q'),
-            color='Correctness',
-            tooltip=['Variability', 'Confidence', 'SampleID']
-        ).properties(width='container').interactive().to_json()
-        for data in data_map_data])
+@timeit
+def data_maps(data_maps_data: DataMapsDTO) -> Tuple[List[str], List[str]]:
+    return ([data_maps_iteration(it_data) for it_data in data_maps_data.exp_one_data],
+            [data_maps_iteration(it_data) for it_data in data_maps_data.exp_two_data])
 
 
+def data_maps_iteration(data_map_data_iteration: pd.DataFrame) -> str:
+    """ 2D scatter plot
+    points = Samples
+    color: Percentage of correctness
+    (mean of 10 iterations)
+    X Axis: Variability
+    Y Axis: Confidence
+    """
+    return alt.Chart(data_map_data_iteration).mark_circle().encode(
+        x=alt.X('Variability:Q'),
+        y=alt.Y('Confidence:Q'),
+        color='Correctness',
+        tooltip=['Variability', 'Confidence', 'SampleID']
+    ).properties(width='container').interactive().to_json()
+
+
+@timeit
 def vector_space(vector_space_data: Tuple[List[pd.DataFrame], List[pd.DataFrame]]) -> Tuple[List[str], List[str]]:
     return [vector_space_iteration(it) for it in vector_space_data[0]], \
            [vector_space_iteration(it) for it in vector_space_data[1]]
@@ -58,6 +72,7 @@ def vector_space_iteration(iteration_data: pd.DataFrame) -> str:
     ).properties(width='container').interactive().to_json()
 
 
+@timeit
 def classification_boundaries(cb_data: ClassificationBoundariesDTO):
     def classification_boundaries_iteration(iteration_data: pd.DataFrame):
         feature_1_name, feature_2_name = cb_data.reduced_features.columns
