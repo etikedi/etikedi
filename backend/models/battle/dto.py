@@ -5,7 +5,8 @@ from typing import Optional, List, Tuple, Dict, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, ValidationError, root_validator
+from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, ValidationError, root_validator, \
+    PositiveInt
 
 from .configs import ZeroToOne
 from ..al_model import QueryStrategyType
@@ -155,6 +156,8 @@ class ClassificationBoundariesDTO(BaseModel):
     # list-entry = iteration, rows = Samples, columns = Class, Confidence
     exp_one_iterations: List[pd.DataFrame]
     exp_two_iterations: List[pd.DataFrame]
+    x_bins: PositiveInt
+    y_bins: PositiveInt
 
     class Config:
         arbitrary_types_allowed = True

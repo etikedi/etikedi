@@ -59,8 +59,15 @@ class AlExperimentConfig(BaseModel):
             raise ValueError("Config did not match strategy: " + str(e))
 
 
+class ClassificationBoundariesConfig(BaseModel):
+    NBR_OF_RANDOM_SAMPLE: PositiveInt = 100
+    MAX_X_BINS: PositiveInt = 20
+    MAX_Y_BINS: PositiveInt = 20
+
+
 class BattlePlotConfig(BaseModel):
     FEATURES: Optional[Tuple[str, str]] = None
+    CLASSIFICATION_BOUNDARIES: ClassificationBoundariesConfig = ClassificationBoundariesConfig()
 
 
 class ALBattleConfig(BaseModel):

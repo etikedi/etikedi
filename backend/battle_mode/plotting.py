@@ -77,11 +77,10 @@ def classification_boundaries(cb_data: ClassificationBoundariesDTO):
     def classification_boundaries_iteration(iteration_data: pd.DataFrame):
         feature_1_name, feature_2_name = cb_data.reduced_features.columns
         merged = pd.merge(cb_data.reduced_features, iteration_data, left_index=True, right_index=True)
-        return alt.Chart(merged).mark_point().encode(
-            x=f'{feature_1_name}:Q',
-            y=f'{feature_2_name}:Q',
+        return alt.Chart(merged).mark_rect().encode(
+            x=alt.X(f'{feature_1_name}:Q',bin=alt.Bin(maxbins=cb_data.x_bins)),
+            y=alt.Y(f'{feature_2_name}:Q',bin=alt.Bin(maxbins=cb_data.y_bins)),
             color=alt.Color('Class:O', scale=alt.Scale(scheme='tableau10')),
-            shape='Class:O',
             opacity='Confidence:Q'
         ).properties(width='container').to_json()
 

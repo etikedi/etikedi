@@ -80,7 +80,7 @@ class ExperimentManager:
         self.last_reported_time: Optional[Tuple[float, bool]] = None  # reported time, true if experiment one
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
-        self.cb_sample = self._classification_boundaries_raster(100)
+        self.cb_sample = self._classification_boundaries_raster(self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.NBR_OF_RANDOM_SAMPLE)
         self.experiments: List[ALExperimentProcess] = [
             ALExperimentProcess(i, dataset_id, self.config, self.queues[i], self.cb_sample) for i in [0, 1]]
         self.experiment_id = ExperimentManager._next_id()
@@ -378,7 +378,9 @@ class FinishedExperimentManager:
         return ClassificationBoundariesDTO(
             reduced_features=reduced_features,
             exp_one_iterations=gen(0),
-            exp_two_iterations=gen(1))
+            exp_two_iterations=gen(1),
+            x_bins=self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.MAX_X_BINS,
+            y_bins=self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.MAX_Y_BINS)
 
     def get_metrics(self) -> Metric:
         if self.metric is not None:
