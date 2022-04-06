@@ -241,10 +241,12 @@
       {#if availableFeatures && availableFeatures.length > 1}
         <h2><b>Plot</b></h2>
         <div class="multi-select">
+          <span>Features</span>
           <SvelteSelect
             bind:value={featureConfig}
             items={availableFeatures}
             isMulti={true}
+            placeholder="Default: PCA"
             on:select={handleFeatureSelect}
           />
         </div>
@@ -367,5 +369,6 @@
     --borderFocusColor: var(--clr-primary-light-alt);
     --padding: 1em;
     --multiSelectPadding: 4px 35px 4px 16px;
+    --placeholderColor: #babec2;
   }
 </style>
