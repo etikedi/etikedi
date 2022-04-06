@@ -64,3 +64,16 @@ export async function create(fd: FormData) {
     loading.set(false)
   }
 }
+
+export async function getFeatures(dataset_id: number | string) {
+  try {
+    loading.set(true)
+    const { data: d } = await axios({
+      url: `/datasets/${dataset_id}/features`,
+      method: 'get',
+    })
+    return d
+  } finally {
+    loading.set(false)
+  }
+}

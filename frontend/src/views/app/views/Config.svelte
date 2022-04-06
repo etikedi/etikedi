@@ -20,6 +20,7 @@
   export let strategySchema = null
   export let strategyDefinitions = null
   export let name
+  export let noTitle = false
 
   let spec
 
@@ -89,7 +90,9 @@
   {/if}
   <br />
   {#if dataset && config}
-    <h2><b>{name ?? dataset.name}</b> Config</h2>
+    {#if !noTitle}
+      <h2><b>{name ?? dataset.name}</b> Config</h2>
+    {/if}
     <form on:submit|preventDefault={submit}>
       {#each Object.entries(spec) as [key, { type, ...props }]}
         {#if type === 'number'}
@@ -118,7 +121,7 @@
   {:else}
     <div class="text-center">
       <div class="loading loading-lg" />
-      <p>Waiting for server</p>
+      <p>Waiting for server...</p>
     </div>
   {/if}
 </div>

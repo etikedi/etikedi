@@ -1,7 +1,7 @@
 <script lang="ts">
   import Button from '../../../ui/Button.svelte'
   import Config from './Config.svelte'
-  import { data as datasets } from '../../../store/datasets'
+  import { data as datasets, getFeatures } from '../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, getContext } from 'svelte'
   import {
@@ -23,7 +23,8 @@
   import Popup from '../components/Modal.svelte'
   import Card from '../../../ui/Card.svelte'
   import Select from '../../../ui/Select.svelte'
-  import { GeneralConfig, ProcessConfig } from '../../../lib/config'
+  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../lib/config'
+  import { default as SvelteSelect } from 'svelte-select'
 
   let showCache = false,
     showConfig = true,
@@ -36,6 +37,8 @@
     progressElement,
     chosenStrategies = [],
     generalConfig,
+    featureConfig,
+    classBoundConfig,
     processConfigs = [{}, {}],
     strategySchemas = [],
     strategyDefinitions = [],
@@ -43,7 +46,8 @@
     { close } = getContext('simple-modal'),
     { id } = router.params(),
     experiment_id = undefined,
-    sendConfig
+    sendConfig,
+    availableFeatures = []
 
   /**
    * DEV
@@ -53,6 +57,7 @@
 
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
+  $: if (dataset) getDatasetFeatures()
 
   $: if (chosenStrategies[0]) {
     strategySchemas[0] = {
@@ -105,6 +110,10 @@
   // Get valid strategies
   getValidStrategies(id)
 
+  async function getDatasetFeatures() {
+    availableFeatures = await getFeatures(id)
+  }
+
   async function start() {
     showConfig = false
     starting = true
@@ -130,6 +139,10 @@
           QUERY_STRATEGY_CONFIG: queryConfigs[1],
         },
       ],
+      PLOT_CONFIG: {
+        FEATURES: Array.isArray(featureConfig) ? featureConfig.map((feature) => feature.value) : undefined,
+        CLASSIFICATION_BOUNDARIES: classBoundConfig,
+      },
     }
 
     // For backend pydantic stuff
@@ -201,6 +214,13 @@
     return (event.returnValue = '')
   }
 
+  function handleFeatureSelect(e) {
+    if (featureConfig && featureConfig.length > 2) {
+      featureConfig.pop()
+      notifier.danger('Only two features allowed here.', 4000)
+    }
+  }
+
   onDestroy(() => {
     clearInterval(interval)
   })
@@ -224,7 +244,20 @@
 {:else}
   <div class="wrapper">
     {#if showConfig}
-      <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} name="General" />
+      <h2><b>General</b> Config</h2>
+      <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} noTitle={true} />
+      {#if availableFeatures && availableFeatures.length > 1}
+        <h2><b>Plot</b></h2>
+        <div class="multi-select">
+          <SvelteSelect
+            bind:value={featureConfig}
+            items={availableFeatures}
+            isMulti={true}
+            on:select={handleFeatureSelect}
+          />
+        </div>
+        <Config alWar strategySchema={ClassificationBoundariesConfig} bind:config={classBoundConfig} noTitle={true} />
+      {/if}
       <div class="config-wrapper">
         {#if $valid_strategies}
           <div>
@@ -237,12 +270,13 @@
             />
             {#if strategySchemas[0]}
               {#key strategySchemas[0]}
+                <h2><b>Strategy</b></h2>
                 <Config
                   bind:config={processConfigs[0]}
                   strategySchema={strategySchemas[0]}
                   strategyDefinitions={strategyDefinitions[0]}
                   alWar
-                  name="Strategy"
+                  noTitle={true}
                 />
               {/key}
             {/if}
@@ -257,12 +291,13 @@
             />
             {#if strategySchemas[1]}
               {#key strategySchemas[1]}
+                <h2><b>Strategy</b></h2>
                 <Config
                   bind:config={processConfigs[1]}
                   strategySchema={strategySchemas[1]}
                   strategyDefinitions={strategyDefinitions[1]}
                   alWar
-                  name="Strategy"
+                  noTitle={true}
                 />
               {/key}
             {/if}
@@ -330,5 +365,15 @@
     flex-direction: row;
     align-self: center;
     column-gap: 10px;
+  }
+
+  .multi-select {
+    --border: 2px solid var(--clr-primary-light);
+    --borderRadius: var(--round);
+    --placeholderColor: var(--clr-primary-light);
+    --borderHoverColor: var(--clr-primary-light-alt);
+    --borderFocusColor: var(--clr-primary-light-alt);
+    --padding: 1em;
+    --multiSelectPadding: 4px 35px 4px 16px;
   }
 </style>

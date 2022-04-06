@@ -17,6 +17,15 @@ export const GeneralConfig = {
     default: 'all_labeled',
   },
   STOPPING_CRITERIA_VALUE: { type: 'number', min: 0 },
+  RANDOM_SEED: { ...PositiveInt, default: 42 },
+  TRAIN_TEST_SPLIT: { ...ZeroToOne, default: 0.3 },
+  INITIALLY_LABELED: { ...ZeroToOne, default: 0.05 },
+}
+
+export const ClassificationBoundariesConfig = {
+  NBR_OF_RANDOM_SAMPLE: { ...PositiveInt, default: 100 },
+  MAX_X_BINS: { ...PositiveInt, default: 20 },
+  MAX_Y_BINS: { ...PositiveInt, default: 20 },
 }
 
 export const ProcessConfig = {
