@@ -99,8 +99,8 @@
     const classBound2 = JSON.parse($diagrams['classification_boundaries'][1][currentIteration - 1])
     const vector1 = JSON.parse($diagrams['vector_space'][0][currentIteration - 1])
     const vector2 = JSON.parse($diagrams['vector_space'][1][currentIteration - 1])
-    const dmap_1 = JSON.parse($diagrams['data_maps'][0])
-    const dmap_2 = JSON.parse($diagrams['data_maps'][1])
+    const dmap_1 = JSON.parse($diagrams['data_maps'][0][currentIteration - 1])
+    const dmap_2 = JSON.parse($diagrams['data_maps'][1][currentIteration - 1])
 
     vega_views['conf_1'] = await embed(dia_elements_one[0], conf_1, vega_options)
     vega_views['conf_2'] = await embed(dia_elements_two[0], conf_2, vega_options)
@@ -111,12 +111,13 @@
     vega_views['vector1'] = await embed(dia_elements_one[2], vector1, { ...vega_options, actions: true })
     vega_views['vector2'] = await embed(dia_elements_two[2], vector2, { ...vega_options, actions: true })
 
+    vega_views['dmap_1'] = await embed(dia_elements_one[3], dmap_1, { ...vega_options, actions: true })
+    vega_views['dmap_2'] = await embed(dia_elements_two[3], dmap_2, { ...vega_options, actions: true })
+
     if (!update) {
       const acc = JSON.parse($diagrams['acc'])
       getStepSize($metricData['iterations'].length)
       vega_views['acc'] = await embed(acc_element, acc, { height: 140, logLevel })
-      vega_views['dmap_1'] = await embed(dia_elements_one[3], dmap_1, { ...vega_options, actions: true })
-      vega_views['dmap_2'] = await embed(dia_elements_two[3], dmap_2, { ...vega_options, actions: true })
     }
   }
 
