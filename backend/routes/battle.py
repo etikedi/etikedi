@@ -2,7 +2,7 @@ from typing import List, Dict
 
 from fastapi import APIRouter, HTTPException, status
 
-from ..battle_mode import FinishedExperimentManager, ExperimentManager, plotting, Persistence, ExperimentMetaPersistence
+from ..battle_mode import BattleAnalyzer, BattleManager, plotting, Persistence, ExperimentMetaPersistence
 from ..config import db, logger
 from ..models import (
     Dataset,
@@ -36,7 +36,7 @@ async def start_battle(battle_config: ALBattleConfig, dataset_id: int):
     _assert_dataset_exists(dataset_id)
     # start process
     try:
-        experiment_id = ExperimentManager(dataset_id, battle_config).start()
+        experiment_id = BattleManager.create_and_start(dataset_id, battle_config)
         return experiment_id
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
@@ -50,10 +50,10 @@ async def is_finish(experiment_id: int):
          1 if at least one is still training, additionally returns a time in seconds.
          2 if both are successfully completed.
                 """
-    if ExperimentManager.has_finished_manager(experiment_id):
+    if BattleManager.has_finished_manager(experiment_id):
         return Status(code=Status.Code.COMPLETED)
-    _assert_started(experiment_id)
-    return ExperimentManager.get_active_manager(experiment_id).get_status()
+    _assert_active_manager_exists(experiment_id)
+    return BattleManager.get_active_manager(experiment_id).get_status()
 
 
 @battle_router.delete("/{experiment_id}")
@@ -61,10 +61,8 @@ async def terminate(experiment_id: int):
     """ Terminate an active experiment or remove a finished one.
         This will not affect the persistence of experiments.
     """
-    if ExperimentManager.has_active_manager(experiment_id):
-        ExperimentManager.get_active_manager(experiment_id).terminate()
-    elif ExperimentManager.has_finished_manager(experiment_id):
-        ExperimentManager.remove_finished(experiment_id)
+    if BattleManager.has_active_manager(experiment_id) or BattleManager.has_finished_manager(experiment_id):
+        BattleManager.remove_or_terminate(experiment_id)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="No manager for this experiment ID")
@@ -75,7 +73,7 @@ async def get_diagrams(experiment_id: int):
     """Return all diagrams."""
     _assert_completed(experiment_id)
     logger.info("Requesting diagrams for experiment: " + str(experiment_id))
-    manager = ExperimentManager.get_or_create_finished_manager(experiment_id)
+    manager = BattleManager.get_or_create_finished_manager(experiment_id)
     # create diagrams
 
     # learning curve: line chart x=iterations, y = accuracy
@@ -105,7 +103,7 @@ async def get_diagrams(experiment_id: int):
 async def get_metrics(experiment_id: int):
     """Return all metrics."""
     _assert_completed(experiment_id)
-    return ExperimentManager.get_or_create_finished_manager(experiment_id).get_metrics()
+    return BattleManager.get_or_create_finished_manager(experiment_id).get_metrics()
 
 
 @battle_router.get("/persisted", response_model=Dict[int, ExperimentMetaPersistence])
@@ -120,8 +118,8 @@ async def load_persisted(experiment_id: int):
     @return the meta information about this experiment.
      """
     _assert_experiment_persisted(experiment_id)
-    manager: FinishedExperimentManager = Persistence.load_finished_experiments(experiment_id)
-    ExperimentManager.set_finished_manager(manager)
+    manager: BattleAnalyzer = Persistence.load_finished_experiments(experiment_id)
+    BattleManager.set_finished_manager(manager)
     return Persistence.persisted_experiments[experiment_id]
 
 
@@ -130,7 +128,7 @@ async def store_experiment(experiment_id: int):
     _assert_completed(experiment_id)
     Persistence.store_finished_experiments(
         experiment_id,
-        ExperimentManager.get_or_create_finished_manager(experiment_id))
+        BattleManager.get_or_create_finished_manager(experiment_id))
 
 
 @battle_router.delete("/persisted/{experiment_id}")
@@ -156,28 +154,20 @@ def _assert_experiment_persisted(experiment_id: int):
 
 
 def _assert_active_manager_exists(experiment_id: int):
-    if not ExperimentManager.has_active_manager(experiment_id):
+    if not BattleManager.has_active_manager(experiment_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"No manager for ID {experiment_id}.")
 
 
 def _assert_finished_manager_exists(experiment_id: int):
-    if not ExperimentManager.has_finished_manager(experiment_id):
+    if not BattleManager.has_finished_manager(experiment_id):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"No manager for ID {experiment_id}.")
 
 
-def _assert_started(experiment_id):
-    _assert_active_manager_exists(experiment_id)
-    try:
-        ExperimentManager.get_active_manager(experiment_id).assert_started()
-    except ValidationError as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
-
-
 def _assert_completed(experiment_id):
-    if ExperimentManager.has_finished_manager(experiment_id):
+    if BattleManager.has_finished_manager(experiment_id):
         return
     _assert_active_manager_exists(experiment_id)
     try:
-        ExperimentManager.get_active_manager(experiment_id).assert_finished()
+        BattleManager.get_active_manager(experiment_id).assert_finished()
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)

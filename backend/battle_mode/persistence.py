@@ -8,7 +8,7 @@ from typing import Dict, Tuple, List
 import pandas as pd
 from pydantic import BaseModel
 
-from .ExperimentManager import FinishedExperimentManager, ExperimentManager
+from .battle_manager import BattleAnalyzer, BattleManager
 from ..config import logger
 from ..importing import DATA_PATH
 from ..models import ALBattleConfig, MetaData, ExperimentResults,MetricsDFKeys
@@ -52,8 +52,8 @@ class Persistence:
                 logger.warn(f"Directory with invalid name in experiments: {path}")
         if len(Persistence.persisted_experiments) > 0:
             highest_persisted_id = max(Persistence.persisted_experiments.keys())
-            ExperimentManager._experiment_id_counter = \
-                max(ExperimentManager._experiment_id_counter, highest_persisted_id + 1)
+            BattleManager._experiment_id_counter = \
+                max(BattleManager.get_experiment_id_counter(), highest_persisted_id + 1)
 
     @staticmethod
     def delete(experiment_id: int):
@@ -67,7 +67,7 @@ class Persistence:
         return Persistence.persisted_experiments
 
     @staticmethod
-    def store_finished_experiments(exp_id: int, finished_manager: FinishedExperimentManager):
+    def store_finished_experiments(exp_id: int, finished_manager: BattleAnalyzer):
         Persistence.data_path.mkdir(parents=True, exist_ok=True)  # ensure data_path exists
         exp_path = Persistence.data_path / str(exp_id)
         if exp_path.exists():
@@ -183,7 +183,7 @@ class Persistence:
             return meta
 
     @staticmethod
-    def load_finished_experiments(exp_id: int) -> FinishedExperimentManager:
+    def load_finished_experiments(exp_id: int) -> BattleAnalyzer:
 
         if exp_id not in Persistence.persisted_experiments:
             raise ValueError(f"Experiment for ID = {exp_id} does not exist")
@@ -193,7 +193,7 @@ class Persistence:
         cb_sample = pd.read_csv(cb_sample_path.absolute(), index_col=0)
         exp_one, exp_two = Persistence._load_experiments(exp_path)
         meta = Persistence._load_meta(exp_path)
-        return FinishedExperimentManager(
+        return BattleAnalyzer(
             experiment_id=exp_id,
             dataset_id=meta.dataset_id,
             config=meta.config,

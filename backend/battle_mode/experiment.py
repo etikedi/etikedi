@@ -30,23 +30,6 @@ from ..models import (
 from ..utils import timeit
 
 
-@timeit
-def _transform_dataset(dataset_id: int):
-    dataset: Dataset = db.get(Dataset, dataset_id)
-    feature_names: List[str] = dataset.feature_names.split(",")
-    frame = pd.DataFrame(data=
-                         [{f_name: f for (f_name, f) in
-                           zip(feature_names + ['LABEL', "DB_ID"],
-                               sample.extract_feature_list() + [sample.labels[0].name, sample.id])}
-                          for sample in dataset.samples if sample.labels != []])
-    # TODO some models / query_strategies need number based label
-    # labels = frame['LABEL'].unique()
-    # label2Int = {label: i for i, label in enumerate(labels)}
-    # frame['Label'] = frame['LABEL'].map(label2Int)
-    # int2Label: dict[int, str] = {i: label for label, i in label2Int.items()}
-    return frame
-
-
 class ALExperimentProcess(Process):
     class RemainingTimeEstimate:
         def __init__(self, criteria: StoppingCriteriaOption, experiment: ALExperimentProcess):
@@ -89,7 +72,12 @@ class ALExperimentProcess(Process):
             # not one to one what alipy is using but necessary for estimation
             self._start_time = time.perf_counter_ns()
 
-    def __init__(self, exp_id: int, dataset_id: int, battle_config: ALBattleConfig, queue: Queue,
+    def __init__(self,
+                 exp_id: int,
+                 dataset_id: int,
+                 samples_df: pd.DataFrame,
+                 battle_config: ALBattleConfig,
+                 queue: Queue,
                  cb_sample: pd.DataFrame):
         """
          The dataset is first filtered by hasLabel and split into training and test.
@@ -117,6 +105,7 @@ class ALExperimentProcess(Process):
         self.batch_size = battle_config.BATCH_SIZE
         self.dataset_id = dataset_id
         # move time intensive data operations outside __init__
+        self.samples_df: pd.DataFrame = samples_df
         self.all_training_samples = None
         self.all_training_labels = None
         self.idx2IDTrain = None
@@ -132,9 +121,8 @@ class ALExperimentProcess(Process):
 
     @timeit
     def _setup(self):
-        d_frame: pd.DataFrame = _transform_dataset(self.dataset_id)
         print(f"[{self.exp_id}] Loaded dataset")
-        labeled_set = d_frame[d_frame['LABEL'].notnull()]
+        labeled_set = self.samples_df[self.samples_df['LABEL'].notnull()]
         all_labeled_samples = labeled_set.drop(labels=['LABEL', 'DB_ID'], axis='columns')
         labels = labeled_set['LABEL']
 
@@ -172,8 +160,8 @@ class ALExperimentProcess(Process):
         adjusted_idx_map = {idx: new_idx for new_idx, idx in enumerate(train_idx)}
         self.all_training_samples.reset_index(drop=True, inplace=True)
 
-        self.idx2IDTrain = {new_idx: d_frame.iloc[idx]['DB_ID'] for new_idx, idx in enumerate(train_idx)}
-        self.idx2IDTest = {idx: d_frame.iloc[idx]['DB_ID'] for idx in test_idx}
+        self.idx2IDTrain = {new_idx: self.samples_df.iloc[idx]['DB_ID'] for new_idx, idx in enumerate(train_idx)}
+        self.idx2IDTest = {idx: self.samples_df.iloc[idx]['DB_ID'] for idx in test_idx}
 
         # initiate configurable experiment setting
         if hasattr(self.exp_config.QUERY_STRATEGY_CONFIG, 'train_idx'):
