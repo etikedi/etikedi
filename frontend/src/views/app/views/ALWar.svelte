@@ -16,6 +16,7 @@
     valid_strategies,
     terminate_experiment,
     terminateExperiment,
+    getFinishedExperiments,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -25,6 +26,7 @@
   import Select from '../../../ui/Select.svelte'
   import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../lib/config'
   import { default as SvelteSelect } from 'svelte-select'
+  import PersistedExperiments from '../components/PersistedExperiments.svelte'
 
   let showCache = false,
     showConfig = true,
@@ -109,6 +111,9 @@
 
   // Get valid strategies
   getValidStrategies(id)
+
+  // Get persisted experiments
+  getFinishedExperiments()
 
   async function getDatasetFeatures() {
     availableFeatures = await getFeatures(id)
@@ -227,20 +232,7 @@
 </script>
 
 {#if showCache}
-  <Card>
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
-      <span>We saved your last simulation with this dataset. Do you want to view it again?</span>
-      <div style="display: grid; grid-template-columns: 200px 200px; column-gap: 15px; margin-top: 15px">
-        <Button
-          on:click={() => {
-            showConfig = false
-            showCache = false
-          }}>Yes</Button
-        >
-        <Button on:click={() => (showCache = false)}>Start new battle</Button>
-      </div>
-    </div>
-  </Card>
+  <PersistedExperiments />
 {:else}
   <div class="wrapper">
     {#if showConfig}

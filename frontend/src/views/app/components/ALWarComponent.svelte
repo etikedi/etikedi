@@ -40,8 +40,8 @@
 
   const sample_info = {
     'Similar samples': '0%',
-    'Percentage labeled': '0.51%',
-    'Percentage unlabeled': '99.48%',
+    'Percentage labeled': '0%',
+    'Percentage unlabeled': '100%',
   }
 
   const mappings = {
@@ -205,7 +205,7 @@
           {#if $metricData && $metricData['iterations']}
             <div>
               <h4>AL Cycle:</h4>
-              <p>{currentIteration}/{$metricData['iterations'].length}</p>
+              <p>{currentIteration ?? 0}/{$metricData['iterations'].length ?? 0}</p>
             </div>
           {/if}
           <div>
