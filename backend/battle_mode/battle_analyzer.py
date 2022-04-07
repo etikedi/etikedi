@@ -31,6 +31,8 @@ class BattleAnalyzer:
             cb_sample: pd.DataFrame,
             result_one: ExperimentResults,
             result_two: ExperimentResults):
+        if config is None or cb_sample is None or result_one is None or result_two is None:
+            raise ValueError("At least one parameter was null.")
         self.experiment_id: int = experiment_id
         self.dataset_id: int = dataset_id
         self.config: ALBattleConfig = config
