@@ -5,7 +5,7 @@ from typing import Optional, List, Tuple, Dict, Union
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, ValidationError, root_validator, \
+from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, root_validator, \
     PositiveInt
 
 from .configs import ZeroToOne
@@ -77,13 +77,13 @@ class ExperimentResults(BaseModel):
     def validate_metric_scores(cls, metric_scores):
         for key in MetricsDFKeys:
             if key not in metric_scores.columns:
-                raise ValidationError("Dataframe should contain all keys as column")
+                raise ValueError("Dataframe should contain all keys as column")
         return metric_scores
 
     @validator("raw_predictions")
     def validate_raw_predictions(cls, raw_predictions):
         if not all(isinstance(col, int) for col in raw_predictions.columns):
-            raise ValidationError("All columns should be database-ids of samples.")
+            raise ValueError("All columns should be database-ids of samples.")
         return raw_predictions
 
     @root_validator()
@@ -97,7 +97,7 @@ class ExperimentResults(BaseModel):
         if len(raw_predictions) != len(cb_predictions) \
                 or len(cb_predictions) != len(metric_scores) \
                 or len(metric_scores) != len(meta_data):
-            raise ValidationError("Each item should contain all iterations.")
+            raise ValueError("Each item should contain all iterations.")
         return values
 
 
