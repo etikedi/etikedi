@@ -17,6 +17,7 @@
     terminate_experiment,
     terminateExperiment,
     getFinishedExperiments,
+    saveExperiment,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -231,8 +232,29 @@
   })
 </script>
 
+<div style="display: flex; justify-content: space-between">
+  <h1>Battle Mode</h1>
+  {#if experiment_id && $diagrams && $metricData}
+    <Button
+      icon="save"
+      on:click={async () => {
+        const res = await saveExperiment(experiment_id)
+        if (res === null) notifier.success('The battle was saved!', 5000)
+      }}>Save Battle</Button
+    >
+  {/if}
+</div>
 {#if showCache}
-  <PersistedExperiments />
+  <PersistedExperiments
+    dataset_id={id}
+    on:battleLoaded={async (e) => {
+      experiment_id = e.detail
+      showCache = false
+      showConfig = false
+      training = true
+      await getData()
+    }}
+  />
 {:else}
   <div class="wrapper">
     {#if showConfig}

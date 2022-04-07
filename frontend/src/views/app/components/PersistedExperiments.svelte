@@ -2,54 +2,81 @@
   import { humanize } from '../../../lib/human'
   import Card from '../../../ui/Card.svelte'
   import Button from '../../../ui/Button.svelte'
-  import { finishedExperiments } from '../../../store/al-war'
+  import { finishedExperiments, getExperiment } from '../../../store/al-war'
+  import { createEventDispatcher } from 'svelte'
+  const dispatch = createEventDispatcher()
+
+  export let dataset_id
+
+  let accordingBattles = []
+
+  $: if ($finishedExperiments)
+    accordingBattles = Object.entries($finishedExperiments).filter((el) => el[1]['dataset_id'] == dataset_id)
+
+  async function loadBattle(experiment_id: number | string) {
+    await getExperiment(experiment_id)
+    dispatch('battleLoaded', experiment_id)
+  }
 </script>
 
 <h2><b>Persisted Experiments</b></h2>
-{#if $finishedExperiments}
-  {#each Object.entries($finishedExperiments) as [experiment_id, config]}
-    <Card>
-      <div>
-        <span class="label">Dataset ID:</span>
-        <span>{config['dataset_id']}</span>
-      </div>
-      <div>
-        <span class="label">Experiment ID:</span>
-        <span>{experiment_id}</span>
-      </div>
-      <div>
-        <span class="label">Process 1:</span>
-        <div>
-          <span class="label">Query Strategy:</span>
-          <span>{config['config']['exp_configs'][0]['QUERY_STRATEGY']}</span>
+<div class="flex flex-wrap">
+  {#each accordingBattles as [experiment_id, config]}
+    <div class="fl w-25 card">
+      <Card>
+        <div style="position: relative">
+          <h3>Battle <b>{experiment_id}</b></h3>
+          <div class="row">
+            <span class="label">Dataset ID:</span>
+            <span>{config['dataset_id']}</span>
+          </div>
+          <h4>Process 1:</h4>
+          <div class="row">
+            <div class="fl w-third pa2 label">Query Strategy:</div>
+            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][0]['QUERY_STRATEGY']}</span>
+          </div>
+          <div class="row">
+            <div class="fl w-third pa2 label">AL Model:</div>
+            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][0]['AL_MODEL']}</span>
+          </div>
+
+          <h4>Process 2:</h4>
+          <div class="row">
+            <div class="fl w-third pa2 label">Query Strategy:</div>
+            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][1]['QUERY_STRATEGY']}</span>
+          </div>
+          <div class="row">
+            <div class="fl w-third pa2 label">AL Model:</div>
+            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][1]['AL_MODEL']}</span>
+          </div>
+          <ion-icon class="play" name="play-circle-sharp" on:click={() => loadBattle(experiment_id)} />
         </div>
-        <div>
-          <span class="label">AL Model:</span>
-          <span>{config['config']['exp_configs'][0]['AL_MODEL']}</span>
-        </div>
-      </div>
-      <div>
-        <span class="label">Process 2:</span>
-        <div>
-          <span class="label">Query Strategy:</span>
-          <span>{config['config']['exp_configs'][1]['QUERY_STRATEGY']}</span>
-        </div>
-        <div>
-          <span class="label">AL Model:</span>
-          <span>{config['config']['exp_configs'][1]['AL_MODEL']}</span>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </div>
+  {:else}
+    no items
   {/each}
-{/if}
+</div>
 
 <style>
-  div {
+  .row {
     display: flex;
     flex-direction: row;
     column-gap: 10px;
   }
   .label {
     color: #555;
+  }
+
+  .flex {
+    column-gap: 20px;
+  }
+
+  ion-icon.play {
+    font-size: 3rem;
+    color: var(--clr-primary);
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 </style>

@@ -150,6 +150,19 @@ export async function getFinishedExperiments() {
   }
 }
 
+export async function saveExperiment(experiment_id: number | string) {
+  try {
+    loading.set(true)
+    const { data: d } = await axios({
+      url: `al-wars/persisted/${experiment_id}`,
+      method: 'post',
+    })
+    return d
+  } finally {
+    loading.set(false)
+  }
+}
+
 export async function getExperiment(experiment_id: number | string) {
   try {
     loading.set(true)
