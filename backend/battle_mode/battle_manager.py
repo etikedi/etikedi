@@ -219,11 +219,12 @@ class ActiveBattleHolder:
 
     def terminate(self):
         logger.info(f"Terminating experiment with ID: {getattr(self, 'experiment_id', 'Unknown')}")
-        if hasattr(self, 'preparation_future') and self.preparation_future.done():
+        if hasattr(self, 'preparation_future') and not self.preparation_future.done():
+            self.preparation_future.remove_done_callback(self._start_battle)
             self.preparation_future.cancel()
         elif hasattr(self, 'finished_flags') and hasattr(self, 'experiments'):
             for exp_ind, finished in enumerate(self.finished_flags):
-                if (not finished) and self.experiments != []:
+                if (not finished) and self.experiments != ():
                     self.experiments[exp_ind].kill()
         if hasattr(self, 'queues'):
             for q in self.queues:
