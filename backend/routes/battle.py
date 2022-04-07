@@ -1,6 +1,6 @@
-from typing import List, Dict
+from typing import List, Dict, Union
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Query
 
 from ..battle_mode import BattleAnalyzer, BattleManager, plotting, Persistence, ExperimentMetaPersistence
 from ..config import db, logger
@@ -106,10 +106,23 @@ async def get_metrics(experiment_id: int):
     return BattleManager.get_or_create_finished_manager(experiment_id).get_metrics()
 
 
-@battle_router.get("/persisted", response_model=Dict[int, ExperimentMetaPersistence])
-async def get_persisted():
-    """Return meta-information about all experiments that are stored and can be loaded."""
-    return Persistence.persisted_experiments
+@battle_router.get("/persisted", response_model=Union[Dict[int, ExperimentMetaPersistence], Dict[int, List]])
+async def get_persisted(by_dataset: bool = Query(default=False, alias='by-dataset')):
+    """
+    Return meta-information about all experiments that are stored and can be loaded:
+        Dict with experiment_id -> ExperimentMetaPersistence.
+    If by_dataset is true. the dict-keys are dataset_ids and the values are a list of all experiments for this dataset:
+        Dict with dataset_id -> List[experiment_id -> ExperimentMetaPersistence].
+    """
+    persisted: Dict[int, ExperimentMetaPersistence] = Persistence.persisted_experiments
+    if not by_dataset:
+        return persisted
+    by_dataset_dict: Dict[int, List[Dict[int, ExperimentMetaPersistence]]] = {}
+    for (exp_id, exp_meta) in persisted.items():
+        if exp_meta.dataset_id not in by_dataset_dict:
+            by_dataset_dict[exp_meta.dataset_id] = []
+        by_dataset_dict[exp_meta.dataset_id].append({exp_id: exp_meta})
+    return by_dataset_dict
 
 
 @battle_router.get("/persisted/{experiment_id}")

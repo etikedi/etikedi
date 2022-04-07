@@ -48,7 +48,8 @@ class AlExperimentConfig(BaseModel):
     def validate_strategy_config(cls, raw_config, values):
         strategy = values['QUERY_STRATEGY']
         ConfigSchema = strategy.get_config_schema()
-        invalid_properties = list(filter(lambda key: key not in ConfigSchema.schema()['properties'], raw_config.keys()))
+        properties = raw_config.keys() if hasattr(raw_config, 'keys') else raw_config.dict().keys()
+        invalid_properties = list(filter(lambda key: key not in ConfigSchema.schema()['properties'], properties))
         if len(invalid_properties) > 0:
             raise ValueError(f"For config: {ConfigSchema.schema_json()} "
                              f"some properties did not match: {invalid_properties}")
