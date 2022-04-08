@@ -18,6 +18,7 @@
     terminateExperiment,
     getFinishedExperiments,
     saveExperiment,
+    finishedExperiments,
   } from '../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -29,7 +30,7 @@
   import { default as SvelteSelect } from 'svelte-select'
   import PersistedExperiments from '../components/PersistedExperiments.svelte'
 
-  let showCache = false,
+  let showPersisted = true,
     showConfig = true,
     ready,
     dataset,
@@ -50,7 +51,8 @@
     { id } = router.params(),
     experiment_id = undefined,
     sendConfig,
-    availableFeatures = []
+    availableFeatures = [],
+    accordingFinishedBattles = []
 
   /**
    * DEV
@@ -61,6 +63,14 @@
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
   $: if (dataset) getDatasetFeatures()
+  $: if ($finishedExperiments)
+    accordingFinishedBattles = Object.keys($finishedExperiments)
+      .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
+      .map((key) => {
+        return { ...$finishedExperiments[key], battle_id: key }
+      })
+
+  $: console.debug('according:', accordingFinishedBattles)
 
   $: if (chosenStrategies[0]) {
     strategySchemas[0] = {
@@ -104,7 +114,6 @@
 
   // Running battle
   if (experiment_id) {
-    showCache = false
     showConfig = false
     starting = false
     checkStatus()
@@ -126,7 +135,7 @@
 
     // TODO: Features?
 
-    const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[0]['AL_MODEL']]
+    const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[1]['AL_MODEL']]
     const queryConfigs = processConfigs
     delete queryConfigs[0]['AL_MODEL']
     delete queryConfigs[1]['AL_MODEL']
@@ -223,7 +232,7 @@
   function handleFeatureSelect(e) {
     if (featureConfig && featureConfig.length > 2) {
       featureConfig.pop()
-      notifier.danger('Only two features allowed here.', 4000)
+      notifier.danger('Only two features allowed here.', 3000)
     }
   }
 
@@ -232,30 +241,36 @@
   })
 </script>
 
-<div style="display: flex; justify-content: space-between">
-  <h1>Battle Mode</h1>
-  {#if experiment_id && $diagrams && $metricData}
-    <Button
-      icon="save"
-      on:click={async () => {
-        const res = await saveExperiment(experiment_id)
-        if (res === null) notifier.success('The battle was saved!', 5000)
-      }}>Save Battle</Button
-    >
-  {/if}
-</div>
-{#if showCache}
+{#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !experiment_id && showPersisted}
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <h1>Persisted Experiments</h1>
+    <Button style="height: 50%" on:click={() => (showPersisted = false)}>Start new battle</Button>
+  </div>
+  <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
   <PersistedExperiments
     dataset_id={id}
     on:battleLoaded={async (e) => {
-      experiment_id = e.detail
-      showCache = false
+      experiment_id = e.detail['experiment_id']
+      sendConfig = e.detail['config']
       showConfig = false
       training = true
       await getData()
     }}
   />
 {:else}
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <h1>Battle Mode</h1>
+    {#if typeof experiment_id === 'number' && $diagrams && $metricData}
+      <Button
+        style="height: 50%"
+        icon="save"
+        on:click={async () => {
+          const res = await saveExperiment(experiment_id)
+          if (res === null) notifier.success('The battle was saved!', 3000)
+        }}>Save Battle</Button
+      >
+    {/if}
+  </div>
   <div class="wrapper">
     {#if showConfig}
       <h2><b>General</b> Config</h2>
