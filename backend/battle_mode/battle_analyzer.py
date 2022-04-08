@@ -87,10 +87,12 @@ class BattleAnalyzer:
 
         return DataMapsDTO(exp_one_data=gen(0), exp_two_data=gen(1))
 
-    def _use_pca_for_feature_selection(self, sample_ids: List[int]):
+    def _use_pca_for_feature_selection(self, exclude: List[int]):
         dataset = db.get(Dataset, self.dataset_id)
         feature_names = dataset.feature_names
-        samples = db.query(Sample).filter(Sample.id.in_(sample_ids)).all()
+        samples = [s for s in
+                   db.query(Sample).filter(Sample.dataset_id == self.dataset_id).filter(Sample.id.not_in(exclude)).all()
+                   if s.labels != []]
 
         samples_df = pd.DataFrame([
             [smpl.id] + smpl.extract_feature_list()
@@ -103,9 +105,10 @@ class BattleAnalyzer:
         pca_df.set_index("SampleID")
         return pca_df
 
-    @staticmethod
-    def _use_names_for_feature_selection(name_one: str, name_two: str, sample_ids: List[int]):
-        samples: List[Sample] = db.query(Sample).filter(Sample.id.in_(sample_ids)).all()
+    def _use_names_for_feature_selection(self, name_one: str, name_two: str, exclude: List[int]):
+        samples = [s for s in
+                   db.query(Sample).filter(Sample.dataset_id == self.dataset_id).filter(Sample.id.not_in(exclude)).all()
+                   if s.labels != []]
         all_samples: pd.DataFrame = pd.DataFrame([
             {
                 "SampleID": smpl.id,
@@ -120,21 +123,15 @@ class BattleAnalyzer:
     def get_vector_space_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
         """ @return for each experiment for each iteration a data-frame with columns:
                 <feature-one>, <feature-two>, SampleID, Color"""
-        # both experiments should have the same fully labeled pool of samples so 0 or 1 does not make a difference
-        # int(s) because sqlalchemy does not accept np.int64 for id checks
-        sample_ids = list(map(lambda s: int(s), np.concatenate([m.sample_ids for m in self.results[0].meta_data]))) + \
-                     self.results[0].initially_labeled
-        reduced_features_df = self._use_pca_for_feature_selection(sample_ids) \
-            if self.config.PLOT_CONFIG.FEATURES is None \
-            else self._use_names_for_feature_selection(*self.config.PLOT_CONFIG.FEATURES, sample_ids=sample_ids)
-
-        def classify(ID, selected_ids, labeled_ids):
-            return 'Selected' if ID in selected_ids \
-                else ('Labeled' if ID in labeled_ids
-                      else 'Unlabeled')
 
         def gen(exp_idx: int):
             r = self.results[exp_idx]
+            # reduced_features_df['SampleID'] == all training sample
+            test_sample = list(map(lambda id_: int(id_), r.raw_predictions.columns))
+            reduced_features_df = self._use_pca_for_feature_selection(exclude=test_sample) \
+                if self.config.PLOT_CONFIG.FEATURES is None \
+                else self._use_names_for_feature_selection(*self.config.PLOT_CONFIG.FEATURES, exclude=test_sample)
+
             labeled_ids = r.initially_labeled.copy()
             iterations = []
             for meta_data in r.meta_data:
@@ -144,6 +141,11 @@ class BattleAnalyzer:
                 it_df['Color'] = it_df['SampleID'].apply(lambda ID: classify(ID, selected_ids, labeled_ids))
                 iterations.append(it_df)
             return iterations
+
+        def classify(ID, selected_ids, labeled_ids):
+            return 'Selected' if ID in selected_ids \
+                else ('Labeled' if ID in labeled_ids
+                      else 'Unlabeled')
 
         return gen(0), gen(1)
 
