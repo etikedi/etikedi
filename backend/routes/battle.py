@@ -1,7 +1,9 @@
 import json
 from typing import List, Dict, Union
 
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, Request
+from fastapi.openapi.models import Response
+from starlette.responses import PlainTextResponse
 
 from ..battle_mode import BattleAnalyzer, BattleManager, plotting, Persistence, ExperimentMetaPersistence
 from ..config import db, logger
@@ -70,7 +72,7 @@ async def terminate(experiment_id: int):
 
 
 @battle_router.get("/{experiment_id}/diagrams", response_model=ChartReturnSchema)
-async def get_diagrams(experiment_id: int):
+async def get_diagrams(experiment_id: int, request: Request):
     """Return all diagrams."""
     _assert_completed(experiment_id)
     logger.info("Requesting diagrams for experiment: " + str(experiment_id))
@@ -83,13 +85,15 @@ async def get_diagrams(experiment_id: int):
     # confidence: histogram, x=confidence, y=occurrence
     confidence_plots = plotting.confidence_histograms(manager.get_confidence_his_data())
 
+    base_url = str(request.url)
     # data_maps: scatter plot, x=variability, y=confidence
-    data_maps = plotting.data_maps(manager.get_data_map_data())
+    data_maps = plotting.data_maps(manager.get_data_map_description(base_url))
 
     # vector_space: scatter plot x=feature_1, y=feature_2
-    vector_space_plots = plotting.vector_space(manager.get_vector_space_data())
+    vector_space_plots = plotting.vector_space(manager.get_vector_space_data_description(base_url))
 
-    classification_boundaries = plotting.classification_boundaries(manager.get_classification_boundary_data())
+    classification_boundaries = plotting.classification_boundaries(
+        manager.get_classification_boundaries_description(base_url))
 
     return ChartReturnSchema(
         acc=learning_curve,
@@ -98,6 +102,30 @@ async def get_diagrams(experiment_id: int):
         vector_space=vector_space_plots,
         classification_boundaries=classification_boundaries
     )
+
+
+@battle_router.get("/{experiment_id}/diagrams/vector-space/{exp_idx}/{iteration}")
+async def get_vector_space_iteration(experiment_id: int, iteration: int, exp_idx: int):
+    _assert_completed(experiment_id)
+    manager = BattleManager.get_or_create_finished_manager(experiment_id)
+    csv_data = manager.get_vector_space_data()[exp_idx][iteration].to_csv(index=False)
+    return PlainTextResponse(csv_data, media_type='text/csv')
+
+
+@battle_router.get("/{experiment_id}/diagrams/classification-boundaries/{exp_idx}/{iteration}")
+async def get_classification_boundaries_iteration(experiment_id: int, iteration: int, exp_idx: int):
+    _assert_completed(experiment_id)
+    manager = BattleManager.get_or_create_finished_manager(experiment_id)
+    csv_data = manager.get_classification_boundary_data()[exp_idx][iteration].to_csv(index=False)
+    return PlainTextResponse(csv_data, media_type='text/csv')
+
+
+@battle_router.get("/{experiment_id}/diagrams/data-map/{exp_idx}/{iteration}")
+async def get_data_maps_iteration(experiment_id: int, iteration: int, exp_idx: int):
+    _assert_completed(experiment_id)
+    manager = BattleManager.get_or_create_finished_manager(experiment_id)
+    csv_data = manager.get_data_map_data()[exp_idx][iteration].to_csv(index=False)
+    return PlainTextResponse(csv_data, media_type='text/csv')
 
 
 @battle_router.get("/{experiment_id}/metrics", response_model=Metric)

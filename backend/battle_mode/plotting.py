@@ -3,8 +3,9 @@ from typing import List, Tuple
 import altair as alt
 import numpy as np
 import pandas as pd
+from altair import UrlData
 
-from ..models import ClassificationBoundariesDTO, DataMapsDTO
+from ..models import ClassificationBoundariesDTO, DataMapsDTO, VectorSpaceDTO
 from ..utils import timeit
 
 
@@ -36,11 +37,11 @@ def confidence_histogram_iteration(data: List[List[float]]):
 
 @timeit
 def data_maps(data_maps_data: DataMapsDTO) -> Tuple[List[str], List[str]]:
-    return ([data_maps_iteration(it_data) for it_data in data_maps_data.exp_one_data],
-            [data_maps_iteration(it_data) for it_data in data_maps_data.exp_two_data])
+    return ([data_maps_iteration(it_data) for it_data in data_maps_data.exp_one_urls],
+            [data_maps_iteration(it_data) for it_data in data_maps_data.exp_two_urls])
 
 
-def data_maps_iteration(data_map_data_iteration: pd.DataFrame) -> str:
+def data_maps_iteration(data_map_data_iteration: UrlData) -> str:
     """ 2D scatter plot
     points = Samples
     color: Percentage of correctness
@@ -51,38 +52,43 @@ def data_maps_iteration(data_map_data_iteration: pd.DataFrame) -> str:
     return alt.Chart(data_map_data_iteration).mark_circle().encode(
         x=alt.X('Variability:Q'),
         y=alt.Y('Confidence:Q'),
-        color='Correctness',
-        tooltip=['Variability', 'Confidence', 'SampleID']
+        color='Correctness:Q',
+        tooltip=['Variability:Q', 'Confidence:Q', 'SampleID:O']
     ).properties(width='container').interactive().to_json()
 
 
 @timeit
-def vector_space(vector_space_data: Tuple[List[pd.DataFrame], List[pd.DataFrame]]) -> Tuple[List[str], List[str]]:
-    return [vector_space_iteration(it) for it in vector_space_data[0]], \
-           [vector_space_iteration(it) for it in vector_space_data[1]]
+def vector_space(vector_space_data: VectorSpaceDTO) -> Tuple[List[str], List[str]]:
+    f1, f2 = vector_space_data.feature_one_name, vector_space_data.feature_two_name
+    return [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_one_urls], \
+           [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_two_urls]
 
 
-def vector_space_iteration(iteration_data: pd.DataFrame) -> str:
-    feature_1_name, feature_2_name = [x for x in iteration_data.columns if x not in ['Color', 'SampleID']]
-    return alt.Chart(iteration_data).mark_circle().encode(
-        x=f'{feature_1_name}:Q',
-        y=f'{feature_2_name}:Q',
-        color='Color',
-        tooltip=list(iteration_data.columns)
+def vector_space_iteration(
+        iteration_data_url: UrlData,
+        feature_1_name: str,
+        feature_2_name: str) -> str:
+    f1_enc = f'{feature_1_name}:Q'
+    f2_enc = f'{feature_2_name}:Q'
+    return alt.Chart(iteration_data_url).mark_circle().encode(
+        x=f1_enc,
+        y=f2_enc,
+        color='Color:N',
+        tooltip=[f1_enc, f2_enc, 'Color:N', 'SampleID:O']
     ).properties(width='container').interactive().to_json()
 
 
 @timeit
 def classification_boundaries(cb_data: ClassificationBoundariesDTO):
-    def classification_boundaries_iteration(iteration_data: pd.DataFrame):
-        feature_1_name, feature_2_name = cb_data.reduced_features.columns
-        merged = pd.merge(cb_data.reduced_features, iteration_data, left_index=True, right_index=True)
-        return alt.Chart(merged).mark_rect().encode(
-            x=alt.X(f'{feature_1_name}:Q',bin=alt.Bin(maxbins=cb_data.x_bins)),
-            y=alt.Y(f'{feature_2_name}:Q',bin=alt.Bin(maxbins=cb_data.y_bins)),
+    def classification_boundaries_iteration(iteration_data: UrlData, feature_1_name: str, feature_2_name: str):
+
+        return alt.Chart(iteration_data).mark_rect().encode(
+            x=alt.X(f'{feature_1_name}:Q', bin=alt.Bin(maxbins=cb_data.x_bins)),
+            y=alt.Y(f'{feature_2_name}:Q', bin=alt.Bin(maxbins=cb_data.y_bins)),
             color=alt.Color('Class:O', scale=alt.Scale(scheme='tableau10')),
             opacity='Confidence:Q'
         ).properties(width='container').to_json()
 
-    return [classification_boundaries_iteration(it) for it in cb_data.exp_one_iterations], \
-           [classification_boundaries_iteration(it) for it in cb_data.exp_two_iterations]
+    f1, f2 = cb_data.feature_one_name, cb_data.feature_two_name
+    return [classification_boundaries_iteration(it, f1, f2) for it in cb_data.exp_one_iterations], \
+           [classification_boundaries_iteration(it, f1, f2) for it in cb_data.exp_two_iterations]
