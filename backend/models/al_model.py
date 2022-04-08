@@ -34,8 +34,8 @@ class QKernel(str, Enum):
 class QMeasureType(str, Enum):
     LEAST_CONFIDENT = "least_confident"
     MARGIN = "margin"
-    ENTROPY = "entrop"
-    DISTANCE_TO_BOUNDARY = "distance_to_boundar"
+    ENTROPY = "entropy"
+    DISTANCE_TO_BOUNDARY = "distance_to_boundary"
 
 
 class QLALMode(str, Enum):
