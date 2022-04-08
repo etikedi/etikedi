@@ -1,3 +1,4 @@
+import json
 from typing import List, Dict, Union
 
 from fastapi import APIRouter, HTTPException, status, Query
@@ -21,12 +22,12 @@ battle_router = APIRouter()
 
 @battle_router.get("/valid_strategies/{dataset_id}", response_model=ValidStrategiesReturnSchema)
 async def valid_strategies(dataset_id: int):
-    "Return all al-strategies and their configuration options that are applicable for this dataset."
+    """Return all al-strategies and their configuration options that are applicable for this dataset."""
     number_of_labels = db.query(Label).filter(Label.dataset_id == dataset_id).distinct(Label.name).count()
     valid: List[QueryStrategyType] = list(
         filter(lambda strategy: number_of_labels == 2 or not strategy.only_binary_classification(), QueryStrategyType))
     return ValidStrategiesReturnSchema(
-        strategies={strategy: strategy.get_config_schema().schema_json() for strategy in valid}
+        strategies={strategy: json.dumps(strategy.get_config_schema()) for strategy in valid}
     )
 
 
