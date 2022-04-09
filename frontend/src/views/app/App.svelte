@@ -18,7 +18,7 @@
   import Me from './users/Me.svelte'
   import BattleDashboard from './views/battle/Dashboard.svelte'
   import LabelingFunctions from './views/LabelingFunctions.svelte'
-  import Battle from './views/Battle/Battle.svelte'
+  import Battle from './views/battle/Battle.svelte'
   import Result from './components/battle/Result.svelte'
 
   $: if ($token) {
