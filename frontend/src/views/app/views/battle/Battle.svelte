@@ -30,8 +30,11 @@
   import { default as SvelteSelect } from 'svelte-select'
   import Persisted from '../../components/battle/Persisted.svelte'
 
-  let showPersisted = true,
-    showConfig = true,
+export let persisted_config
+export let persisted_experiment_id
+
+
+  let showConfig = true,
     ready,
     dataset,
     training = false,
@@ -241,129 +244,111 @@
   })
 </script>
 
-{#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !experiment_id && showPersisted}
-  <div style="display: flex; justify-content: space-between; align-items: center">
-    <h1>Persisted Experiments</h1>
-    <Button style="height: 50%" on:click={() => (showPersisted = false)}>Start new battle</Button>
-  </div>
-  <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
-  <Persisted
-    dataset_id={id}
-    on:battleLoaded={async (e) => {
-      experiment_id = e.detail['experiment_id']
-      sendConfig = e.detail['config']
-      showConfig = false
-      training = true
-      await getData()
-    }}
-  />
-{:else}
-  <div style="display: flex; justify-content: space-between; align-items: center">
-    <h1>Battle Mode</h1>
-    {#if typeof experiment_id === 'number' && $diagrams && $metricData}
-      <Button
-        style="height: 50%"
-        icon="save"
-        on:click={async () => {
-          const res = await saveExperiment(experiment_id)
-          if (res === null) notifier.success('The battle was saved!', 3000)
-        }}>Save Battle</Button
-      >
-    {/if}
-  </div>
-  <div class="wrapper">
-    {#if showConfig}
-      <h2><b>General</b> Config</h2>
-      <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} noTitle={true} />
-      {#if availableFeatures && availableFeatures.length > 1}
-        <h2><b>Plot</b></h2>
-        <div class="multi-select">
-          <span>Features</span>
-          <SvelteSelect
-            bind:value={featureConfig}
-            items={availableFeatures}
-            isMulti={true}
-            placeholder="Default: PCA"
-            on:select={handleFeatureSelect}
-          />
-        </div>
-        <Config alWar strategySchema={ClassificationBoundariesConfig} bind:config={classBoundConfig} noTitle={true} />
-      {/if}
-      <div class="config-wrapper">
-        {#if $valid_strategies}
-          <div>
-            <h2><b>Process 1</b> Config</h2>
-            <Select
-              bind:value={chosenStrategies[0]}
-              values={Object.keys($valid_strategies)}
-              emptyFirst
-              label="Query strategy"
-            />
-            {#if strategySchemas[0]}
-              {#key strategySchemas[0]}
-                <h2><b>Strategy</b></h2>
-                <Config
-                  bind:config={processConfigs[0]}
-                  strategySchema={strategySchemas[0]}
-                  strategyDefinitions={strategyDefinitions[0]}
-                  alWar
-                  noTitle={true}
-                />
-              {/key}
-            {/if}
-          </div>
-          <div>
-            <h2><b>Process 2</b> Config</h2>
-            <Select
-              bind:value={chosenStrategies[1]}
-              values={Object.keys($valid_strategies)}
-              emptyFirst
-              label="Query strategy"
-            />
-            {#if strategySchemas[1]}
-              {#key strategySchemas[1]}
-                <h2><b>Strategy</b></h2>
-                <Config
-                  bind:config={processConfigs[1]}
-                  strategySchema={strategySchemas[1]}
-                  strategyDefinitions={strategyDefinitions[1]}
-                  alWar
-                  noTitle={true}
-                />
-              {/key}
-            {/if}
-          </div>
-        {/if}
-      </div>
-      {#if ready}
-        <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
-      {/if}
-    {:else if starting}
-      <div class="starting">
-        <Moon size="30" color="#002557" unit="px" duration="1s" />
-        Starting ...
-      </div>
-    {:else if training}
-      <div class="progress-bar">
-        <div bind:this={progressElement} class="progress" />
-      </div>
-      <div style="display: flex; justify-content: space-between;">
-        <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
-        <Button
-          icon="close-outline"
-          on:click={() => {
-            openModal()
-          }}
+<div style="display: flex; justify-content: space-between; align-items: center">
+  <h1>Battle Mode</h1>
+  {#if typeof experiment_id === 'number' && $diagrams && $metricData}
+    <Button
+      style="height: 50%"
+      icon="save"
+      on:click={async () => {
+        const res = await saveExperiment(experiment_id)
+        if (res === null) notifier.success('The battle was saved!', 3000)
+      }}>Save Battle</Button
+    >
+  {/if}
+</div>
+<div class="wrapper">
+  {#if showConfig}
+    <h2><b>General</b> Config</h2>
+    <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} noTitle={true} />
+    {#if availableFeatures && availableFeatures.length > 1}
+      <h2><b>Plot</b></h2>
+      <div class="multi-select">
+        <span>Features</span>
+        <SvelteSelect
+          bind:value={featureConfig}
+          items={availableFeatures}
+          isMulti={true}
+          placeholder="Default: PCA"
+          on:select={handleFeatureSelect}
         />
       </div>
-      {#if remainingTime}
-        <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
-      {/if}
-    {:else if dataset}
-      <Result dataset_name={dataset['name']} config={sendConfig} />
+      <Config alWar strategySchema={ClassificationBoundariesConfig} bind:config={classBoundConfig} noTitle={true} />
     {/if}
-  </div>
-{/if}
+    <div class="config-wrapper">
+      {#if $valid_strategies}
+        <div>
+          <h2><b>Process 1</b> Config</h2>
+          <Select
+            bind:value={chosenStrategies[0]}
+            values={Object.keys($valid_strategies)}
+            emptyFirst
+            label="Query strategy"
+          />
+          {#if strategySchemas[0]}
+            {#key strategySchemas[0]}
+              <h2><b>Strategy</b></h2>
+              <Config
+                bind:config={processConfigs[0]}
+                strategySchema={strategySchemas[0]}
+                strategyDefinitions={strategyDefinitions[0]}
+                alWar
+                noTitle={true}
+              />
+            {/key}
+          {/if}
+        </div>
+        <div>
+          <h2><b>Process 2</b> Config</h2>
+          <Select
+            bind:value={chosenStrategies[1]}
+            values={Object.keys($valid_strategies)}
+            emptyFirst
+            label="Query strategy"
+          />
+          {#if strategySchemas[1]}
+            {#key strategySchemas[1]}
+              <h2><b>Strategy</b></h2>
+              <Config
+                bind:config={processConfigs[1]}
+                strategySchema={strategySchemas[1]}
+                strategyDefinitions={strategyDefinitions[1]}
+                alWar
+                noTitle={true}
+              />
+            {/key}
+          {/if}
+        </div>
+      {/if}
+    </div>
+    {#if ready}
+      <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
+    {/if}
+  {:else if starting}
+    <div class="starting">
+      <Moon size="30" color="#002557" unit="px" duration="1s" />
+      Starting ...
+    </div>
+  {:else if training}
+    <div class="progress-bar">
+      <div bind:this={progressElement} class="progress" />
+    </div>
+    <div style="display: flex; justify-content: space-between;">
+      <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+      <Button
+        icon="close-outline"
+        on:click={() => {
+          openModal()
+        }}
+      />
+    </div>
+    {#if remainingTime}
+      <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
+    {/if}
+  {:else if dataset}
+    <Result dataset_name={dataset['name']} config={sendConfig} />
+  {/if}
+</div>
 <svelte:window on:beforeunload={beforeunload} />
 
 <style>

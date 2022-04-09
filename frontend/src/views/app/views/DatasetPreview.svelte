@@ -24,7 +24,7 @@
       <a href="./dataset/{dataset.id}/graphs">
         <ion-icon name="analytics-sharp"/>
       </a>
-      <a href="./dataset/{dataset.id}/al-war">
+      <a href="./dataset/{dataset.id}/battle">
         <ion-icon name="git-compare-outline"/>
       </a>
       {#if $isAdmin}

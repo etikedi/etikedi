@@ -16,7 +16,7 @@
   import Users from './users/Users.svelte'
   import Nav from './components/Nav.svelte'
   import Me from './users/Me.svelte'
-  import ALWar from './views/battle/Dashboard.svelte'
+  import BattleDashboard from './views/battle/Dashboard.svelte'
   import LabelingFunctions from "./views/LabelingFunctions.svelte";
 
   $: if ($token) {
@@ -59,8 +59,8 @@
       <Route path="/graphs">
         <Graphs />
       </Route>
-      <Route path="/al-war">
-        <ALWar />
+      <Route path="/battle">
+        <BattleDashboard />
       </Route>
     </Route>
 
