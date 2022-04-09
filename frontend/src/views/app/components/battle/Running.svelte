@@ -1,14 +1,12 @@
 <script lang="ts">
-  import { humanize } from '../../../../lib/human'
-  import Card from '../../../../ui/Card.svelte'
-  import Button from '../../../../ui/Button.svelte'
-  import { finishedExperiments, getExperiment } from '../../../../store/al-war'
   import { createEventDispatcher } from 'svelte'
-  
+  import { finishedExperiments, getExperiment } from '../../../../store/al-war'
+  import Card from '../../../../ui/Card.svelte'
+
   const dispatch = createEventDispatcher()
 
   export let dataset_id
-  
+
   let accordingBattles = []
 
   $: if ($finishedExperiments)

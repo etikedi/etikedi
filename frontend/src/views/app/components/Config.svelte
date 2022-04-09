@@ -1,17 +1,15 @@
 <script lang="ts">
+  import { notifier } from '@beyonk/svelte-notifications'
+  import { sentenceCase } from 'change-case'
   import { onMount } from 'svelte'
   import { router } from 'tinro'
-  import { sentenceCase } from 'change-case'
-  import { notifier } from '@beyonk/svelte-notifications'
-
-  import Button from '../../../ui/Button.svelte'
-  import Input from '../../../ui/Input.svelte'
-  import Checkbox from '../../../ui/Checkbox.svelte'
-  import Select from '../../../ui/Select.svelte'
-
-  import { data, remove, loading as loadingDatasets } from '../../../store/datasets'
-  import { get, save, loading as loadingConfig } from '../../../store/config'
   import { ALConfig } from '../../../lib/config'
+  import { get, loading as loadingConfig, save } from '../../../store/config'
+  import { data, loading as loadingDatasets, remove } from '../../../store/datasets'
+  import Button from '../../../ui/Button.svelte'
+  import Checkbox from '../../../ui/Checkbox.svelte'
+  import Input from '../../../ui/Input.svelte'
+  import Select from '../../../ui/Select.svelte'
 
   const { id } = router.params()
 

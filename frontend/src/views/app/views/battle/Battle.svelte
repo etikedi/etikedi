@@ -1,36 +1,27 @@
 <script lang="ts">
-  import Button from '../../../../ui/Button.svelte'
-  import Config from '../../components/Config.svelte'
-  import { data as datasets, getFeatures } from '../../../../store/datasets'
-  import { router } from 'tinro'
-  import { onDestroy, getContext } from 'svelte'
-  import {
-    getStatus,
-    isFinished,
-    startBattle,
-    getMetrics,
-    metricData,
-    getDiagrams,
-    diagrams,
-    getValidStrategies,
-    valid_strategies,
-    terminate_experiment,
-    terminateExperiment,
-    getFinishedExperiments,
-    saveExperiment,
-    finishedExperiments,
-    currentlyViewing,
-  } from '../../../../store/al-war'
-  import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
-  import Result from '../../components/battle/Result.svelte'
+  import { getContext, onDestroy } from 'svelte'
+  import { Moon } from 'svelte-loading-spinners'
+  import { router } from 'tinro'
+  import { ProcessConfig } from '../../../../lib/config'
+  import {
+    currentlyViewing,
+    diagrams,
+    getDiagrams,
+    getMetrics,
+    getStatus,
+    getValidStrategies,
+    isFinished,
+    metricData,
+    startBattle,
+    terminateExperiment,
+    terminate_experiment,
+    valid_strategies,
+  } from '../../../../store/al-war'
+  import { data as datasets } from '../../../../store/datasets'
+  import Button from '../../../../ui/Button.svelte'
   import BattleConfig from '../../components/battle/Config.svelte'
   import Popup from '../../components/Modal.svelte'
-  import Card from '../../../../ui/Card.svelte'
-  import Select from '../../../../ui/Select.svelte'
-  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../../lib/config'
-  import { default as SvelteSelect } from 'svelte-select'
-  import Persisted from '../../components/battle/Persisted.svelte'
 
   let showConfig = true,
     ready,

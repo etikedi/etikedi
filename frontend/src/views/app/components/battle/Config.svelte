@@ -1,12 +1,12 @@
 <script lang="ts">
+  import { notifier } from '@beyonk/svelte-notifications'
   import { createEventDispatcher } from 'svelte'
   import { default as SvelteSelect } from 'svelte-select'
-  import { notifier } from '@beyonk/svelte-notifications'
-  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../../lib/config'
+  import { ClassificationBoundariesConfig, GeneralConfig } from '../../../../lib/config'
+  import { availableFeatures, valid_strategies } from '../../../../store/al-war'
+  import { data as datasets, getFeatures } from '../../../../store/datasets'
   import Button from '../../../../ui/Button.svelte'
   import Select from '../../../../ui/Select.svelte'
-  import { valid_strategies, availableFeatures } from '../../../../store/al-war'
-  import { data as datasets, getFeatures } from '../../../../store/datasets'
   import Config from '../Config.svelte'
 
   const dispatch = createEventDispatcher()

@@ -1,35 +1,16 @@
 <script lang="ts">
-  import Button from '../../../../ui/Button.svelte'
-  import Config from '../../components/Config.svelte'
-  import { data as datasets, getFeatures } from '../../../../store/datasets'
-  import { router } from 'tinro'
-  import { onDestroy, getContext } from 'svelte'
-  import {
-    getStatus,
-    isFinished,
-    startBattle,
-    getMetrics,
-    metricData,
-    getDiagrams,
-    diagrams,
-    getValidStrategies,
-    valid_strategies,
-    terminate_experiment,
-    terminateExperiment,
-    getFinishedExperiments,
-    saveExperiment,
-    finishedExperiments,
-    availableFeatures,
-    currentlyViewing,
-  } from '../../../../store/al-war'
-  import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
-  import Result from '../../components/battle/Result.svelte'
-  import Popup from '../../components/Modal.svelte'
-  import Card from '../../../../ui/Card.svelte'
-  import Select from '../../../../ui/Select.svelte'
-  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../../lib/config'
-  import { default as SvelteSelect } from 'svelte-select'
+  import { Moon } from 'svelte-loading-spinners'
+  import { router } from 'tinro'
+  import {
+    currentlyViewing,
+    finishedExperiments,
+    getDiagrams,
+    getFinishedExperiments,
+    getMetrics,
+  } from '../../../../store/al-war'
+  import { data as datasets } from '../../../../store/datasets'
+  import Button from '../../../../ui/Button.svelte'
   import Persisted from '../../components/battle/Persisted.svelte'
 
   let { id } = router.params(),
@@ -58,6 +39,12 @@
     } finally {
       loading = false
     }
+  }
+
+  async function getRunning() {
+    /**
+     * TODO
+     */
   }
 </script>
 
@@ -89,7 +76,9 @@
     </div>
   {:else}
     <div class="display:none">
+      <!--
       {router.goto('./new')}
+      -->
     </div>
   {/if}
 {:else}

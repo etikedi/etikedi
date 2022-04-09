@@ -1,18 +1,17 @@
 <script lang="ts">
-  import { onDestroy, onMount } from 'svelte'
-  import embed from 'vega-embed'
-  import { vega } from 'vega-embed'
   import { notifier } from '@beyonk/svelte-notifications'
-  import { currentlyViewing, diagrams, metricData, saveExperiment } from '../../../../store/al-war'
-  import Table from '../../components/labeling/Table.svelte'
-  import Image from '../../components/labeling/Image.svelte'
-  import { getSpecificSample } from '../../../../store/samples'
-  import { Moon } from 'svelte-loading-spinners'
   import Slider from '@smui/slider'
+  import { onDestroy, onMount } from 'svelte'
+  import { Moon } from 'svelte-loading-spinners'
+  import { router } from 'tinro'
+  import embed, { vega } from 'vega-embed'
+  import { currentlyViewing, diagrams, metricData, saveExperiment } from '../../../../store/al-war'
+  import { getSpecificSample } from '../../../../store/samples'
+  import Button from '../../../../ui/Button.svelte'
   import Card from '../../../../ui/Card.svelte'
   import Input from '../../../../ui/Input.svelte'
-  import Button from '../../../../ui/Button.svelte'
-  import { router } from 'tinro'
+  import Image from '../../components/labeling/Image.svelte'
+  import Table from '../../components/labeling/Table.svelte'
 
   let acc_element,
     dia_elements_one = [],
