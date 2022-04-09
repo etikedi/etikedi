@@ -42,6 +42,8 @@ export const finishedExperiments = writable<any>(null)
 export const loading = writable(null)
 export const valid_strategies = writable(null)
 export const terminate_experiment = writable<boolean>(false)
+export const availableFeatures = writable<object>({})
+export const currentlyViewing = writable<object>({})
 
 export async function getValidStrategies(dataset_id: number | string) {
   try {
@@ -66,7 +68,6 @@ export async function startBattle(dataset_id: number | string, battle_config) {
       params: { dataset_id },
     })
     // success = experiment_id
-    localStorage.setItem(`battle-on-dataset-${dataset_id}`, success)
     return success
   } catch {
     return false
@@ -93,7 +94,6 @@ export async function getStatus(dataset_id: number | string, experiment_id: numb
      * }
      */
     isFinished.set(status.code == 1 && status.time != null ? status.time : status.code == 2)
-    if (status.code === 2) localStorage.removeItem(`battle-on-dataset-${dataset_id}`)
   } finally {
     loading.set(false)
   }

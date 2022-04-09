@@ -2,7 +2,8 @@
   import { onDestroy, onMount } from 'svelte'
   import embed from 'vega-embed'
   import { vega } from 'vega-embed'
-  import { diagrams, metricData } from '../../../../store/al-war'
+  import { notifier } from '@beyonk/svelte-notifications'
+  import { currentlyViewing, diagrams, metricData, saveExperiment } from '../../../../store/al-war'
   import Table from '../../components/labeling/Table.svelte'
   import Image from '../../components/labeling/Image.svelte'
   import { getSpecificSample } from '../../../../store/samples'
@@ -11,9 +12,7 @@
   import Card from '../../../../ui/Card.svelte'
   import Input from '../../../../ui/Input.svelte'
   import Button from '../../../../ui/Button.svelte'
-
-  export let dataset_name = 'Unknown dataset'
-  export let config
+  import { router } from 'tinro'
 
   let acc_element,
     dia_elements_one = [],
@@ -27,7 +26,12 @@
     sample_2,
     sliderDiv,
     sampleIndexes = { process1: 0, process2: 0 },
-    metrics = []
+    metrics = [],
+    dataReady,
+    battle_id
+
+  $: dataReady = $metricData && $diagrams && $currentlyViewing['config'] && $currentlyViewing['dataset_name']
+  $: if ($currentlyViewing['battle_id']) battle_id = $currentlyViewing['battle_id']
 
   // TODO: From store
   $: if ($metricData) {
@@ -50,7 +54,7 @@
     text: Table,
   }
 
-  $: if ($metricData && $metricData['iterations'] && currentIteration) changeIteration()
+  $: if (dataReady && $metricData['iterations'] && currentIteration) changeIteration()
 
   async function changeIteration() {
     // Sync values
@@ -163,7 +167,7 @@
      */
     const loadMock = false
     if (loadMock && !$diagrams && !$metricData) {
-      config = {
+      $currentlyViewing['config'] = {
         BATCH_SIZE: 5,
         exp_configs: [
           {
@@ -184,8 +188,10 @@
       $metricData = metrJson
     }
 
-    getSamples()
-    await pushDiagrams()
+    if (dataReady) {
+      getSamples()
+      await pushDiagrams()
+    }
   })
 
   onDestroy(() => {
@@ -193,14 +199,29 @@
   })
 </script>
 
-{#if $metricData && $diagrams && config}
+{#if dataReady}
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center">
+    <h1>Result</h1>
+    {#if battle_id}
+      <Button
+        style="height: 50%"
+        icon="save"
+        on:click={async () => {
+          const res = await saveExperiment(battle_id)
+          if (res === null) notifier.success('The battle was saved!', 3000)
+        }}>Save Battle</Button
+      >
+    {/if}
+  </div>
+
   <div class="wrapper">
     <Card>
       <div class="left">
         <div class="dataset-info">
           <div>
             <h4>Dataset:</h4>
-            <p>{dataset_name}</p>
+            <p>{$currentlyViewing['dataset_name']}</p>
           </div>
           {#if $metricData && $metricData['iterations']}
             <div>
@@ -210,7 +231,7 @@
           {/if}
           <div>
             <h4>Batch size:</h4>
-            <p>{config['BATCH_SIZE']}</p>
+            <p>{$currentlyViewing['config']['BATCH_SIZE']}</p>
           </div>
         </div>
         <div class="metrics">
@@ -219,12 +240,12 @@
               <th />
               <th>
                 <div class="heading">
-                  {config['exp_configs'][0]['QUERY_STRATEGY']}
+                  {$currentlyViewing['config']['exp_configs'][0]['QUERY_STRATEGY']}
                 </div>
               </th>
               <th>
                 <div class="heading">
-                  {config['exp_configs'][1]['QUERY_STRATEGY']}
+                  {$currentlyViewing['config']['exp_configs'][1]['QUERY_STRATEGY']}
                 </div>
               </th>
             </tr>
@@ -259,8 +280,8 @@
         <div class="battle">
           <div class="process">
             <div class="process-info">
-              <h2>{config['exp_configs'][0]['QUERY_STRATEGY']}</h2>
-              <span><b>AL Model: </b>{config['exp_configs'][0]['AL_MODEL']}</span>
+              <h2>{$currentlyViewing['config']['exp_configs'][0]['QUERY_STRATEGY']}</h2>
+              <span><b>AL Model: </b>{$currentlyViewing['config']['exp_configs'][0]['AL_MODEL']}</span>
             </div>
             <hr />
             <div class="sample">
@@ -319,8 +340,8 @@
           </div>
           <div class="process">
             <div class="process-info">
-              <h2>{config['exp_configs'][1]['QUERY_STRATEGY']}</h2>
-              <span><b>AL Model: </b>{config['exp_configs'][1]['AL_MODEL']}</span>
+              <h2>{$currentlyViewing['config']['exp_configs'][1]['QUERY_STRATEGY']}</h2>
+              <span><b>AL Model: </b>{$currentlyViewing['config']['exp_configs'][1]['AL_MODEL']}</span>
             </div>
             <hr />
             <div class="sample">
@@ -418,6 +439,10 @@
         </div>
       </div>
     </Card>
+  </div>
+{:else}
+  <div style="display:none">
+    {router.goto('./dashboard')}
   </div>
 {/if}
 

@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from '../../../../ui/Button.svelte'
-  import Config from '../Config.svelte'
+  import Config from '../../components/Config.svelte'
   import { data as datasets, getFeatures } from '../../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, getContext } from 'svelte'
@@ -19,6 +19,8 @@
     getFinishedExperiments,
     saveExperiment,
     finishedExperiments,
+    availableFeatures,
+    currentlyViewing,
   } from '../../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
@@ -32,16 +34,12 @@
 
   let { id } = router.params(),
     accordingFinishedBattles = [],
-    experiment_id,
-    config
-
-  /**
-   * DEV
-   */
-  $: if ($metricData) console.debug('metrics:', $metricData)
-  $: if ($diagrams) console.debug('diagrams:', $diagrams)
+    loading = false
 
   $: dataset = $datasets[id]
+
+  getFinishedExperiments()
+
   $: if ($finishedExperiments)
     accordingFinishedBattles = Object.keys($finishedExperiments)
       .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
@@ -49,38 +47,53 @@
         return { ...$finishedExperiments[key], battle_id: key }
       })
 
-  $: console.debug('according:', accordingFinishedBattles)
-
-  // Get persisted experiments
-  getFinishedExperiments()
-
-  async function getData() {
+  async function loadExperiment(experiment_id) {
+    loading = true
     try {
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
+      console.debug('exp', experiment_id)
+      router.goto(`./result`)
     } catch (e) {
-      console.warn('Error while loading data:', e)
+      notifier.danger(e)
+    } finally {
+      loading = false
     }
   }
 </script>
 
-<h1>Battle Dashboard</h1>
-{#if accordingFinishedBattles && accordingFinishedBattles.length > 0}
-  <div>
-    <h2>Persisted Experiments</h2>
-    <Button style="height: 50%" on:click={() => {}}>Start new battle</Button>
-  </div>
-  <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
-  <Persisted
-    dataset_id={id}
-    on:battleLoaded={async (e) => {
-      experiment_id = e.detail['experiment_id']
-      config = e.detail['config']
-      await getData()
-    }}
-  />
-  <h2>Running Experiments</h2>
+{#if dataset}
+  <h1>Battle Dashboard</h1>
+  {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
+    <div>
+      <h2>Persisted Experiments</h2>
+      <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
+    </div>
+    <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
+    <Persisted
+      dataset_id={id}
+      on:battleLoaded={async (e) => {
+        $currentlyViewing['config'] = e.detail['config']
+        $currentlyViewing['dataset_name'] = dataset.name
+        await loadExperiment(e.detail['experiment_id'])
+      }}
+    />
+    <!-- TODO: 
+    {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
+      <h2>Running Experiments</h2>
+    {/if}
+    -->
+  {:else if loading}
+    <div class="starting">
+      Loading persisted data ...
+      <Moon size="30" color="#002557" unit="px" duration="1s" />
+    </div>
+  {:else}
+    <div class="display:none">
+      {router.goto('./new')}
+    </div>
+  {/if}
 {:else}
-  nothing to show
+  Loading...
 {/if}
 
 <style>
@@ -88,5 +101,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .starting {
+    width: 300px;
+    display: flex;
+    flex-direction: row;
+    align-self: center;
+    column-gap: 10px;
   }
 </style>

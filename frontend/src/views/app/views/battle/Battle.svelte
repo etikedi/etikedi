@@ -1,6 +1,6 @@
 <script lang="ts">
   import Button from '../../../../ui/Button.svelte'
-  import Config from '../Config.svelte'
+  import Config from '../../components/Config.svelte'
   import { data as datasets, getFeatures } from '../../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, getContext } from 'svelte'
@@ -19,20 +19,18 @@
     getFinishedExperiments,
     saveExperiment,
     finishedExperiments,
+    currentlyViewing,
   } from '../../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
   import Result from '../../components/battle/Result.svelte'
+  import BattleConfig from '../../components/battle/Config.svelte'
   import Popup from '../../components/Modal.svelte'
   import Card from '../../../../ui/Card.svelte'
   import Select from '../../../../ui/Select.svelte'
   import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../../lib/config'
   import { default as SvelteSelect } from 'svelte-select'
   import Persisted from '../../components/battle/Persisted.svelte'
-
-export let persisted_config
-export let persisted_experiment_id
-
 
   let showConfig = true,
     ready,
@@ -52,9 +50,8 @@ export let persisted_experiment_id
     { open } = getContext('simple-modal'),
     { close } = getContext('simple-modal'),
     { id } = router.params(),
-    experiment_id = undefined,
+    battle_id = undefined,
     sendConfig,
-    availableFeatures = [],
     accordingFinishedBattles = []
 
   /**
@@ -65,15 +62,6 @@ export let persisted_experiment_id
 
   $: dataset = $datasets[id]
   $: ready = dataset && chosenStrategies[0] && chosenStrategies[1]
-  $: if (dataset) getDatasetFeatures()
-  $: if ($finishedExperiments)
-    accordingFinishedBattles = Object.keys($finishedExperiments)
-      .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
-      .map((key) => {
-        return { ...$finishedExperiments[key], battle_id: key }
-      })
-
-  $: console.debug('according:', accordingFinishedBattles)
 
   $: if (chosenStrategies[0]) {
     strategySchemas[0] = {
@@ -103,8 +91,7 @@ export let persisted_experiment_id
       {
         onClose: async () => {
           if ($terminate_experiment) {
-            await terminateExperiment(experiment_id ?? localStorage.getItem(`battle-on-dataset-${id}`))
-            localStorage.removeItem(`battle-on-dataset-${id}`)
+            await terminateExperiment(battle_id)
             router.goto('/app/')
           }
           $terminate_experiment = false
@@ -113,24 +100,8 @@ export let persisted_experiment_id
     )
   }
 
-  experiment_id = localStorage.getItem(`battle-on-dataset-${id}`)
-
-  // Running battle
-  if (experiment_id) {
-    showConfig = false
-    starting = false
-    checkStatus()
-  }
-
   // Get valid strategies
   getValidStrategies(id)
-
-  // Get persisted experiments
-  getFinishedExperiments()
-
-  async function getDatasetFeatures() {
-    availableFeatures = await getFeatures(id)
-  }
 
   async function start() {
     showConfig = false
@@ -168,9 +139,9 @@ export let persisted_experiment_id
     sendConfig.exp_configs[1].QUERY_STRATEGY_CONFIG['query_type'] = sendConfig.exp_configs[1].QUERY_STRATEGY
 
     console.debug('Start battle with config:', sendConfig)
-    experiment_id = await startBattle(id, sendConfig)
+    battle_id = await startBattle(id, sendConfig)
 
-    if (typeof experiment_id === 'number') {
+    if (typeof battle_id === 'number') {
       starting = false
       checkStatus()
     } else {
@@ -186,7 +157,7 @@ export let persisted_experiment_id
         clearInterval(interval)
         await getData()
       } else {
-        await getStatus(id, experiment_id)
+        await getStatus(id, battle_id)
         if (typeof $isFinished === 'number') {
           remainingTime = formatTime($isFinished)
         } else {
@@ -198,10 +169,13 @@ export let persisted_experiment_id
 
   async function getData() {
     try {
-      await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
-      training = false
+      await Promise.all([getMetrics(battle_id), getDiagrams(battle_id)])
+      $currentlyViewing['dataset_name'] = dataset.name
+      $currentlyViewing['config'] = sendConfig
+      $currentlyViewing['battle_id'] = battle_id
+      router.goto(`./result`)
     } catch (e) {
-      console.warn('Error while loading data:', e)
+      notifier.danger(e)
     }
   }
 
@@ -232,98 +206,24 @@ export let persisted_experiment_id
     return (event.returnValue = '')
   }
 
-  function handleFeatureSelect(e) {
-    if (featureConfig && featureConfig.length > 2) {
-      featureConfig.pop()
-      notifier.danger('Only two features allowed here.', 3000)
-    }
-  }
-
   onDestroy(() => {
     clearInterval(interval)
   })
 </script>
 
-<div style="display: flex; justify-content: space-between; align-items: center">
-  <h1>Battle Mode</h1>
-  {#if typeof experiment_id === 'number' && $diagrams && $metricData}
-    <Button
-      style="height: 50%"
-      icon="save"
-      on:click={async () => {
-        const res = await saveExperiment(experiment_id)
-        if (res === null) notifier.success('The battle was saved!', 3000)
-      }}>Save Battle</Button
-    >
-  {/if}
-</div>
 <div class="wrapper">
   {#if showConfig}
-    <h2><b>General</b> Config</h2>
-    <Config alWar strategySchema={GeneralConfig} bind:config={generalConfig} noTitle={true} />
-    {#if availableFeatures && availableFeatures.length > 1}
-      <h2><b>Plot</b></h2>
-      <div class="multi-select">
-        <span>Features</span>
-        <SvelteSelect
-          bind:value={featureConfig}
-          items={availableFeatures}
-          isMulti={true}
-          placeholder="Default: PCA"
-          on:select={handleFeatureSelect}
-        />
-      </div>
-      <Config alWar strategySchema={ClassificationBoundariesConfig} bind:config={classBoundConfig} noTitle={true} />
-    {/if}
-    <div class="config-wrapper">
-      {#if $valid_strategies}
-        <div>
-          <h2><b>Process 1</b> Config</h2>
-          <Select
-            bind:value={chosenStrategies[0]}
-            values={Object.keys($valid_strategies)}
-            emptyFirst
-            label="Query strategy"
-          />
-          {#if strategySchemas[0]}
-            {#key strategySchemas[0]}
-              <h2><b>Strategy</b></h2>
-              <Config
-                bind:config={processConfigs[0]}
-                strategySchema={strategySchemas[0]}
-                strategyDefinitions={strategyDefinitions[0]}
-                alWar
-                noTitle={true}
-              />
-            {/key}
-          {/if}
-        </div>
-        <div>
-          <h2><b>Process 2</b> Config</h2>
-          <Select
-            bind:value={chosenStrategies[1]}
-            values={Object.keys($valid_strategies)}
-            emptyFirst
-            label="Query strategy"
-          />
-          {#if strategySchemas[1]}
-            {#key strategySchemas[1]}
-              <h2><b>Strategy</b></h2>
-              <Config
-                bind:config={processConfigs[1]}
-                strategySchema={strategySchemas[1]}
-                strategyDefinitions={strategyDefinitions[1]}
-                alWar
-                noTitle={true}
-              />
-            {/key}
-          {/if}
-        </div>
-      {/if}
-    </div>
-    {#if ready}
-      <Button label="Submit" icon="checkmark-circle-sharp" on:click={start} />
-    {/if}
+    <BattleConfig
+      {id}
+      bind:classBoundConfig
+      bind:generalConfig
+      bind:chosenStrategies
+      bind:strategySchemas
+      bind:strategyDefinitions
+      bind:processConfigs
+      bind:featureConfig
+      on:submit={start}
+    />
   {:else if starting}
     <div class="starting">
       <Moon size="30" color="#002557" unit="px" duration="1s" />
@@ -345,8 +245,6 @@ export let persisted_experiment_id
     {#if remainingTime}
       <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
     {/if}
-  {:else if dataset}
-    <Result dataset_name={dataset['name']} config={sendConfig} />
   {/if}
 </div>
 <svelte:window on:beforeunload={beforeunload} />
