@@ -47,7 +47,7 @@ class AlExperimentConfig(BaseModel):
     @validator('QUERY_STRATEGY_CONFIG', pre=True)
     def validate_strategy_config(cls, raw_config, values):
         strategy = values['QUERY_STRATEGY']
-        ConfigSchema = strategy.get_config_schema()
+        ConfigSchema = strategy.get_config_model()
         properties = raw_config.keys() if hasattr(raw_config, 'keys') else raw_config.dict().keys()
         invalid_properties = list(filter(lambda key: key not in ConfigSchema.schema()['properties'], properties))
         if len(invalid_properties) > 0:

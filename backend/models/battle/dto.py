@@ -5,6 +5,7 @@ from typing import Optional, List, Tuple, Dict, Union
 
 import numpy as np
 import pandas as pd
+from altair import UrlData
 from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, root_validator, \
     PositiveInt
 
@@ -151,46 +152,38 @@ class ChartReturnSchema(BaseModel):
 
 
 class ClassificationBoundariesDTO(BaseModel):
-    # row = randomly generated Sample, columns = feature-names [2]
-    reduced_features: pd.DataFrame
-    # list-entry = iteration, rows = Samples, columns = Class, Confidence
-    exp_one_iterations: List[pd.DataFrame]
-    exp_two_iterations: List[pd.DataFrame]
+    exp_one_iterations: List[UrlData]
+    exp_two_iterations: List[UrlData]
     x_bins: PositiveInt
     y_bins: PositiveInt
+    feature_one_name: str
+    feature_two_name: str
 
     class Config:
         arbitrary_types_allowed = True
 
     @root_validator()
     def validate_all(cls, values):
-        reduced = values['reduced_features']
         exp_one = values['exp_one_iterations']
         exp_two = values['exp_two_iterations']
         if len(exp_one) != len(exp_two):
             raise ValueError('Both experiments should have the same number of iterations.')
-        if len(reduced.columns) != 2:
-            raise ValueError('More than two features in reduced_features')
         return values
 
 
-class DataMapsDTO(BaseModel):
-    # list-entry = iteration, rows = Samples, columns = metric-scores
-    exp_one_data: List[pd.DataFrame]
-    exp_two_data: List[pd.DataFrame]
+class VectorSpaceDTO(BaseModel):
+    exp_one_urls: List[UrlData]
+    exp_two_urls: List[UrlData]
+    feature_one_name: str
+    feature_two_name: str
 
     class Config:
         arbitrary_types_allowed = True
 
-    @root_validator()
-    def validate_all(cls, values):
-        exp_one = values['exp_one_data']
-        exp_two = values['exp_two_data']
-        if len(exp_one) != len(exp_two):
-            raise ValueError('Both experiments should have the same number of iterations.')
-        for exp in [exp_one, exp_two]:
-            for frame in exp:
-                if any(col not in ['Confidence', 'Variability', 'Correctness', 'SampleID'] for col in frame.columns) \
-                        or len(frame.columns) != 4:
-                    raise ValueError('Dataframe had bad columns')
-        return values
+
+class DataMapsDTO(BaseModel):
+    exp_one_urls: List[UrlData]
+    exp_two_urls: List[UrlData]
+
+    class Config:
+        arbitrary_types_allowed = True

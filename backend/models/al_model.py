@@ -2,7 +2,8 @@ from __future__ import annotations  # necessary for self referencing annotations
 
 from abc import ABCMeta, abstractmethod
 from enum import Enum
-from typing import List, Type, Literal
+from typing import List, Type, Literal, Dict
+from copy import deepcopy
 
 from alipy.query_strategy.query_labels import (
     QueryInstanceSPAL,
@@ -34,8 +35,9 @@ class QKernel(str, Enum):
 class QMeasureType(str, Enum):
     LEAST_CONFIDENT = "least_confident"
     MARGIN = "margin"
-    ENTROPY = "entrop"
-    DISTANCE_TO_BOUNDARY = "distance_to_boundar"
+    ENTROPY = "entropy"
+    # only for binary classification requires the model to have 'decision_function'
+    DISTANCE_TO_BOUNDARY = "distance_to_boundary"
 
 
 class QLALMode(str, Enum):
@@ -132,7 +134,12 @@ class QueryStrategyAbstraction(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def get_config_schema(binary: bool = False) -> Dict:
         pass
 
 
@@ -166,16 +173,21 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceSPALHolder.SPALConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceSPALHolder.get_config_model().schema()
 
 
 class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
     class UncertaintyConfig(BaseModel):
         query_type: Literal["QueryInstanceUncertainty"]
         description = (
-            QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
+                QueryStrategyAbstraction.base_url + "QueryInstanceUncertainty.html"
         )
+        # validation done in additional_experiment_validation (distance_to_boundary only for binary label)
         measure: QMeasureType = QMeasureType.LEAST_CONFIDENT
 
     def __init__(self, X, y, config: UncertaintyConfig):
@@ -185,8 +197,18 @@ class QueryInstanceUncertaintyHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceUncertaintyHolder.UncertaintyConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        if binary:
+            return QueryInstanceUncertaintyHolder.get_config_model().schema()
+        else:
+            # validation done in additional_experiment_validation
+            schema = deepcopy(QueryInstanceUncertaintyHolder.get_config_model().schema())
+            schema['definitions']['QMeasureType']['enum'].remove('distance_to_boundary')
+            return schema
 
 
 class QueryInstanceLALHolder(QueryStrategyAbstraction):
@@ -205,8 +227,12 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceLALHolder.LALConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceLALHolder.get_config_model().schema()
 
 
 class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
@@ -228,8 +254,12 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size, self.qp_solver)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceBMDRHolder.BMDRConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceBMDRHolder.get_config_model().schema()
 
 
 class QueryInstanceRandomHolder(QueryStrategyAbstraction):
@@ -244,15 +274,19 @@ class QueryInstanceRandomHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceRandomHolder.RandomConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceRandomHolder.get_config_model().schema()
 
 
 class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
     class GraphDensityConfig(BaseModel):
         query_type: Literal["QueryInstanceGraphDensity"]
         description = (
-            QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
+                QueryStrategyAbstraction.base_url + "QueryInstanceGraphDensity.html"
         )
         train_idx: List = []  # injected by experiment
         metric: QMetric = QMetric.MANHATTAN
@@ -266,8 +300,12 @@ class QueryInstanceGraphDensityHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceGraphDensityHolder.GraphDensityConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceGraphDensityHolder.get_config_model().schema()
 
 
 class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
@@ -290,8 +328,12 @@ class QueryInstanceQUIREHolder(QueryStrategyAbstraction):
             results + self.qs.select(label_index, unlabel_index)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceQUIREHolder.QUIREConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceQUIREHolder.get_config_model().schema()
 
 
 class QueryInstanceQBCHolder(QueryStrategyAbstraction):
@@ -313,15 +355,19 @@ class QueryInstanceQBCHolder(QueryStrategyAbstraction):
         )
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryInstanceQBCHolder.QBCConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryInstanceQBCHolder.get_config_model().schema()
 
 
 class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
     class ExpectedErrorReductionConfig(BaseModel):
         query_type: Literal["QueryExpectedErrorReduction"]
         description = (
-            QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
+                QueryStrategyAbstraction.base_url + "QueryExpectedErrorReduction.html"
         )
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
@@ -331,8 +377,12 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
         return self.qs.select(label_index, unlabel_index, model, batch_size)
 
     @staticmethod
-    def get_config_schema() -> Type[BaseModel]:
+    def get_config_model() -> Type[BaseModel]:
         return QueryExpectedErrorReductionHolder.ExpectedErrorReductionConfig
+
+    @staticmethod
+    def get_config_schema(binary: bool = False) -> Dict:
+        return QueryExpectedErrorReductionHolder.get_config_model().schema()
 
 
 class QueryStrategyType(str, Enum):
@@ -372,15 +422,18 @@ class QueryStrategyType(str, Enum):
 
     def only_binary_classification(self):
         return (
-            self == QueryStrategyType.QUERY_INSTANCE_BMDR
-            or self == QueryStrategyType.QUERY_INSTANCE_LAL
-            or self == QueryStrategyType.QUERY_INSTANCE_SPAL
+                self == QueryStrategyType.QUERY_INSTANCE_BMDR
+                or self == QueryStrategyType.QUERY_INSTANCE_LAL
+                or self == QueryStrategyType.QUERY_INSTANCE_SPAL
         )
 
     # returns all config options for this query strategy
-    def get_config_schema(self) -> Type[BaseModel]:
-        return self.get_class().get_config_schema()
+    def get_config_model(self) -> Type[BaseModel]:
+        return self.get_class().get_config_model()
+
+    def get_config_schema(self, binary: bool = False):
+        return self.get_class().get_config_schema(binary)
 
     def get_default_config(self):
-        ConfigClass = self.get_class().get_config_schema()
+        ConfigClass = self.get_class().get_config_model()
         return ConfigClass(query_type=self.value)  # instance of Schema

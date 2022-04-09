@@ -4,6 +4,7 @@ from typing import Tuple, Optional, List
 
 import numpy as np
 import pandas as pd
+from altair import UrlData, CsvDataFormat
 from sklearn.decomposition import PCA
 
 from ..config import db
@@ -16,6 +17,7 @@ from ..models import (
     Dataset,
     Sample,
     ClassificationBoundariesDTO,
+    VectorSpaceDTO,
     MetricScoresIteration,
     MetricIteration)
 from ..utils import zip_unequal
@@ -36,9 +38,15 @@ class BattleAnalyzer:
         self.experiment_id: int = experiment_id
         self.dataset_id: int = dataset_id
         self.config: ALBattleConfig = config
+        # row = randomly generated Sample, columns = feature-names [2]
         self.cb_sample: pd.DataFrame = cb_sample
         self.results: Tuple[ExperimentResults, ExperimentResults] = (result_one, result_two)
         self.metric: Optional[Metric] = None
+        # cache plot data
+        self.vector_space_data: Optional[Tuple[List[pd.DataFrame], List[pd.DataFrame]]] = None
+        self.classification_boundaries_data: Optional[Tuple[List[pd.DataFrame], List[pd.DataFrame]]] = None
+        # list-entry = iteration, rows = Samples, columns = metric-scores
+        self.data_maps: Optional[Tuple[List[pd.DataFrame], List[pd.DataFrame]]] = None
 
     # Methods for plot related data
     def get_learning_curve_data(self) -> pd.DataFrame:
@@ -61,7 +69,7 @@ class BattleAnalyzer:
 
         return gen(0), gen(1)
 
-    def get_data_map_data(self) -> DataMapsDTO:
+    def get_data_map_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
 
         def for_each_iteration(iteration: int, raw_predictions: pd.DataFrame, correct_label_as_idx):
             # use the last 10 iterations as input
@@ -85,12 +93,27 @@ class BattleAnalyzer:
             return [for_each_iteration(iteration, raw_predictions, r.correct_label_as_idx)
                     for iteration in raw_predictions.index]
 
-        return DataMapsDTO(exp_one_data=gen(0), exp_two_data=gen(1))
+        return gen(0), gen(1)
 
-    def _use_pca_for_feature_selection(self, sample_ids: List[int]):
+    def get_data_map_description(self, base_url: str) -> DataMapsDTO:
+        data = self.get_data_map_data()
+        iterations = len(data[0])
+        descriptions = []
+        for exp_idx in [0, 1]:
+            per_experiment = []
+            for i in range(iterations):
+                url = base_url + f"/data-map/{exp_idx}/{i}"
+                per_experiment.append(UrlData(url=url, format=CsvDataFormat(type='csv'), name='data_map_iteration'))
+            descriptions.append(per_experiment)
+        return DataMapsDTO(exp_one_urls=descriptions[0],
+                           exp_two_urls=descriptions[1])
+
+    def _use_pca_for_feature_selection(self, exclude: List[int]):
         dataset = db.get(Dataset, self.dataset_id)
         feature_names = dataset.feature_names
-        samples = db.query(Sample).filter(Sample.id.in_(sample_ids)).all()
+        samples = [s for s in
+                   db.query(Sample).filter(Sample.dataset_id == self.dataset_id).filter(Sample.id.not_in(exclude)).all()
+                   if s.labels != []]
 
         samples_df = pd.DataFrame([
             [smpl.id] + smpl.extract_feature_list()
@@ -103,9 +126,10 @@ class BattleAnalyzer:
         pca_df.set_index("SampleID")
         return pca_df
 
-    @staticmethod
-    def _use_names_for_feature_selection(name_one: str, name_two: str, sample_ids: List[int]):
-        samples: List[Sample] = db.query(Sample).filter(Sample.id.in_(sample_ids)).all()
+    def _use_names_for_feature_selection(self, name_one: str, name_two: str, exclude: List[int]):
+        samples = [s for s in
+                   db.query(Sample).filter(Sample.dataset_id == self.dataset_id).filter(Sample.id.not_in(exclude)).all()
+                   if s.labels != []]
         all_samples: pd.DataFrame = pd.DataFrame([
             {
                 "SampleID": smpl.id,
@@ -120,21 +144,17 @@ class BattleAnalyzer:
     def get_vector_space_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
         """ @return for each experiment for each iteration a data-frame with columns:
                 <feature-one>, <feature-two>, SampleID, Color"""
-        # both experiments should have the same fully labeled pool of samples so 0 or 1 does not make a difference
-        # int(s) because sqlalchemy does not accept np.int64 for id checks
-        sample_ids = list(map(lambda s: int(s), np.concatenate([m.sample_ids for m in self.results[0].meta_data]))) + \
-                     self.results[0].initially_labeled
-        reduced_features_df = self._use_pca_for_feature_selection(sample_ids) \
-            if self.config.PLOT_CONFIG.FEATURES is None \
-            else self._use_names_for_feature_selection(*self.config.PLOT_CONFIG.FEATURES, sample_ids=sample_ids)
-
-        def classify(ID, selected_ids, labeled_ids):
-            return 'Selected' if ID in selected_ids \
-                else ('Labeled' if ID in labeled_ids
-                      else 'Unlabeled')
+        if self.vector_space_data is not None:
+            return self.vector_space_data
 
         def gen(exp_idx: int):
             r = self.results[exp_idx]
+            # reduced_features_df['SampleID'] == all training sample
+            test_sample = list(map(lambda id_: int(id_), r.raw_predictions.columns))
+            reduced_features_df = self._use_pca_for_feature_selection(exclude=test_sample) \
+                if self.config.PLOT_CONFIG.FEATURES is None \
+                else self._use_names_for_feature_selection(*self.config.PLOT_CONFIG.FEATURES, exclude=test_sample)
+
             labeled_ids = r.initially_labeled.copy()
             iterations = []
             for meta_data in r.meta_data:
@@ -145,9 +165,34 @@ class BattleAnalyzer:
                 iterations.append(it_df)
             return iterations
 
-        return gen(0), gen(1)
+        def classify(ID, selected_ids, labeled_ids):
+            return 'Selected' if ID in selected_ids \
+                else ('Labeled' if ID in labeled_ids
+                      else 'Unlabeled')
 
-    def get_classification_boundary_data(self) -> ClassificationBoundariesDTO:
+        self.vector_space_data = gen(0), gen(1)
+        return self.vector_space_data
+
+    def get_vector_space_data_description(self, base_url: str) -> VectorSpaceDTO:
+        data = self.get_vector_space_data()
+        iterations = len(data[0])
+        descriptions = []
+        for exp_idx in [0, 1]:
+            per_experiment = []
+            for i in range(iterations):
+                url = base_url + f"/vector-space/{exp_idx}/{i}"
+                per_experiment.append(UrlData(url=url, format=CsvDataFormat(type='csv'), name='vector_space_iteration'))
+            descriptions.append(per_experiment)
+        f1, f2 = [f for f in data[0][0].columns if f not in ['Color', 'SampleID']]
+        return VectorSpaceDTO(exp_one_urls=descriptions[0],
+                              exp_two_urls=descriptions[1],
+                              feature_one_name=f1,
+                              feature_two_name=f2)
+
+    def get_classification_boundary_data(self) -> Tuple[List[pd.DataFrame], List[pd.DataFrame]]:
+
+        if self.classification_boundaries_data is not None:
+            return self.classification_boundaries_data
 
         if self.config.PLOT_CONFIG.FEATURES is None:
             # ndarray with list of rows of [feature_1, feature_2]
@@ -158,11 +203,12 @@ class BattleAnalyzer:
             reduced_features = self.cb_sample.loc[:, self.config.PLOT_CONFIG.FEATURES]
 
         def for_each_iteration(iteration: pd.Series, classes: List[str]):
-            return pd.DataFrame(data={
+            iter_pf = pd.DataFrame(data={
                 'Class': [classes[confidence_scores.index(max(confidence_scores))] for _, confidence_scores in
                           iteration.iteritems()],
                 'Confidence': [max(item) for _, item in iteration.iteritems()]
             })
+            return pd.merge(reduced_features, iter_pf, left_index=True, right_index=True)
 
         def gen(exp_idx):
             result = self.results[exp_idx]
@@ -171,12 +217,29 @@ class BattleAnalyzer:
             iteration_list = [for_each_iteration(row, result.classes) for _, row in result.cb_predictions.iterrows()]
             return iteration_list
 
+        self.classification_boundaries_data = gen(0), gen(1)
+        return self.classification_boundaries_data
+
+    def get_classification_boundaries_description(self, base_url: str) -> ClassificationBoundariesDTO:
+        data = self.get_classification_boundary_data()
+        iterations = len(data[0])
+        descriptions = []
+        for exp_idx in [0, 1]:
+            per_experiment = []
+            for i in range(iterations):
+                url = base_url + f"/classification-boundaries/{exp_idx}/{i}"
+                per_experiment.append(
+                    UrlData(url=url, format=CsvDataFormat(type='csv'), name='classification_boundaries_iteration'))
+            descriptions.append(per_experiment)
+        f1, f2 = [f for f in data[0][0].columns if f not in ['Confidence', 'Class']]
         return ClassificationBoundariesDTO(
-            reduced_features=reduced_features,
-            exp_one_iterations=gen(0),
-            exp_two_iterations=gen(1),
+            exp_one_iterations=descriptions[0],
+            exp_two_iterations=descriptions[1],
             x_bins=self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.MAX_X_BINS,
-            y_bins=self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.MAX_Y_BINS)
+            y_bins=self.config.PLOT_CONFIG.CLASSIFICATION_BOUNDARIES.MAX_Y_BINS,
+            feature_one_name=f1,
+            feature_two_name=f2
+        )
 
     def get_metrics(self) -> Metric:
         if self.metric is not None:
