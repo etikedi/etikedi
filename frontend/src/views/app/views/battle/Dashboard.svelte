@@ -15,18 +15,21 @@
 
   let { id } = router.params(),
     accordingFinishedBattles = [],
-    loading = false
+    loading = false,
+    ready = false
 
   $: dataset = $datasets[id]
 
   getFinishedExperiments()
 
-  $: if ($finishedExperiments)
+  $: if ($finishedExperiments) {
     accordingFinishedBattles = Object.keys($finishedExperiments)
       .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
       .map((key) => {
         return { ...$finishedExperiments[key], battle_id: key }
       })
+    ready = true
+  }
 
   async function loadExperiment(experiment_id) {
     loading = true
@@ -50,36 +53,36 @@
 
 {#if dataset}
   <h1>Battle Dashboard</h1>
-  {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
-    <div>
-      <h2>Persisted Experiments</h2>
-      <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
-    </div>
-    <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
-    <Persisted
-      dataset_id={id}
-      on:battleLoaded={async (e) => {
-        $currentlyViewing['config'] = e.detail['config']
-        $currentlyViewing['dataset_name'] = dataset.name
-        await loadExperiment(e.detail['experiment_id'])
-      }}
-    />
-    <!-- TODO: 
+  {#if ready}
+    {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
+      <div>
+        <h2>Persisted Experiments</h2>
+        <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
+      </div>
+      <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
+      <Persisted
+        dataset_id={id}
+        on:battleLoaded={async (e) => {
+          $currentlyViewing['config'] = e.detail['config']
+          $currentlyViewing['dataset_name'] = dataset.name
+          await loadExperiment(e.detail['experiment_id'])
+        }}
+      />
+      <!-- TODO: 
     {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
       <h2>Running Experiments</h2>
     {/if}
     -->
-  {:else if loading}
-    <div class="starting">
-      Loading persisted data ...
-      <Moon size="30" color="#002557" unit="px" duration="1s" />
-    </div>
-  {:else}
-    <div class="display:none">
-      <!--
-      {router.goto('./new')}
-      -->
-    </div>
+    {:else if loading}
+      <div class="starting">
+        Loading persisted data ...
+        <Moon size="30" color="#002557" unit="px" duration="1s" />
+      </div>
+    {:else}
+      <div class="display:none">
+        {router.goto('./new')}
+      </div>
+    {/if}
   {/if}
 {:else}
   Loading...
