@@ -1,7 +1,7 @@
 <script lang="ts">
-  import Button from '../../../ui/Button.svelte'
-  import Config from './Config.svelte'
-  import { data as datasets, getFeatures } from '../../../store/datasets'
+  import Button from '../../../../ui/Button.svelte'
+  import Config from '../Config.svelte'
+  import { data as datasets, getFeatures } from '../../../../store/datasets'
   import { router } from 'tinro'
   import { onDestroy, getContext } from 'svelte'
   import {
@@ -19,16 +19,16 @@
     getFinishedExperiments,
     saveExperiment,
     finishedExperiments,
-  } from '../../../store/al-war'
+  } from '../../../../store/al-war'
   import { Moon } from 'svelte-loading-spinners'
   import { notifier } from '@beyonk/svelte-notifications'
-  import AlWarComponent from '../components/ALWarComponent.svelte'
-  import Popup from '../components/Modal.svelte'
-  import Card from '../../../ui/Card.svelte'
-  import Select from '../../../ui/Select.svelte'
-  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../lib/config'
+  import Result from '../../components/battle/Result.svelte'
+  import Popup from '../../components/Modal.svelte'
+  import Card from '../../../../ui/Card.svelte'
+  import Select from '../../../../ui/Select.svelte'
+  import { ClassificationBoundariesConfig, GeneralConfig, ProcessConfig } from '../../../../lib/config'
   import { default as SvelteSelect } from 'svelte-select'
-  import PersistedExperiments from '../components/PersistedExperiments.svelte'
+  import Persisted from '../../components/battle/Persisted.svelte'
 
   let showPersisted = true,
     showConfig = true,
@@ -247,7 +247,7 @@
     <Button style="height: 50%" on:click={() => (showPersisted = false)}>Start new battle</Button>
   </div>
   <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
-  <PersistedExperiments
+  <Persisted
     dataset_id={id}
     on:battleLoaded={async (e) => {
       experiment_id = e.detail['experiment_id']
@@ -360,7 +360,7 @@
         <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
       {/if}
     {:else if dataset}
-      <AlWarComponent dataset_name={dataset['name']} config={sendConfig} />
+      <Result dataset_name={dataset['name']} config={sendConfig} />
     {/if}
   </div>
 {/if}
