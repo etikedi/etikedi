@@ -19,6 +19,7 @@ from ..models import (
     Metric,
     Status,
     ExperimentResults,
+    BattleMetaActive,
     ExperimentQueueEventType)
 from ..utils import ValidationError
 
@@ -44,6 +45,25 @@ class BattleManager:
     @staticmethod
     def has_finished_manager(experiment_id: int):
         return experiment_id in BattleManager._finished_manager
+
+    @staticmethod
+    def get_all_active_finished() -> Dict[int, BattleMetaActive]:
+        loaded_battle: Dict[int, BattleMetaActive] = {}
+        for experiment_id, battle in BattleManager._manager.items():
+            loaded_battle[experiment_id] = BattleMetaActive(
+                experiment_id=experiment_id,
+                config=battle.config,
+                dataset_id=battle.dataset_id,
+                status=battle.get_status()
+            )
+        for experiment_id, finished in BattleManager._finished_manager.items():
+            loaded_battle[experiment_id] = BattleMetaActive(
+                experiment_id=experiment_id,
+                config=finished.config,
+                dataset_id=finished.dataset_id,
+                status=Status(code=Status.Code.COMPLETED)
+            )
+        return loaded_battle
 
     @staticmethod
     def get_active_manager(experiment_id: int):

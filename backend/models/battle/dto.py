@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import IntEnum, Enum
+from pathlib import Path
 from typing import Optional, List, Tuple, Dict, Union
 
 import numpy as np
@@ -9,7 +10,7 @@ from altair import UrlData
 from pydantic import BaseModel, NonNegativeFloat, NonNegativeInt, validator, root_validator, \
     PositiveInt
 
-from .configs import ZeroToOne
+from .configs import ZeroToOne, ALBattleConfig
 from ..al_model import QueryStrategyType
 
 
@@ -141,6 +142,20 @@ class ValidStrategiesReturnSchema(BaseModel):
     Json represents the config options as BaseModel.schema_json()
     """
     strategies: Dict[QueryStrategyType, str]
+
+
+class BattleMetaInformation(BaseModel):
+    experiment_id: int
+    dataset_id: int
+    config: ALBattleConfig
+
+
+class BattleMetaPersistence(BattleMetaInformation):
+    path: Path
+
+
+class BattleMetaActive(BattleMetaInformation):
+    status: Status
 
 
 class ChartReturnSchema(BaseModel):
