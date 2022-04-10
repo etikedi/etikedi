@@ -193,6 +193,11 @@
     }
   })
 
+  function beforeunload(event: BeforeUnloadEvent) {
+    event.preventDefault()
+    return (event.returnValue = '')
+  }
+
   onDestroy(() => {
     destroyViews()
   })
@@ -444,6 +449,7 @@
     {router.goto('./dashboard')}
   </div>
 {/if}
+<svelte:window on:beforeunload={beforeunload} />
 
 <style>
   .wrapper {

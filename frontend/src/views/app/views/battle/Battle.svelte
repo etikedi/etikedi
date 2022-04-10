@@ -4,6 +4,7 @@
   import { Moon } from 'svelte-loading-spinners'
   import { router } from 'tinro'
   import { ProcessConfig } from '../../../../lib/config'
+  import { formatTime } from '../../../../lib/human'
   import {
     currentlyViewing,
     diagrams,
@@ -11,7 +12,6 @@
     getMetrics,
     getStatus,
     getValidStrategies,
-    isFinished,
     metricData,
     startBattle,
     terminateExperiment,
@@ -98,8 +98,6 @@
     showConfig = false
     starting = true
 
-    // TODO: Features?
-
     const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[1]['AL_MODEL']]
     const queryConfigs = processConfigs
     delete queryConfigs[0]['AL_MODEL']
@@ -144,16 +142,14 @@
   async function checkStatus() {
     training = true
     interval = setInterval(async () => {
-      if ($isFinished === true) {
+      const status = await getStatus(id, battle_id)
+      if (typeof status === 'number') {
+        remainingTime = formatTime(status)
+      } else if (status === true) {
         clearInterval(interval)
         await getData()
       } else {
-        await getStatus(id, battle_id)
-        if (typeof $isFinished === 'number') {
-          remainingTime = formatTime($isFinished)
-        } else {
-          remainingTime = undefined
-        }
+        remainingTime = undefined
       }
     }, 3000)
   }
@@ -172,29 +168,6 @@
 
   async function receiveMetrics() {
     await getMetrics(id)
-  }
-
-  function formatTime(duration) {
-    // Hours, minutes and seconds
-    var hrs = ~~(duration / 3600)
-    var mins = ~~((duration % 3600) / 60)
-    var secs = ~~duration % 60
-
-    // Output like "1:01" or "4:03:59" or "123:03:59"
-    var ret = ''
-
-    if (hrs > 0) {
-      ret += '' + hrs + ':' + (mins < 10 ? '0' : '')
-    }
-
-    ret += '' + mins + ':' + (secs < 10 ? '0' : '')
-    ret += '' + secs
-    return ret
-  }
-
-  function beforeunload(event: BeforeUnloadEvent) {
-    event.preventDefault()
-    return (event.returnValue = '')
   }
 
   onDestroy(() => {
@@ -238,7 +211,6 @@
     {/if}
   {/if}
 </div>
-<svelte:window on:beforeunload={beforeunload} />
 
 <style>
   .wrapper {

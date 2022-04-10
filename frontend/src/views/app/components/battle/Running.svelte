@@ -1,53 +1,58 @@
 <script lang="ts">
-  import { createEventDispatcher } from 'svelte'
-  import { finishedExperiments, getExperiment } from '../../../../store/al-war'
+  import { notifier } from '@beyonk/svelte-notifications'
+  import { onDestroy } from 'svelte'
+  import { Moon } from 'svelte-loading-spinners'
+  import { formatTime } from '../../../../lib/human'
+  import { getFinishedExperiments, getStatus, running, saveExperiment } from '../../../../store/al-war'
   import Card from '../../../../ui/Card.svelte'
-
-  const dispatch = createEventDispatcher()
 
   export let dataset_id
 
-  let accordingBattles = []
+  let intervals = {},
+    remainingTimes = {}
 
-  $: if ($finishedExperiments)
-    accordingBattles = Object.entries($finishedExperiments).filter((el) => el[1]['dataset_id'] == dataset_id)
-
-  async function loadBattle(experiment_id: number | string, config: object) {
-    await getExperiment(experiment_id)
-    dispatch('battleLoaded', { experiment_id, config: config['config'] })
+  $: if ($running[dataset_id]) {
+    for (const battle_id of $running[dataset_id]) {
+      if (intervals[battle_id]) clearInterval(intervals[battle_id])
+      checkStatus(battle_id)
+    }
   }
+
+  async function checkStatus(battle_id) {
+    intervals[battle_id] = setInterval(async () => {
+      const status = await getStatus(dataset_id, battle_id)
+      if (typeof status === 'number') {
+        remainingTimes[battle_id] = formatTime(status)
+      } else if (status === true) {
+        clearInterval(intervals[battle_id])
+        delete remainingTimes[battle_id]
+        await saveExperiment(battle_id)
+        notifier.success(`Battle ${battle_id} finished and persisted!`, 5000)
+        await getFinishedExperiments()
+      } else {
+        delete remainingTimes[battle_id]
+      }
+    }, 3000)
+  }
+
+  onDestroy(() => {
+    for (const battle_id of Object.keys(intervals)) {
+      clearInterval(intervals[battle_id])
+      remainingTimes = {}
+    }
+  })
 </script>
 
-<div class="flex flex-wrap">
-  {#each accordingBattles as [experiment_id, config]}
-    <div class="fl w-25 card">
+<div class="grid">
+  {#each $running[dataset_id] as battle_id}
+    <div>
       <Card>
         <div style="position: relative">
-          <h3>Battle ID: <b>{experiment_id}</b></h3>
-          <div class="row">
-            <span class="label">Dataset ID:</span>
-            <span>{config['dataset_id']}</span>
+          <h3>Battle ID: <b>{battle_id}</b></h3>
+          <div><b>Remaining Time: </b>{remainingTimes[battle_id] ?? 'Currently unknown'}</div>
+          <div class="loading">
+            <Moon size="30" color="#002557" unit="px" duration="1s" />
           </div>
-          <h4>Process 1:</h4>
-          <div class="row">
-            <div class="fl w-third pa2 label">Query Strategy:</div>
-            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][0]['QUERY_STRATEGY']}</span>
-          </div>
-          <div class="row">
-            <div class="fl w-third pa2 label">AL Model:</div>
-            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][0]['AL_MODEL']}</span>
-          </div>
-
-          <h4>Process 2:</h4>
-          <div class="row">
-            <div class="fl w-third pa2 label">Query Strategy:</div>
-            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][1]['QUERY_STRATEGY']}</span>
-          </div>
-          <div class="row">
-            <div class="fl w-third pa2 label">AL Model:</div>
-            <span class="fl w-two-thirds pa2">{config['config']['exp_configs'][1]['AL_MODEL']}</span>
-          </div>
-          <ion-icon class="play" name="play-circle-sharp" on:click={() => loadBattle(experiment_id, config)} />
         </div>
       </Card>
     </div>
@@ -57,23 +62,14 @@
 </div>
 
 <style>
-  .row {
-    display: flex;
-    flex-direction: row;
-    column-gap: 10px;
-    overflow: auto;
-  }
-  .label {
-    color: #555;
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    column-gap: 30px;
+    row-gap: 20px;
   }
 
-  .flex {
-    column-gap: 20px;
-  }
-
-  ion-icon.play {
-    font-size: 3rem;
-    color: var(--clr-primary);
+  .loading {
     position: absolute;
     top: 0;
     right: 0;

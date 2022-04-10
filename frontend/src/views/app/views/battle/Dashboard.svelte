@@ -8,10 +8,12 @@
     getDiagrams,
     getFinishedExperiments,
     getMetrics,
+    running,
   } from '../../../../store/al-war'
   import { data as datasets } from '../../../../store/datasets'
   import Button from '../../../../ui/Button.svelte'
   import Persisted from '../../components/battle/Persisted.svelte'
+  import Running from '../../components/battle/Running.svelte'
 
   let { id } = router.params(),
     accordingFinishedBattles = [],
@@ -35,7 +37,6 @@
     loading = true
     try {
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
-      console.debug('exp', experiment_id)
       router.goto(`./result`)
     } catch (e) {
       notifier.danger(e)
@@ -52,27 +53,27 @@
 </script>
 
 {#if dataset}
-  <h1>Battle Dashboard</h1>
+  <div>
+    <h1>Battle Dashboard</h1>
+    <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
+  </div>
   {#if ready}
-    {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
-      <div>
+    {#if accordingFinishedBattles.length > 0 || $running[id]}
+      {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
         <h2>Persisted Experiments</h2>
-        <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
-      </div>
-      <h3>There are some battles persisted for this dataset. Do you want to review one of them?</h3>
-      <Persisted
-        dataset_id={id}
-        on:battleLoaded={async (e) => {
-          $currentlyViewing['config'] = e.detail['config']
-          $currentlyViewing['dataset_name'] = dataset.name
-          await loadExperiment(e.detail['experiment_id'])
-        }}
-      />
-      <!-- TODO: 
-    {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
-      <h2>Running Experiments</h2>
-    {/if}
-    -->
+        <Persisted
+          accordingBattles={accordingFinishedBattles}
+          on:battleLoaded={async (e) => {
+            $currentlyViewing['config'] = e.detail['config']
+            $currentlyViewing['dataset_name'] = dataset.name
+            await loadExperiment(e.detail['experiment_id'])
+          }}
+        />
+      {/if}
+      {#if $running && $running[id]}
+        <h2>Running Experiments</h2>
+        <Running dataset_id={id} />
+      {/if}
     {:else if loading}
       <div class="starting">
         Loading persisted data ...
