@@ -123,6 +123,24 @@ class ExperimentQueueEventType(IntEnum):
     SETUP_COMPLETED = 1
     INFO = 2,
     RESULT = 3
+    FAILED = 4
+
+
+class ExperimentQueueEvent(BaseModel):
+    event_type: ExperimentQueueEventType
+    value: Union[ExperimentResults, bool, float, int, str]
+
+    @root_validator()
+    def validate_all(cls, values):
+        event_type: ExperimentQueueEventType = values['event_type']
+        value = values['value']
+        if (event_type == ExperimentQueueEventType.INFO and
+                not isinstance(value, float) and not isinstance(value, int)) or \
+                (event_type == ExperimentQueueEventType.SETUP_COMPLETED and not isinstance(value, bool)) or \
+                (event_type == ExperimentQueueEventType.RESULT and not isinstance(value, ExperimentResults)) or \
+                (event_type == ExperimentQueueEventType.FAILED and not isinstance(value, str)):
+            raise ValueError(f"Returned value has bad value type ({event_type}): {type(value)}")
+        return values
 
 
 # response_model
@@ -131,9 +149,22 @@ class Status(BaseModel):
         IN_SETUP = 0,
         TRAINING = 1,
         COMPLETED = 2
+        FAILED = 3
 
     code: Status.Code
     time: Optional[float] = None  # last reported trainings time
+    error: Optional[str] = None
+
+    @root_validator()
+    def validate_all(cls, values: dict):
+        code = values['code']
+        time = values.get('time', None)
+        error = values.get('error', None)
+        if code != Status.Code.TRAINING and time is not None:
+            raise ValueError("Time should only be set when training.")
+        if code != Status.Code.FAILED and error is not None:
+            raise ValueError("Error should only be set on failure.")
+        return values
 
 
 class ValidStrategiesReturnSchema(BaseModel):

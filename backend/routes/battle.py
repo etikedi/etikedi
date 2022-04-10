@@ -72,7 +72,7 @@ async def is_finish(experiment_id: int):
     if BattleManager.has_finished_manager(experiment_id):
         return Status(code=Status.Code.COMPLETED)
     _assert_active_manager_exists(experiment_id)
-    return BattleManager.get_active_manager(experiment_id).get_status()
+    return BattleManager.get_status_for_active(experiment_id)
 
 
 @battle_router.delete("/{experiment_id}")
@@ -231,6 +231,6 @@ def _assert_completed(experiment_id):
         return
     _assert_active_manager_exists(experiment_id)
     try:
-        BattleManager.get_active_manager(experiment_id).assert_finished()
+        BattleManager.assert_experiment_finished(experiment_id)
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
