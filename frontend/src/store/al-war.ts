@@ -38,7 +38,6 @@ export const valid_strategies = writable(null)
 export const terminate_experiment = writable<boolean>(false)
 export const availableFeatures = writable<object>({})
 export const currentlyViewing = writable<object>({})
-export const running = writable<object>({})
 
 export async function getValidStrategies(dataset_id: number | string) {
   try {
@@ -62,14 +61,6 @@ export async function startBattle(dataset_id: number | string, battle_config) {
       data: { ...battle_config },
       params: { dataset_id },
     })
-
-    const currRunning = get(running)
-    if (currRunning[dataset_id] && Array.isArray(currRunning[dataset_id])) {
-      currRunning[dataset_id].push(success)
-    } else {
-      currRunning[dataset_id] = [success]
-    }
-    running.set(currRunning)
 
     /**
      * success = experiment_id
@@ -95,12 +86,6 @@ export async function getStatus(dataset_id: number | string, experiment_id: numb
      * TRAINING = 1,
      * COMPLETED = 2
      */
-    const currRunning = get(running)
-    if (status.code === 2 && currRunning[dataset_id] && Array.isArray(currRunning[dataset_id])) {
-      currRunning[dataset_id].splice(currRunning[dataset_id].indexOf(experiment_id), 1)
-      if (currRunning[dataset_id].length === 0) delete currRunning[dataset_id]
-    }
-    running.set(currRunning)
     return status.code == 1 && status.time != null ? status.time : status.code == 2
   } finally {
     loading.set(false)
@@ -140,12 +125,6 @@ export async function terminateExperiment(dataset_id: number | string, experimen
       url: `al-wars/${experiment_id}`,
       method: 'delete',
     })
-    const currRunning = get(running)
-    if (currRunning[dataset_id] && Array.isArray(currRunning[dataset_id])) {
-      currRunning[dataset_id].splice(currRunning[dataset_id].indexOf(experiment_id), 1)
-      if (currRunning[dataset_id].length === 0) delete currRunning[dataset_id]
-    }
-    running.set(currRunning)
   } finally {
     loading.set(false)
   }
@@ -155,8 +134,9 @@ export async function getFinishedExperiments() {
   try {
     loading.set(true)
     const { data: d } = await axios({
-      url: `al-wars/persisted`,
+      url: `al-wars`,
       method: 'get',
+      params: { 'by-dataset': true },
     })
     finishedExperiments.set(d)
   } finally {

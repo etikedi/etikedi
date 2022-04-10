@@ -8,7 +8,6 @@
     getDiagrams,
     getFinishedExperiments,
     getMetrics,
-    running,
   } from '../../../../store/al-war'
   import { data as datasets } from '../../../../store/datasets'
   import Button from '../../../../ui/Button.svelte'
@@ -17,6 +16,7 @@
 
   let { id } = router.params(),
     accordingFinishedBattles = [],
+    accordingRunningBattles = [],
     loading = false,
     ready = false
 
@@ -25,11 +25,21 @@
   getFinishedExperiments()
 
   $: if ($finishedExperiments) {
-    accordingFinishedBattles = Object.keys($finishedExperiments)
-      .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
-      .map((key) => {
-        return { ...$finishedExperiments[key], battle_id: key }
+    for (const obj of $finishedExperiments[id]) {
+      console.debug(obj)
+      Object.values(obj).map((battle) => {
+        if (battle['status']['code'] === 2)
+          accordingFinishedBattles.push({ battle_id: battle['experiment_id'], config: battle['config'] })
+        else
+          accordingRunningBattles.push({
+            battle_id: battle['experiment_id'],
+            config: battle['config'],
+            status: battle['status'],
+          })
       })
+    }
+    accordingFinishedBattles = [...accordingFinishedBattles]
+    accordingRunningBattles = [...accordingRunningBattles]
     ready = true
   }
 
@@ -54,7 +64,7 @@
     <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
   </div>
   {#if ready}
-    {#if !loading && (accordingFinishedBattles.length > 0 || $running[id])}
+    {#if !loading && (accordingFinishedBattles.length > 0 || accordingRunningBattles.length > 0)}
       {#if accordingFinishedBattles && accordingFinishedBattles.length > 0}
         <h2>Persisted Experiments</h2>
         <Persisted
@@ -62,9 +72,9 @@
           on:battleLoaded={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
         />
       {/if}
-      {#if $running && $running[id]}
+      {#if accordingRunningBattles && accordingRunningBattles.length > 0}
         <h2>Running Experiments</h2>
-        <Running dataset_id={id} />
+        <Running dataset_id={id} accordingBattles={accordingRunningBattles} />
       {/if}
     {:else if loading}
       <div class="starting">
