@@ -197,13 +197,9 @@ class ChartReturnSchema(BaseModel):
     classification_boundaries: Tuple[List[str], List[str]]
 
 
-class ClassificationBoundariesDTO(BaseModel):
-    exp_one_iterations: List[UrlData]
-    exp_two_iterations: List[UrlData]
-    x_bins: PositiveInt
-    y_bins: PositiveInt
-    feature_one_name: str
-    feature_two_name: str
+class PlotDataDTO(BaseModel):
+    exp_one_iterations: Union[List[UrlData], List[pd.DataFrame]]
+    exp_two_iterations: Union[List[UrlData], List[pd.DataFrame]]
 
     class Config:
         arbitrary_types_allowed = True
@@ -217,19 +213,17 @@ class ClassificationBoundariesDTO(BaseModel):
         return values
 
 
-class VectorSpaceDTO(BaseModel):
-    exp_one_urls: List[UrlData]
-    exp_two_urls: List[UrlData]
+class ClassificationBoundariesDTO(PlotDataDTO):
+    x_bins: PositiveInt
+    y_bins: PositiveInt
     feature_one_name: str
     feature_two_name: str
 
-    class Config:
-        arbitrary_types_allowed = True
+
+class VectorSpaceDTO(PlotDataDTO):
+    feature_one_name: str
+    feature_two_name: str
 
 
-class DataMapsDTO(BaseModel):
-    exp_one_urls: List[UrlData]
-    exp_two_urls: List[UrlData]
-
-    class Config:
-        arbitrary_types_allowed = True
+class DataMapsDTO(PlotDataDTO):
+    pass

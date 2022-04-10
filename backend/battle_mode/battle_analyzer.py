@@ -97,16 +97,9 @@ class BattleAnalyzer:
 
     def get_data_map_description(self, base_url: str) -> DataMapsDTO:
         data = self.get_data_map_data()
-        iterations = len(data[0])
-        descriptions = []
-        for exp_idx in [0, 1]:
-            per_experiment = []
-            for i in range(iterations):
-                url = base_url + f"/data-map/{exp_idx}/{i}"
-                per_experiment.append(UrlData(url=url, format=CsvDataFormat(type='csv'), name='data_map_iteration'))
-            descriptions.append(per_experiment)
-        return DataMapsDTO(exp_one_urls=descriptions[0],
-                           exp_two_urls=descriptions[1])
+        descriptions = BattleAnalyzer._describe_based_on_size(data, base_url, 'data-map')
+        return DataMapsDTO(exp_one_iterations=descriptions[0],
+                           exp_two_iterations=descriptions[1])
 
     def _use_pca_for_feature_selection(self, exclude: List[int]):
         dataset = db.get(Dataset, self.dataset_id)
@@ -175,17 +168,10 @@ class BattleAnalyzer:
 
     def get_vector_space_data_description(self, base_url: str) -> VectorSpaceDTO:
         data = self.get_vector_space_data()
-        iterations = len(data[0])
-        descriptions = []
-        for exp_idx in [0, 1]:
-            per_experiment = []
-            for i in range(iterations):
-                url = base_url + f"/vector-space/{exp_idx}/{i}"
-                per_experiment.append(UrlData(url=url, format=CsvDataFormat(type='csv'), name='vector_space_iteration'))
-            descriptions.append(per_experiment)
+        descriptions = BattleAnalyzer._describe_based_on_size(data, base_url, "vector-space")
         f1, f2 = [f for f in data[0][0].columns if f not in ['Color', 'SampleID']]
-        return VectorSpaceDTO(exp_one_urls=descriptions[0],
-                              exp_two_urls=descriptions[1],
+        return VectorSpaceDTO(exp_one_iterations=descriptions[0],
+                              exp_two_iterations=descriptions[1],
                               feature_one_name=f1,
                               feature_two_name=f2)
 
@@ -222,15 +208,7 @@ class BattleAnalyzer:
 
     def get_classification_boundaries_description(self, base_url: str) -> ClassificationBoundariesDTO:
         data = self.get_classification_boundary_data()
-        iterations = len(data[0])
-        descriptions = []
-        for exp_idx in [0, 1]:
-            per_experiment = []
-            for i in range(iterations):
-                url = base_url + f"/classification-boundaries/{exp_idx}/{i}"
-                per_experiment.append(
-                    UrlData(url=url, format=CsvDataFormat(type='csv'), name='classification_boundaries_iteration'))
-            descriptions.append(per_experiment)
+        descriptions = BattleAnalyzer._describe_based_on_size(data, base_url, "classification-boundaries")
         f1, f2 = [f for f in data[0][0].columns if f not in ['Confidence', 'Class']]
         return ClassificationBoundariesDTO(
             exp_one_iterations=descriptions[0],
@@ -278,3 +256,24 @@ class BattleAnalyzer:
             similar_percentage = similar_samples / len(s_one.union(s_two))
             similar_per_iteration.append(similar_percentage)
         return similar_per_iteration
+
+    @staticmethod
+    def _describe_based_on_size(data: Tuple[List[pd.DataFrame], List[pd.DataFrame]], base_url: str, url_infix: str):
+        iterations = len(data[0])
+        if any(len(frame) > 5000 for frame in data[0]) or any(len(frame) > 5000 for frame in data[1]):
+            descriptions = BattleAnalyzer._describe_by_url(base_url, url_infix, iterations)
+        else:
+            descriptions = data
+        return descriptions
+
+    @staticmethod
+    def _describe_by_url(base_url: str, url_infix: str, iterations: int) -> List[List[UrlData]]:
+        descriptions = []
+        for exp_idx in [0, 1]:
+            per_experiment = []
+            for i in range(iterations):
+                url = base_url + f"/{url_infix}/{exp_idx}/{i}"
+                per_experiment.append(
+                    UrlData(url=url, format=CsvDataFormat(type='csv'), name=url_infix + '_iteration'))
+            descriptions.append(per_experiment)
+        return descriptions
