@@ -33,22 +33,18 @@
     ready = true
   }
 
-  async function loadExperiment(experiment_id) {
+  async function loadExperiment(experiment_id, config) {
     loading = true
     try {
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
-      router.goto(`./result`)
+      $currentlyViewing['config'] = config
+      $currentlyViewing['dataset_name'] = dataset.name
+      router.goto('./result')
     } catch (e) {
       notifier.danger(e)
     } finally {
       loading = false
     }
-  }
-
-  async function getRunning() {
-    /**
-     * TODO
-     */
   }
 </script>
 
@@ -58,16 +54,12 @@
     <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
   </div>
   {#if ready}
-    {#if accordingFinishedBattles.length > 0 || $running[id]}
-      {#if accordingFinishedBattles && accordingFinishedBattles.length > 0 && !loading}
+    {#if !loading && (accordingFinishedBattles.length > 0 || $running[id])}
+      {#if accordingFinishedBattles && accordingFinishedBattles.length > 0}
         <h2>Persisted Experiments</h2>
         <Persisted
           accordingBattles={accordingFinishedBattles}
-          on:battleLoaded={async (e) => {
-            $currentlyViewing['config'] = e.detail['config']
-            $currentlyViewing['dataset_name'] = dataset.name
-            await loadExperiment(e.detail['experiment_id'])
-          }}
+          on:battleLoaded={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
         />
       {/if}
       {#if $running && $running[id]}

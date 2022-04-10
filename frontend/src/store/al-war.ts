@@ -133,13 +133,19 @@ export async function getMetrics(experiment_id: number | string) {
   }
 }
 
-export async function terminateExperiment(experiment_id: number | string) {
+export async function terminateExperiment(dataset_id: number | string, experiment_id: number | string) {
   try {
     loading.set(true)
     await axios({
       url: `al-wars/${experiment_id}`,
       method: 'delete',
     })
+    const currRunning = get(running)
+    if (currRunning[dataset_id] && Array.isArray(currRunning[dataset_id])) {
+      currRunning[dataset_id].splice(currRunning[dataset_id].indexOf(experiment_id), 1)
+      if (currRunning[dataset_id].length === 0) delete currRunning[dataset_id]
+    }
+    running.set(currRunning)
   } finally {
     loading.set(false)
   }

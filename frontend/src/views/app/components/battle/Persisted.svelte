@@ -9,7 +9,7 @@
 
   async function loadBattle(experiment_id: number | string, config: object) {
     await getExperiment(experiment_id)
-    dispatch('battleLoaded', { experiment_id, config: config['config'] })
+    dispatch('battleLoaded', { experiment_id, config })
   }
 </script>
 

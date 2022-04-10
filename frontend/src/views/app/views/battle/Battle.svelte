@@ -18,7 +18,7 @@
     terminate_experiment,
     valid_strategies,
   } from '../../../../store/al-war'
-  import { data as datasets } from '../../../../store/datasets'
+  import { data as datasets, load } from '../../../../store/datasets'
   import Button from '../../../../ui/Button.svelte'
   import BattleConfig from '../../components/battle/Config.svelte'
   import Popup from '../../components/Modal.svelte'
@@ -29,7 +29,7 @@
     training = false,
     remainingTime,
     interval,
-    starting = false,
+    loading = false,
     progressElement,
     chosenStrategies = [],
     generalConfig,
@@ -82,7 +82,7 @@
       {
         onClose: async () => {
           if ($terminate_experiment) {
-            await terminateExperiment(battle_id)
+            await terminateExperiment(id, battle_id)
             router.goto('/app/')
           }
           $terminate_experiment = false
@@ -96,7 +96,7 @@
 
   async function start() {
     showConfig = false
-    starting = true
+    loading = true
 
     const al_models = [processConfigs[0]['AL_MODEL'], processConfigs[1]['AL_MODEL']]
     const queryConfigs = processConfigs
@@ -131,7 +131,7 @@
     battle_id = await startBattle(id, sendConfig)
 
     if (typeof battle_id === 'number') {
-      starting = false
+      loading = false
       checkStatus()
     } else {
       notifier.danger('Something went wrong in the backend.', 6000)
@@ -156,10 +156,12 @@
 
   async function getData() {
     try {
+      loading = true
       await Promise.all([getMetrics(battle_id), getDiagrams(battle_id)])
       $currentlyViewing['dataset_name'] = dataset.name
       $currentlyViewing['config'] = sendConfig
       $currentlyViewing['battle_id'] = battle_id
+      loading = false
       router.goto(`./result`)
     } catch (e) {
       notifier.danger(e)
@@ -188,17 +190,20 @@
       bind:featureConfig
       on:submit={start}
     />
-  {:else if starting}
+  {:else if loading}
     <div class="starting">
+      Loading ...
       <Moon size="30" color="#002557" unit="px" duration="1s" />
-      Starting ...
     </div>
   {:else if training}
     <div class="progress-bar">
       <div bind:this={progressElement} class="progress" />
     </div>
     <div style="display: flex; justify-content: space-between;">
-      <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+      <div class="starting">
+        <span style="font-size: 20px"> Get yourself a cup of &#9749; while ALipy is training... </span>
+        <Moon size="30" color="#002557" unit="px" duration="1s" />
+      </div>
       <Button
         icon="close-outline"
         on:click={() => {

@@ -32,7 +32,6 @@
   $: dataReady = $metricData && $diagrams && $currentlyViewing['config'] && $currentlyViewing['dataset_name']
   $: if ($currentlyViewing['battle_id']) battle_id = $currentlyViewing['battle_id']
 
-  // TODO: From store
   $: if ($metricData) {
     metrics = $metricData['iterations'][currentIteration - 1].map((process) => {
       return {
