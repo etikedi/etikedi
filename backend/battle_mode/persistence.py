@@ -6,18 +6,11 @@ from pathlib import Path
 from typing import Dict, Tuple, List
 
 import pandas as pd
-from pydantic import BaseModel
 
 from .battle_manager import BattleAnalyzer, BattleManager
 from ..config import logger
 from ..importing import DATA_PATH
-from ..models import ALBattleConfig, MetaData, ExperimentResults,MetricsDFKeys
-
-
-class ExperimentMetaPersistence(BaseModel):
-    dataset_id: int
-    config: ALBattleConfig
-    path: Path
+from ..models import BattleMetaPersistence, MetaData, ExperimentResults,MetricsDFKeys
 
 
 @dataclass
@@ -30,7 +23,7 @@ class ExperimentResultsPersistence:
 
 class Persistence:
     data_path = DATA_PATH / 'experiments'
-    persisted_experiments: Dict[int, ExperimentMetaPersistence] = {}
+    persisted_experiments: Dict[int, BattleMetaPersistence] = {}
 
     def __init__(self):
         raise ValueError("Persistence should not be instantiated.")
@@ -44,22 +37,33 @@ class Persistence:
             if not path.is_dir():
                 logger.warn(f"Unexpected file found in experiments: {path}")
                 continue
+            exp_id = int(path.name)
             try:
-                exp_id = int(path.name)
                 meta = Persistence._load_meta(path)
                 Persistence.persisted_experiments[exp_id] = meta
             except ValueError:
                 logger.warn(f"Directory with invalid name in experiments: {path}")
+                Persistence._purge(path, exp_id)
+            except EOFError as e:
+                logger.warn(f"Failed loading meta with exception: {repr(e)}")
+                Persistence._purge(path, exp_id)
         if len(Persistence.persisted_experiments) > 0:
             highest_persisted_id = max(Persistence.persisted_experiments.keys())
             BattleManager._experiment_id_counter = \
                 max(BattleManager.get_experiment_id_counter(), highest_persisted_id + 1)
 
     @staticmethod
-    def delete(experiment_id: int):
-        meta: ExperimentMetaPersistence = Persistence.persisted_experiments[experiment_id]
-        path: Path = meta.path
+    def _purge(path: Path, exp_id: int):
+        if not str(path).startswith(str(Persistence.data_path)):
+            logger.error("Tried to delete non-persistence file: " + str(path))
+        logger.warn("Deleting all files for experiment: " + str(exp_id))
         shutil.rmtree(path)
+
+    @staticmethod
+    def delete(experiment_id: int):
+        meta: BattleMetaPersistence = Persistence.persisted_experiments[experiment_id]
+        path: Path = meta.path
+        Persistence._purge(path, experiment_id)
         del Persistence.persisted_experiments[experiment_id]
 
     @staticmethod
@@ -75,7 +79,8 @@ class Persistence:
         exp_path.mkdir(exist_ok=True)
         cb_sample_path = exp_path / 'cb_sample'
         finished_manager.cb_sample.to_csv(cb_sample_path.absolute())
-        meta = ExperimentMetaPersistence(
+        meta = BattleMetaPersistence(
+            experiment_id=exp_id,
             dataset_id=finished_manager.dataset_id,
             config=finished_manager.config,
             path=exp_path)
@@ -84,7 +89,7 @@ class Persistence:
         Persistence.persisted_experiments[exp_id] = meta
 
     @staticmethod
-    def _store_meta(exp_path: Path, meta: ExperimentMetaPersistence):
+    def _store_meta(exp_path: Path, meta: BattleMetaPersistence):
         meta_path = exp_path / 'meta'
         with meta_path.open(mode='wb') as file:
             pickle.dump(meta, file)
@@ -179,7 +184,7 @@ class Persistence:
     def _load_meta(exp_path: Path):
         meta_path = exp_path / 'meta'
         with meta_path.open(mode='rb') as file:
-            meta: ExperimentMetaPersistence = pickle.load(file)
+            meta = pickle.load(file)
             return meta
 
     @staticmethod
@@ -192,7 +197,7 @@ class Persistence:
         cb_sample_path = exp_path / 'cb_sample'
         cb_sample = pd.read_csv(cb_sample_path.absolute(), index_col=0)
         exp_one, exp_two = Persistence._load_experiments(exp_path)
-        meta = Persistence._load_meta(exp_path)
+        meta: BattleMetaPersistence = Persistence._load_meta(exp_path)
         return BattleAnalyzer(
             experiment_id=exp_id,
             dataset_id=meta.dataset_id,

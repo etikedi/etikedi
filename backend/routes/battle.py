@@ -2,15 +2,17 @@ import json
 from typing import List, Dict, Union
 
 from fastapi import APIRouter, HTTPException, status, Query, Request
-from fastapi.openapi.models import Response
-from starlette.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse
 
-from ..battle_mode import BattleAnalyzer, BattleManager, plotting, Persistence, ExperimentMetaPersistence
+from ..battle_mode import BattleAnalyzer, BattleManager, plotting, Persistence
 from ..config import db, logger
 from ..models import (
     Dataset,
     ALBattleConfig,
     Metric,
+    BattleMetaInformation,
+    BattleMetaPersistence,
+    BattleMetaActive,
     ChartReturnSchema,
     Status,
     QueryStrategyType,
@@ -43,6 +45,20 @@ async def start_battle(battle_config: ALBattleConfig, dataset_id: int):
         return experiment_id
     except ValidationError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=e.message)
+
+
+@battle_router.get("", response_model=Union[Dict[int, BattleMetaActive], Dict[int, List]])
+async def get_active_battle(by_dataset: bool = Query(default=False, alias='by-dataset')):
+    """
+    Return meta-information about all active and finished experiments:
+        Dict with experiment_id -> BattleMetaActive.
+    If by_dataset is true. the dict-keys are dataset_ids and the values are a list of all experiments for this dataset:
+        Dict with dataset_id -> List[experiment_id -> BattleMetaActive].
+    """
+    active: Dict[int, BattleMetaActive] = BattleManager.get_all_active_finished()
+    if not by_dataset:
+        return active
+    return _sort_by_dataset(active)
 
 
 @battle_router.get("/{experiment_id}/status", response_model=Status)
@@ -135,23 +151,18 @@ async def get_metrics(experiment_id: int):
     return BattleManager.get_or_create_finished_manager(experiment_id).get_metrics()
 
 
-@battle_router.get("/persisted", response_model=Union[Dict[int, ExperimentMetaPersistence], Dict[int, List]])
+@battle_router.get("/persisted", response_model=Union[Dict[int, BattleMetaPersistence], Dict[int, List]])
 async def get_persisted(by_dataset: bool = Query(default=False, alias='by-dataset')):
     """
     Return meta-information about all experiments that are stored and can be loaded:
-        Dict with experiment_id -> ExperimentMetaPersistence.
+        Dict with experiment_id -> BattleMetaInformation.
     If by_dataset is true. the dict-keys are dataset_ids and the values are a list of all experiments for this dataset:
-        Dict with dataset_id -> List[experiment_id -> ExperimentMetaPersistence].
+        Dict with dataset_id -> List[experiment_id -> BattleMetaInformation].
     """
-    persisted: Dict[int, ExperimentMetaPersistence] = Persistence.persisted_experiments
+    persisted: Dict[int, BattleMetaPersistence] = Persistence.persisted_experiments
     if not by_dataset:
         return persisted
-    by_dataset_dict: Dict[int, List[Dict[int, ExperimentMetaPersistence]]] = {}
-    for (exp_id, exp_meta) in persisted.items():
-        if exp_meta.dataset_id not in by_dataset_dict:
-            by_dataset_dict[exp_meta.dataset_id] = []
-        by_dataset_dict[exp_meta.dataset_id].append({exp_id: exp_meta})
-    return by_dataset_dict
+    return _sort_by_dataset(persisted)
 
 
 @battle_router.get("/persisted/{experiment_id}")
@@ -177,6 +188,16 @@ async def store_experiment(experiment_id: int):
 async def delete_persisted(experiment_id: int):
     _assert_experiment_persisted(experiment_id)
     Persistence.delete(experiment_id)
+
+
+# Utils
+def _sort_by_dataset(to_be_sorted: Dict[int, BattleMetaInformation]) -> Dict[int, List]:
+    by_dataset_dict: Dict[int, List[Dict[int, BattleMetaInformation]]] = {}
+    for (exp_id, exp_meta) in to_be_sorted.items():
+        if exp_meta.dataset_id not in by_dataset_dict:
+            by_dataset_dict[exp_meta.dataset_id] = []
+        by_dataset_dict[exp_meta.dataset_id].append({exp_id: exp_meta})
+    return by_dataset_dict
 
 
 # Assertions
