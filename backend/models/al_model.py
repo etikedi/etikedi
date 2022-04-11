@@ -18,13 +18,14 @@ from alipy.query_strategy.query_labels import (
     QueryInstanceGraphDensity,
 )
 from fastapi.openapi.models import BaseModel
-from pydantic import PositiveInt
+from pydantic import PositiveInt, Field
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
+from ..config import DATA_PATH
 
 
 class QKernel(str, Enum):
@@ -45,9 +46,11 @@ class QLALMode(str, Enum):
     LAL_ITERATIVE = "LAL_iterative"
     LAL_INDEPENDENT = "LAL_independent"
 
+
 class QpSolver(str, Enum):
     ECOS = 'ECOS',
     OSQP = 'OSQP'
+
 
 class QMetric(str, Enum):
     EUCLIDEAN = "euclidean"
@@ -221,7 +224,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         query_type: Literal["QueryInstanceLAL"]
         description = QueryStrategyAbstraction.base_url + "QueryInstanceLAL.html"
         mode: QLALMode = QLALMode.LAL_ITERATIVE
-        data_path = "/data/alipy"
+        data_path: str = Field(default=str(DATA_PATH / "alipy"), exclude=True)
         cls_est: PositiveInt = 50
         train_slt: bool = True
 
@@ -381,6 +384,7 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
         )
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
+        # ErrorReduction requires integer based label
         self.qs = QueryExpectedErrorReduction(X=X, y=y)
 
     def select(self, label_index, unlabel_index, model, batch_size):

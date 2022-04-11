@@ -8,8 +8,7 @@ from typing import Dict, Tuple, List
 import pandas as pd
 
 from .battle_manager import BattleAnalyzer, BattleManager
-from ..config import logger
-from ..importing import DATA_PATH
+from ..config import logger, DATA_PATH
 from ..models import BattleMetaPersistence, MetaData, ExperimentResults,MetricsDFKeys
 
 
