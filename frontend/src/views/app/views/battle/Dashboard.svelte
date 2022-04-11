@@ -25,6 +25,8 @@
   getFinishedExperiments()
 
   $: if ($finishedExperiments && $finishedExperiments[id]) {
+    accordingFinishedBattles = []
+    accordingRunningBattles = []
     for (const obj of $finishedExperiments[id]) {
       console.debug(obj)
       Object.values(obj).map((battle) => {
@@ -42,6 +44,8 @@
     accordingRunningBattles = [...accordingRunningBattles]
     ready = true
   } else if (typeof $finishedExperiments === 'object') {
+    accordingFinishedBattles = []
+    accordingRunningBattles = []
     ready = true
   }
 

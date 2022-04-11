@@ -66,7 +66,7 @@
       <Card>
         <div style="position: relative">
           <h3>Battle ID: <b>{battle['battle_id']}</b></h3>
-          <div><b>Remaining Time: </b>{battle['status']['time'] ?? 'Currently unknown'}</div>
+          <div><b>Remaining Time: </b>{formatTime(battle['status']['time']) ?? 'Currently unknown'}</div>
           <div class="loading">
             <Moon size="30" color="#002557" unit="px" duration="1s" />
             <div on:click={() => terminate(battle['battle_id'])}>
