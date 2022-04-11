@@ -27,10 +27,14 @@
     cursor: pointer;
   }
 
-  button:hover,
-  button:focus {
+  button:hover:enabled,
+  button:focus:enabled {
     box-shadow: 0 0.1em 0.5em #00000010;
     border-color: var(--clr-primary-light-alt);
+  }
+
+  button:disabled {
+    cursor: default;
   }
 
   button.full {

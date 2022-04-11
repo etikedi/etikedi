@@ -27,7 +27,8 @@
     sampleIndexes = { process1: 0, process2: 0 },
     metrics = [],
     dataReady,
-    battle_id
+    battle_id,
+    icon = 'save'
 
   $: dataReady = $metricData && $diagrams && $currentlyViewing['config'] && $currentlyViewing['dataset_name']
   $: if ($currentlyViewing['battle_id']) battle_id = $currentlyViewing['battle_id']
@@ -209,10 +210,14 @@
     {#if battle_id}
       <Button
         style="height: 50%"
-        icon="save"
+        disabled={icon === 'checkmark'}
+        {icon}
         on:click={async () => {
           const res = await saveExperiment(battle_id)
-          if (res === null) notifier.success('The battle was saved!', 3000)
+          if (res === null) {
+            notifier.success('The battle was saved!', 3000)
+            icon = 'checkmark'
+          }
         }}>Save Battle</Button
       >
     {/if}
