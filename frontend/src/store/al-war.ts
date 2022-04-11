@@ -80,13 +80,13 @@ export async function getStatus(dataset_id: number | string, experiment_id: numb
       url: `al-wars/${experiment_id}/status`,
       method: 'get',
     })
-    /**
-     * Response:
-     * IN_SETUP = 0,
-     * TRAINING = 1,
-     * COMPLETED = 2
-     */
-    return status.code == 1 && status.time != null ? status.time : status.code == 2
+    if (status.code == 1) {
+      return status.time
+    } else if (status == 2) {
+      return true
+    } else if (status == 3) {
+      return status.error
+    }
   } finally {
     loading.set(false)
   }

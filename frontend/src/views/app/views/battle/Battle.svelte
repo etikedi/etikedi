@@ -143,13 +143,15 @@
     training = true
     interval = setInterval(async () => {
       const status = await getStatus(id, battle_id)
-      if (typeof status === 'number') {
-        remainingTime = formatTime(status)
+      if (status === null) {
+        remainingTime = undefined
+      } else if (typeof status === 'number') {
+        remainingTime = status.toFixed(2)
       } else if (status === true) {
         clearInterval(interval)
         await getData()
-      } else {
-        remainingTime = undefined
+      } else if (typeof status === 'string') {
+        notifier.danger(status)
       }
     }, 3000)
   }
@@ -212,7 +214,7 @@
       />
     </div>
     {#if remainingTime}
-      <span style="font-size: 20px"> Remaining time: ca. {remainingTime}</span>
+      <span style="font-size: 20px"> Remaining time: ca. {remainingTime} min</span>
     {/if}
   {/if}
 </div>

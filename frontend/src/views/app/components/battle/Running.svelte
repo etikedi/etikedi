@@ -14,7 +14,6 @@
     remainingTimes = {}
 
   $: if (accordingBattles) {
-    console.debug('hallo', accordingBattles)
     for (const battle of accordingBattles) {
       if (intervals[battle['battle_id']]) clearInterval(intervals[battle['battle_id']])
       checkStatus(battle['battle_id'])
@@ -24,15 +23,17 @@
   async function checkStatus(battle_id) {
     intervals[battle_id] = setInterval(async () => {
       const status = await getStatus(dataset_id, battle_id)
-      if (typeof status === 'number') {
-        remainingTimes[battle_id] = formatTime(status)
+      if (status === null) {
+        delete remainingTimes[battle_id]
+      } else if (typeof status === 'number') {
+        remainingTimes[battle_id] = status.toFixed(2)
       } else if (status === true) {
         clearOneTimer(battle_id)
         await saveExperiment(battle_id)
         notifier.success(`Battle ${battle_id} finished and persisted!`, 5000)
         await getFinishedExperiments()
-      } else {
-        delete remainingTimes[battle_id]
+      } else if (typeof status === 'string') {
+        notifier.danger(status)
       }
     }, 3000)
   }
@@ -51,6 +52,7 @@
 
   async function terminate(battle_id) {
     await terminateExperiment(dataset_id, battle_id)
+    notifier.success('The battle was terminated.', 4000)
     clearOneTimer(battle_id)
     await getFinishedExperiments()
   }
@@ -66,7 +68,11 @@
       <Card>
         <div style="position: relative">
           <h3>Battle ID: <b>{battle['battle_id']}</b></h3>
-          <div><b>Remaining Time: </b>{formatTime(battle['status']['time']) ?? 'Currently unknown'}</div>
+          {#if remainingTimes[battle['battle_id']]}
+            <div><b>Remaining Time: </b>{remainingTimes[battle['battle_id']]} min</div>
+          {:else}
+            <div><b>Remaining Time: </b>Currently unknown</div>
+          {/if}
           <div class="loading">
             <Moon size="30" color="#002557" unit="px" duration="1s" />
             <div on:click={() => terminate(battle['battle_id'])}>
