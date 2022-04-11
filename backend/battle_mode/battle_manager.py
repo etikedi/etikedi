@@ -20,6 +20,7 @@ from ..models import (
     Status,
     ExperimentResults,
     BattleMetaActive,
+    ExperimentQueueEvent,
     ExperimentQueueEventType)
 from ..utils import ValidationError
 
@@ -54,7 +55,7 @@ class BattleManager:
                 experiment_id=experiment_id,
                 config=battle.config,
                 dataset_id=battle.dataset_id,
-                status=battle.get_status()
+                status=battle.update_and_get_state()
             )
         for experiment_id, finished in BattleManager._finished_manager.items():
             loaded_battle[experiment_id] = BattleMetaActive(
@@ -66,8 +67,17 @@ class BattleManager:
         return loaded_battle
 
     @staticmethod
-    def get_active_manager(experiment_id: int):
-        return BattleManager._manager[experiment_id]
+    def get_status_for_active(experiment_id: int) -> Status:
+        battle = BattleManager._manager[experiment_id]
+        state = battle.update_and_get_state()
+        if state.code == Status.Code.FAILED and not battle.is_terminated():
+            BattleManager._manager[experiment_id].terminate()
+        return state
+
+    @staticmethod
+    def assert_experiment_finished(experiment_id: int):
+        if BattleManager.get_status_for_active(experiment_id).code != Status.Code.COMPLETED:
+            raise ValidationError("Experiment is not finished: " + str(experiment_id))
 
     @staticmethod
     def set_finished_manager(manager: BattleAnalyzer):
@@ -78,7 +88,19 @@ class BattleManager:
     @staticmethod
     def get_or_create_finished_manager(experiment_id: int) -> BattleAnalyzer:
         if experiment_id not in BattleManager._finished_manager:
-            manager: BattleAnalyzer = BattleManager._manager[experiment_id].create_battle_analyzer()
+            battle = BattleManager._manager[experiment_id]
+            BattleManager.assert_experiment_finished(experiment_id)
+            if any(r is None for r in battle.results):
+                logger.error(f"Battle {experiment_id} is supposed to be finished but has no results.")
+                battle.terminate()
+
+            manager = BattleAnalyzer(
+                experiment_id=experiment_id,
+                dataset_id=battle.dataset_id,
+                config=battle.config,
+                cb_sample=battle.cb_sample,
+                result_one=battle.results[0],
+                result_two=battle.results[1])
             BattleManager._finished_manager[experiment_id] = manager
         return BattleManager._finished_manager[experiment_id]
 
@@ -111,19 +133,22 @@ class ActiveBattleHolder:
         self.dataset_id: int = dataset_id
         self.experiment_id = experiment_id
         self.config: ALBattleConfig = battle_config
-        self.setup_completed_flags: List[bool, bool] = [False, False]
-        self.finished_flags: List[bool, bool] = [False, False]
+        self.experiment_states: List[Status, Status] = [Status(code=Status.Code.IN_SETUP) for _ in [0, 1]]
         self.results: List[Optional[ExperimentResults], Optional[ExperimentResults]] = [None, None]
-        self.last_reported_time: Optional[Tuple[float, bool]] = None  # reported time, true if experiment one
         self.metric: Optional[Metric] = None
         self.queues = [Queue(), Queue()]
+        self._is_terminated = False
         # initialized in callback
         self.cb_sample: Optional[pd.DataFrame] = None  # generated samples for classification boundaries
         self.experiments: Tuple[ALExperimentProcess] = tuple()  # both processes running the experiments
         self.preparation_future: Optional[Future] = None  # waiting for async preparation
-        self.prepare()
+        try:
+            self._prepare()
+        except Exception as e:
+            logger.error(f"Failed battle preparation for id: {self.experiment_id} with error \n: {repr(e)}")
+            self._set_failed(repr(e))
 
-    def prepare(self):
+    def _prepare(self):
         """
         Dataset preparation can be quite CPU intensive and should not block the networking request.
         Therefore, the preparation is moved to another process and the result is awaited via future + callback.
@@ -150,105 +175,96 @@ class ActiveBattleHolder:
             exp.start()
         logger.info("Started experiments for ID: " + str(self.experiment_id))
 
-    def get_status(self) -> Status:
+    def update_and_get_state(self) -> Status:
         """ @return a [Status] object reflecting the current battle-status.
                 0 if still in setup-phase (dataset-preparation or process in setup)
                 1 if experiment-processes are running
                 2 if finished with time in seconds if at least one has reported something
                 """
+        last_reported = self._most_significant_state(self.experiment_states)
+        if last_reported.code in [Status.Code.FAILED, Status.Code.COMPLETED]:
+            return last_reported
         if not self.preparation_future.done():  # preparation callback not finished
             return Status(code=Status.Code.IN_SETUP)
 
-        times = [self._poll_process(i) for i in [0, 1]]
-        if not all(self.setup_completed_flags):
-            return Status(code=Status.Code.IN_SETUP)
-        if all(self.finished_flags):
-            self.create_battle_analyzer()
-            return Status(code=Status.Code.COMPLETED)  # experiments are finished: both results are reported
-        if all(t is None for t in times):
-            return Status(code=Status.Code.TRAINING)  # experiments not finished and no new time
-        if self.last_reported_time is None:
-            times = list(filter(lambda t: t is not None, times))
-            t = max(times)
-            self.last_reported_time = t, times.index(t)
-            return Status(code=Status.Code.TRAINING, time=max(times))
-        for i, t in enumerate(times):
-            if t is not None and (t > self.last_reported_time[0] or i == self.last_reported_time[1]):
-                self.last_reported_time = t, i
-        return Status(code=Status.Code.TRAINING, time=self.last_reported_time[0])
+        new_states = [self._poll_process(i) for i in [0, 1]]
+        for idx, new_state in enumerate(new_states):
+            # don't replace with None
+            # or both new and old are training but new is missing time
+            if (new_state is None
+                    or (new_state.code == Status.Code.TRAINING
+                        and self.experiment_states[idx].code == Status.Code.TRAINING
+                        and new_state.time is None
+                    )):
+                continue
+            self.experiment_states[idx] = new_state
 
-    def create_battle_analyzer(self) -> BattleAnalyzer:
-        self.assert_finished()
-        self._poll_results_if_not_present()
-        manager = BattleAnalyzer(
-            experiment_id=self.experiment_id,
-            dataset_id=self.dataset_id,
-            config=self.config,
-            cb_sample=self.cb_sample,
-            result_one=self.results[0],
-            result_two=self.results[1]
-        )
-        return manager
+        return self._most_significant_state(self.experiment_states)
 
-        # assertions
-
-    def assert_finished(self):
-        if not self.preparation_future.done():
-            raise ValidationError('Preparation unfinished.')
-        if not all(self.finished_flags):  # TODO
-            for exp_idx in [0, 1]:
-                if self.results[exp_idx] is None:
-                    self._poll_process(exp_idx)
-            if not all(self.finished_flags):
-                raise ValidationError(
-                    f"At least one experiment is not finished ({[e for e in [0, 1] if not self.finished_flags[e]]})")
-
-    def _poll_results_if_not_present(self):
-        self.assert_finished()
-        if all(r is not None for r in self.results):
-            return
-        for exp_idx in [0, 1]:
-            if self.results[exp_idx] is None:
-                self._poll_process(exp_idx)
-
-    def _poll_process(self, exp_idx: int) -> Optional[float]:
+    def _poll_process(self, exp_idx: int) -> Optional[Status]:
         """
         @param exp_idx the queue of experiment one or two
-        @return If the result was not send -> return the last send time
-                If no new time was reported or is finished return None
+        @return the most important status update or
+                None if nothing new was reported
         """
-        if exp_idx not in [0, 1]:
-            raise ValidationError(f"index of experiment was neither 0 nor 1: {exp_idx}")
-        if self.finished_flags[exp_idx]:
-            return None
-        last_time = None
         queue = self.queues[exp_idx]
+        status = self.experiment_states[exp_idx]
+        if queue.empty():
+            return None
         while not queue.empty():
-            event = queue.get_nowait()
-            if event['Type'] == ExperimentQueueEventType.INFO:
-                last_time = event['Value']
-            elif event['Type'] == ExperimentQueueEventType.SETUP_COMPLETED:
-                self.setup_completed_flags[exp_idx] = True
-            elif event['Type'] == ExperimentQueueEventType.RESULT:
-                self.results[exp_idx] = event['Value']
+            event: ExperimentQueueEvent = queue.get_nowait()
+            if event.event_type == ExperimentQueueEventType.INFO:
+                if status.code == Status.Code.TRAINING:
+                    status.time = event.value
+            elif event.event_type == ExperimentQueueEventType.SETUP_COMPLETED:
+                if status.code == Status.Code.IN_SETUP:
+                    status = Status(code=Status.Code.TRAINING)
+            elif event.event_type == ExperimentQueueEventType.RESULT:
+                self.results[exp_idx] = event.value
                 self.experiments[exp_idx].join()
-                self.finished_flags[exp_idx] = True
-                return None
+                status = Status(code=Status.Code.COMPLETED)
+            elif event.event_type == ExperimentQueueEventType.FAILED:
+                return Status(code=Status.Code.FAILED, error=event.value)
+        return status
 
-        return last_time
+    def _set_failed(self, error: str):
+        self.experiment_states = [Status(code=Status.Code.FAILED, error=error) for _ in [0, 1]]
 
     def terminate(self):
+        if getattr(self, '_is_terminated', True):
+            logger.warn(
+                f"Trying to terminate already terminated battle with ID: {getattr(self, 'experiment_id', 'Unknown')}")
+            return
         logger.info(f"Terminating experiment with ID: {getattr(self, 'experiment_id', 'Unknown')}")
         if hasattr(self, 'preparation_future') and not self.preparation_future.done():
             self.preparation_future.remove_done_callback(self._start_battle)
             self.preparation_future.cancel()
-        elif hasattr(self, 'finished_flags') and hasattr(self, 'experiments'):
-            for exp_ind, finished in enumerate(self.finished_flags):
-                if (not finished) and self.experiments != ():
-                    self.experiments[exp_ind].kill()
+        elif hasattr(self, 'experiments'):
+            for experiment in self.experiments:
+                if experiment.is_alive():
+                    experiment.kill()
         if hasattr(self, 'queues'):
             for q in self.queues:
                 q.close()
+        self._set_failed("Battle was terminated")  # further accesses should fail
+        self._is_terminated = True
+
+    def is_terminated(self):
+        return self._is_terminated if hasattr(self, '_is_terminated') else True
 
     def __del__(self):
-        self.terminate()
+        if not getattr(self, '_is_terminated', True):
+            self.terminate()
+
+    @staticmethod
+    def _most_significant_state(states: List[Status]) -> Status:
+        if any(state.code == Status.Code.FAILED for state in states):
+            return next(state for state in states if state.code == Status.Code.FAILED)
+        if all(state.code == Status.Code.COMPLETED for state in states):
+            return states[0]
+        if any(state.code == Status.Code.IN_SETUP for state in states):
+            return next(state for state in states if state.code == Status.Code.IN_SETUP)
+        # at least one is training the other could be finished or training
+        times = [state.time for state in states if state.time is not None]
+        max_time = max(times, default=None)
+        return Status(code=Status.Code.TRAINING, time=max_time)

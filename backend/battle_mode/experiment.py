@@ -2,6 +2,7 @@ from __future__ import annotations  # necessary in order to use ExperimentManage
 
 import random
 import time
+from math import ceil
 from multiprocessing import Process
 from multiprocessing import Queue
 from typing import List
@@ -11,10 +12,8 @@ import pandas as pd
 from alipy.data_manipulate import split
 from alipy.experiment import StoppingCriteria, StateIO, State
 from alipy.index import IndexCollection
-from math import ceil
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, auc, pairwise_distances
 
-from ..config import db
 from ..models import (
     ALModel,
     ALBattleConfig,
@@ -22,11 +21,11 @@ from ..models import (
     QueryStrategyAbstraction,
     MetaData,
     ExperimentResults,
-    Dataset,
     StoppingCriteriaOption,
     MetricsDFKeys,
     StateIOValueKeys,
-    ExperimentQueueEventType)
+    ExperimentQueueEventType,
+    ExperimentQueueEvent)
 from ..utils import timeit
 
 
@@ -186,11 +185,19 @@ class ALExperimentProcess(Process):
 
     def run(self, verbose=0):
         # initial training
-        self._setup()
-        self.queue.put({'Type': ExperimentQueueEventType.SETUP_COMPLETED, 'Value': True}, False)
-        self._train(verbose)
-        self.queue.put({'Type': ExperimentQueueEventType.RESULT, 'Value': self.get_result()}, False)
-        print(f"[{self.exp_id}] Process finished ")
+        try:
+            self._setup()
+            self.queue.put(
+                ExperimentQueueEvent(event_type=ExperimentQueueEventType.SETUP_COMPLETED, value=True), False)
+            self._train(verbose)
+            self.queue.put(
+                ExperimentQueueEvent(event_type=ExperimentQueueEventType.RESULT, value=self.get_result()), False)
+            print(f"[{self.exp_id}] Process finished ")
+        except Exception as e:
+            self.queue.put(
+                ExperimentQueueEvent(event_type=ExperimentQueueEventType.FAILED, value=repr(e)), False)
+            print(f"[{self.exp_id}] Process failed: {repr(e)}")
+            raise e
 
     def _train(self, verbose):
         self.model.fit(*self.get_training_data())
@@ -214,17 +221,14 @@ class ALExperimentProcess(Process):
 
             # train and test model
             start = time.time_ns()
-            try:
-                self.model.fit(*self.get_training_data())
-            except Exception as e:
-                print(e)
-                return
-            finally:
-                stop = time.time_ns()
+            self.model.fit(*self.get_training_data())
+            stop = time.time_ns()
             diff_time = stop - start
             estimation = self.rte.remaining_time(diff_time)
             if iteration > 2:  # estimation not precise enough
-                self.queue.put({'Type': ExperimentQueueEventType.INFO, 'Value': estimation}, False)
+                self.queue.put(
+                    ExperimentQueueEvent(event_type=ExperimentQueueEventType.INFO, value=estimation),
+                    False)
                 if verbose > 0:
                     print(f"[{self.exp_id}] estimation: {estimation}")
             pred_proba = self.model.predict_proba(self.X_test)

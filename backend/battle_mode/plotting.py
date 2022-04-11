@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import altair as alt
 import numpy as np
@@ -37,11 +37,11 @@ def confidence_histogram_iteration(data: List[List[float]]):
 
 @timeit
 def data_maps(data_maps_data: DataMapsDTO) -> Tuple[List[str], List[str]]:
-    return ([data_maps_iteration(it_data) for it_data in data_maps_data.exp_one_urls],
-            [data_maps_iteration(it_data) for it_data in data_maps_data.exp_two_urls])
+    return ([data_maps_iteration(it_data) for it_data in data_maps_data.exp_one_iterations],
+            [data_maps_iteration(it_data) for it_data in data_maps_data.exp_two_iterations])
 
 
-def data_maps_iteration(data_map_data_iteration: UrlData) -> str:
+def data_maps_iteration(data_map_data_iteration: Union[UrlData, pd.DataFrame]) -> str:
     """ 2D scatter plot
     points = Samples
     color: Percentage of correctness
@@ -60,12 +60,12 @@ def data_maps_iteration(data_map_data_iteration: UrlData) -> str:
 @timeit
 def vector_space(vector_space_data: VectorSpaceDTO) -> Tuple[List[str], List[str]]:
     f1, f2 = vector_space_data.feature_one_name, vector_space_data.feature_two_name
-    return [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_one_urls], \
-           [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_two_urls]
+    return [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_one_iterations], \
+           [vector_space_iteration(it, f1, f2) for it in vector_space_data.exp_two_iterations]
 
 
 def vector_space_iteration(
-        iteration_data_url: UrlData,
+        iteration_data_url: Union[UrlData, pd.DataFrame],
         feature_1_name: str,
         feature_2_name: str) -> str:
     f1_enc = f'{feature_1_name}:Q'
@@ -80,8 +80,9 @@ def vector_space_iteration(
 
 @timeit
 def classification_boundaries(cb_data: ClassificationBoundariesDTO):
-    def classification_boundaries_iteration(iteration_data: UrlData, feature_1_name: str, feature_2_name: str):
-
+    def classification_boundaries_iteration(iteration_data: Union[UrlData, pd.DataFrame],
+                                            feature_1_name: str,
+                                            feature_2_name: str):
         return alt.Chart(iteration_data).mark_rect().encode(
             x=alt.X(f'{feature_1_name}:Q', bin=alt.Bin(maxbins=cb_data.x_bins)),
             y=alt.Y(f'{feature_2_name}:Q', bin=alt.Bin(maxbins=cb_data.y_bins)),
