@@ -80,11 +80,11 @@ export async function getStatus(dataset_id: number | string, experiment_id: numb
       url: `al-wars/${experiment_id}/status`,
       method: 'get',
     })
-    if (status.code == 1) {
+    if (status.code === 1) {
       return status.time
-    } else if (status == 2) {
+    } else if (status.code === 2) {
       return true
-    } else if (status == 3) {
+    } else if (status.code === 3) {
       return status.error
     }
   } finally {
