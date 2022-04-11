@@ -24,7 +24,7 @@
 
   getFinishedExperiments()
 
-  $: if ($finishedExperiments) {
+  $: if ($finishedExperiments && $finishedExperiments[id]) {
     for (const obj of $finishedExperiments[id]) {
       console.debug(obj)
       Object.values(obj).map((battle) => {
@@ -40,6 +40,8 @@
     }
     accordingFinishedBattles = [...accordingFinishedBattles]
     accordingRunningBattles = [...accordingRunningBattles]
+    ready = true
+  } else if (typeof $finishedExperiments === 'object') {
     ready = true
   }
 
@@ -68,13 +70,13 @@
       {#if accordingFinishedBattles && accordingFinishedBattles.length > 0}
         <h2>Persisted Experiments</h2>
         <Persisted
-          accordingBattles={accordingFinishedBattles}
+          bind:accordingBattles={accordingFinishedBattles}
           on:battleLoaded={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
         />
       {/if}
       {#if accordingRunningBattles && accordingRunningBattles.length > 0}
         <h2>Running Experiments</h2>
-        <Running dataset_id={id} accordingBattles={accordingRunningBattles} />
+        <Running dataset_id={id} bind:accordingBattles={accordingRunningBattles} />
       {/if}
     {:else if loading}
       <div class="starting">
