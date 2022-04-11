@@ -80,6 +80,7 @@ class BattleAnalyzer:
             for smpl in reduced_frame.columns:
                 confidence = reduced_frame[smpl].map(lambda x: max(x)).mean()
                 variance = reduced_frame[smpl].map(lambda x: x.index(max(x))).var()
+                variance = 0.0 if np.isnan(variance) else variance  # if only one iteration var() returns nan
                 correctness = reduced_frame[smpl].map(lambda x: x.index(max(x)) == correct_label_as_idx[smpl]).mean()
                 data.append({'Confidence': confidence,
                              'Variability': variance,
