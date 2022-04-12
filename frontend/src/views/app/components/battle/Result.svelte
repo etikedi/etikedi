@@ -188,7 +188,7 @@
     }
 
     if (dataReady) {
-      getSamples()
+      // getSamples()
       await pushDiagrams()
     }
   })
@@ -246,12 +246,12 @@
           <table>
             <tr>
               <th />
-              <th>
+              <th style="background-color: #4C78A8">
                 <div class="heading">
                   {$currentlyViewing['config']['exp_configs'][0]['QUERY_STRATEGY']}
                 </div>
               </th>
-              <th>
+              <th style="background-color: #F58518">
                 <div class="heading">
                   {$currentlyViewing['config']['exp_configs'][1]['QUERY_STRATEGY']}
                 </div>
@@ -262,10 +262,10 @@
               {#each Object.keys(metrics[0]) as key}
                 <tr>
                   <td style="font-weight: bold;">{key}</td>
-                  <td style="padding: 5px 10px; text-align: center">
+                  <td style="padding: 5px 10px; text-align: center;">
                     {typeof metrics[0][key] == 'number' ? metrics[0][key].toFixed(3) : metrics[0][key]}
                   </td>
-                  <td style="padding: 5px 10px; text-align: center">
+                  <td style="padding: 5px 10px; text-align: center;">
                     {typeof metrics[1][key] == 'number' ? metrics[1][key].toFixed(3) : metrics[1][key]}
                   </td>
                 </tr>
@@ -288,7 +288,10 @@
         <div class="battle">
           <div class="process">
             <div class="process-info">
-              <h2>{$currentlyViewing['config']['exp_configs'][0]['QUERY_STRATEGY']}</h2>
+              <div style="display: flex; flex-direction: row; align-items: center; column-gap: 20px;">
+                <h2>{$currentlyViewing['config']['exp_configs'][0]['QUERY_STRATEGY']}</h2>
+                <span class="color-dot" style="background-color: #4C78A8" />
+              </div>
               <span><b>AL Model: </b>{$currentlyViewing['config']['exp_configs'][0]['AL_MODEL']}</span>
             </div>
             <hr />
@@ -348,7 +351,10 @@
           </div>
           <div class="process">
             <div class="process-info">
-              <h2>{$currentlyViewing['config']['exp_configs'][1]['QUERY_STRATEGY']}</h2>
+              <div style="display: flex; flex-direction: row; align-items: center; column-gap: 20px;">
+                <h2>{$currentlyViewing['config']['exp_configs'][1]['QUERY_STRATEGY']}</h2>
+                <span class="color-dot" style="background-color: #F58518" />
+              </div>
               <span><b>AL Model: </b>{$currentlyViewing['config']['exp_configs'][1]['AL_MODEL']}</span>
             </div>
             <hr />
@@ -629,5 +635,12 @@
     grid-template-columns: 85px 1fr;
     column-gap: 5px;
     align-items: center;
+  }
+
+  .color-dot {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    display: inline-block;
   }
 </style>

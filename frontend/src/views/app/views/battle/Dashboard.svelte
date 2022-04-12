@@ -6,6 +6,7 @@
     currentlyViewing,
     finishedExperiments,
     getDiagrams,
+    getExperiment,
     getFinishedExperiments,
     getMetrics,
     getRunningExperiments,
@@ -42,12 +43,11 @@
     for (const obj of $runningExperiments[id]) {
       console.debug(obj)
       Object.values(obj).map((battle) => {
-        if (battle['status']['code'] < 2)
-          accordingRunningBattles.push({
-            battle_id: battle['experiment_id'],
-            config: battle['config'],
-            status: battle['status'],
-          })
+        accordingRunningBattles.push({
+          battle_id: battle['experiment_id'],
+          config: battle['config'],
+          status: battle['status'],
+        })
       })
     }
     accordingRunningBattles = [...accordingRunningBattles]
@@ -60,6 +60,7 @@
   async function loadExperiment(experiment_id, config) {
     loading = true
     try {
+      await getExperiment(experiment_id)
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
       $currentlyViewing['config'] = config
       $currentlyViewing['dataset_name'] = dataset.name
@@ -83,7 +84,7 @@
         <h2>Persisted Experiments</h2>
         <Persisted
           bind:accordingBattles={accordingFinishedBattles}
-          on:battleLoaded={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
+          on:loadBattle={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
         />
       {/if}
       {#if accordingRunningBattles && accordingRunningBattles.length > 0}
