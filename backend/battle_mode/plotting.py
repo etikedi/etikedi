@@ -27,10 +27,11 @@ def confidence_histogram_iteration(data: List[List[float]]):
     plots = []
     for it in data:
         chart = alt.Chart(data=pd.DataFrame({'Confidence': it})).mark_bar().encode(
-            x=alt.X('Confidence', bin=alt.BinParams(maxbins=20), scale=alt.Scale(domain=[0.0, 1.0]),
+            x=alt.X('Confidence:Q', bin=alt.BinParams(maxbins=20), scale=alt.Scale(domain=[0.0, 1.0]),
                     axis=alt.Axis(values=np.arange(0, 1, .05))),
-            y="count()"
-        ).properties(width='container').to_json()
+            y="count()",
+            tooltip=['Confidence:Q', 'count()']
+        ).properties(width='container').interactive().to_json()
         plots.append(chart)
     return plots
 
@@ -50,9 +51,9 @@ def data_maps_iteration(data_map_data_iteration: Union[UrlData, pd.DataFrame]) -
     Y Axis: Confidence
     """
     return alt.Chart(data_map_data_iteration).mark_circle().encode(
-        x=alt.X('Variability:Q'),
-        y=alt.Y('Confidence:Q'),
-        color='Correctness:Q',
+        x=alt.X('Variability:Q', scale=alt.Scale(domain=[0.0, 1.0])),
+        y=alt.Y('Confidence:Q', scale=alt.Scale(domain=[0.0, 1.0])),
+        color=alt.Color('Correctness:Q', scale=alt.Scale(domain=[0.0, 1.0])),
         tooltip=['Variability:Q', 'Confidence:Q', 'SampleID:O']
     ).properties(width='container').interactive().to_json()
 

@@ -1,10 +1,11 @@
 from __future__ import annotations  # necessary for self referencing annotations
 
 from abc import ABCMeta, abstractmethod
+from copy import deepcopy
 from enum import Enum
 from typing import List, Type, Literal, Dict
-from copy import deepcopy
 
+import numpy as np
 from alipy.query_strategy.query_labels import (
     QueryInstanceSPAL,
     QueryInstanceUncertainty,
@@ -17,13 +18,14 @@ from alipy.query_strategy.query_labels import (
     QueryInstanceGraphDensity,
 )
 from fastapi.openapi.models import BaseModel
-from pydantic import PositiveInt
+from pydantic import PositiveInt, Field
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-from sklearn.neural_network import MLPClassifier
+from ..config import DATA_PATH
 
 
 class QKernel(str, Enum):
@@ -43,6 +45,11 @@ class QMeasureType(str, Enum):
 class QLALMode(str, Enum):
     LAL_ITERATIVE = "LAL_iterative"
     LAL_INDEPENDENT = "LAL_independent"
+
+
+class QpSolver(str, Enum):
+    ECOS = 'ECOS',
+    OSQP = 'OSQP'
 
 
 class QMetric(str, Enum):
@@ -147,6 +154,7 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
     class SPALConfig(BaseModel):
         query_type: Literal["QueryInstanceSPAL"]
         description = QueryStrategyAbstraction.base_url + ".QueryInstanceSPAL.html"
+        qp_solver: QpSolver = QpSolver.ECOS
         mu: float = 0.1
         gamma: float = 0.1
         rho: float = 1.0
@@ -158,10 +166,10 @@ class QueryInstanceSPALHolder(QueryStrategyAbstraction):
         coef0: float = 1.0  # only for kernel = poly
 
     def __init__(self, X, y, config: SPALConfig):
-        self.qp_solver = None
+        self.qp_solver = config.qp_solver
         self.qs = QueryInstanceSPAL(
             X=X,
-            y=y,
+            y=workaround_integer_label_binary_classification(y),
             mu=config.mu,
             gamma=config.gamma,
             rho=config.rho,
@@ -216,7 +224,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
         query_type: Literal["QueryInstanceLAL"]
         description = QueryStrategyAbstraction.base_url + "QueryInstanceLAL.html"
         mode: QLALMode = QLALMode.LAL_ITERATIVE
-        data_path = "/data/alipy"
+        data_path: str = Field(default=str(DATA_PATH / "alipy"), exclude=True)
         cls_est: PositiveInt = 50
         train_slt: bool = True
 
@@ -238,6 +246,7 @@ class QueryInstanceLALHolder(QueryStrategyAbstraction):
 class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
     class BMDRConfig(BaseModel):
         query_type: Literal["QueryInstanceBMDR"]
+        qp_solver: QpSolver = QpSolver.ECOS
         description = QueryStrategyAbstraction.base_url + "QueryInstanceBMDR.html"
         beta: float = 1000.0
         gamma: float = 0.1
@@ -245,9 +254,13 @@ class QueryInstanceBMDRHolder(QueryStrategyAbstraction):
         kernel: QKernel = QKernel.rbf
 
     def __init__(self, X, y, config: BMDRConfig):
-        self.qp_solver = None
+        self.qp_solver = config.qp_solver
         self.qs = QueryInstanceBMDR(
-            X=X, y=y, beta=config.beta, gamma=config.gamma, rho=config.rho
+            X=X,
+            y=workaround_integer_label_binary_classification(y),
+            beta=config.beta,
+            gamma=config.gamma,
+            rho=config.rho
         )
 
     def select(self, label_index, unlabel_index, model, batch_size):
@@ -371,6 +384,7 @@ class QueryExpectedErrorReductionHolder(QueryStrategyAbstraction):
         )
 
     def __init__(self, X, y, config: ExpectedErrorReductionConfig):
+        # ErrorReduction requires integer based label
         self.qs = QueryExpectedErrorReduction(X=X, y=y)
 
     def select(self, label_index, unlabel_index, model, batch_size):
@@ -437,3 +451,16 @@ class QueryStrategyType(str, Enum):
     def get_default_config(self):
         ConfigClass = self.get_class().get_config_model()
         return ConfigClass(query_type=self.value)  # instance of Schema
+
+
+def workaround_integer_label_binary_classification(y: np.ndarray) -> np.ndarray:
+    # TODO
+    # workaround for possible bug in alipy
+    # TypeError: ufunc 'add' output (typecode 'O') could not be coerced
+    # alipy fails in query_labels line 1573: delta += self._rho * (z - theta.dot(vKlu)
+    # because when transforming y to [-1 | 1] self.y is not of dtype int | float
+    ul = np.unique(y)
+    if len(ul) == 2 and {1, -1} != set(ul):
+        y_number = np.array(list(map(lambda x: 1 if x == ul[0] else -1, y)))
+        return y_number
+    return y
