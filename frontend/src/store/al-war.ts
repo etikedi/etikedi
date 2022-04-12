@@ -33,6 +33,7 @@ export interface MetricData {
 export const diagrams = writable<Diagrams>(null)
 export const metricData = writable<MetricsResponse>(null)
 export const finishedExperiments = writable<any>(null)
+export const runningExperiments = writable<any>(null)
 export const loading = writable(null)
 export const valid_strategies = writable(null)
 export const terminate_experiment = writable<boolean>(false)
@@ -134,11 +135,24 @@ export async function getFinishedExperiments() {
   try {
     loading.set(true)
     const { data: d } = await axios({
+      url: `al-wars/persisted`,
+      method: 'get',
+    })
+    finishedExperiments.set(d)
+  } finally {
+    loading.set(false)
+  }
+}
+
+export async function getRunningExperiments() {
+  try {
+    loading.set(true)
+    const { data: d } = await axios({
       url: `al-wars`,
       method: 'get',
       params: { 'by-dataset': true },
     })
-    finishedExperiments.set(d)
+    runningExperiments.set(d)
   } finally {
     loading.set(false)
   }

@@ -5,9 +5,7 @@ from .dwtc import convert_dwtc
 from .religious_texts import convert_religions_texts
 from .uci import import_uci
 from ..models import Dataset
-from ..config import db, logger
-
-DATA_PATH = (Path(__file__).absolute() / "../../data").resolve()
+from ..config import db, logger, DATA_PATH
 
 
 def import_test_datasets(data_path: Path = None):

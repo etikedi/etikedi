@@ -6,8 +6,11 @@
     currentlyViewing,
     finishedExperiments,
     getDiagrams,
+    getExperiment,
     getFinishedExperiments,
     getMetrics,
+    getRunningExperiments,
+    runningExperiments,
   } from '../../../../store/al-war'
   import { data as datasets } from '../../../../store/datasets'
   import Button from '../../../../ui/Button.svelte'
@@ -18,40 +21,46 @@
     accordingFinishedBattles = [],
     accordingRunningBattles = [],
     loading = false,
-    ready = false
+    runningReady = false,
+    persistedReady = false
 
   $: dataset = $datasets[id]
 
   getFinishedExperiments()
+  getRunningExperiments()
 
-  $: if ($finishedExperiments && $finishedExperiments[id]) {
-    accordingFinishedBattles = []
+  $: if ($finishedExperiments) {
+    accordingFinishedBattles = Object.keys($finishedExperiments)
+      .filter((key) => $finishedExperiments[key]['dataset_id'] == id)
+      .map((key) => {
+        return { ...$finishedExperiments[key], battle_id: key }
+      })
+    persistedReady = true
+  }
+
+  $: if ($runningExperiments && $runningExperiments[id]) {
     accordingRunningBattles = []
-    for (const obj of $finishedExperiments[id]) {
+    for (const obj of $runningExperiments[id]) {
       console.debug(obj)
       Object.values(obj).map((battle) => {
-        if (battle['status']['code'] === 2)
-          accordingFinishedBattles.push({ battle_id: battle['experiment_id'], config: battle['config'] })
-        else
-          accordingRunningBattles.push({
-            battle_id: battle['experiment_id'],
-            config: battle['config'],
-            status: battle['status'],
-          })
+        accordingRunningBattles.push({
+          battle_id: battle['experiment_id'],
+          config: battle['config'],
+          status: battle['status'],
+        })
       })
     }
-    accordingFinishedBattles = [...accordingFinishedBattles]
     accordingRunningBattles = [...accordingRunningBattles]
-    ready = true
+    runningReady = true
   } else if (typeof $finishedExperiments === 'object') {
-    accordingFinishedBattles = []
     accordingRunningBattles = []
-    ready = true
+    runningReady = true
   }
 
   async function loadExperiment(experiment_id, config) {
     loading = true
     try {
+      await getExperiment(experiment_id)
       await Promise.all([getMetrics(experiment_id), getDiagrams(experiment_id)])
       $currentlyViewing['config'] = config
       $currentlyViewing['dataset_name'] = dataset.name
@@ -69,13 +78,13 @@
     <h1>Battle Dashboard</h1>
     <Button style="height: 50%" on:click={() => router.goto('./new')}>Start new battle</Button>
   </div>
-  {#if ready}
+  {#if persistedReady && runningReady}
     {#if !loading && (accordingFinishedBattles.length > 0 || accordingRunningBattles.length > 0)}
       {#if accordingFinishedBattles && accordingFinishedBattles.length > 0}
         <h2>Persisted Experiments</h2>
         <Persisted
           bind:accordingBattles={accordingFinishedBattles}
-          on:battleLoaded={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
+          on:loadBattle={async (e) => await loadExperiment(e.detail['experiment_id'], e.detail['config'])}
         />
       {/if}
       {#if accordingRunningBattles && accordingRunningBattles.length > 0}

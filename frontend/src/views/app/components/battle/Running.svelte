@@ -3,7 +3,13 @@
   import { onDestroy } from 'svelte'
   import { Moon } from 'svelte-loading-spinners'
   import { formatTime } from '../../../../lib/human'
-  import { getFinishedExperiments, getStatus, saveExperiment, terminateExperiment } from '../../../../store/al-war'
+  import {
+    getFinishedExperiments,
+    getRunningExperiments,
+    getStatus,
+    saveExperiment,
+    terminateExperiment,
+  } from '../../../../store/al-war'
   import Button from '../../../../ui/Button.svelte'
   import Card from '../../../../ui/Card.svelte'
 
@@ -31,7 +37,9 @@
         clearOneTimer(battle_id)
         await saveExperiment(battle_id)
         notifier.success(`Battle ${battle_id} finished and persisted!`, 5000)
+        await terminate(battle_id)
         await getFinishedExperiments()
+        await getRunningExperiments()
       } else if (typeof status === 'string') {
         notifier.danger(status)
       }
@@ -50,11 +58,12 @@
     }
   }
 
-  async function terminate(battle_id) {
+  async function terminate(battle_id, notify?: boolean) {
     await terminateExperiment(dataset_id, battle_id)
-    notifier.success('The battle was terminated.', 4000)
+    if (notify) notifier.success('The battle was terminated.', 4000)
     clearOneTimer(battle_id)
     await getFinishedExperiments()
+    await getRunningExperiments()
   }
 
   onDestroy(() => {
@@ -75,16 +84,22 @@
           {/if}
           <div class="loading">
             <Moon size="30" color="#002557" unit="px" duration="1s" />
-            <div on:click={() => terminate(battle['battle_id'])}>
+            <div on:click={() => terminate(battle['battle_id'], true)}>
               <ion-icon name="close-outline" />
             </div>
           </div>
 
-          <h4>Process 1:</h4>
+          <div class="header">
+            <span class="color-dot" style="background-color: #4C78A8" />
+            <h4>Process 1:</h4>
+          </div>
           <div>&#8226; {battle['config']['exp_configs'][0]['QUERY_STRATEGY']}</div>
           <div>&#8226; {battle['config']['exp_configs'][0]['AL_MODEL']}</div>
 
-          <h4>Process 2:</h4>
+          <div class="header">
+            <span class="color-dot" style="background-color: #F58518" />
+            <h4>Process 2:</h4>
+          </div>
           <div>&#8226; {battle['config']['exp_configs'][1]['QUERY_STRATEGY']}</div>
           <div>&#8226; {battle['config']['exp_configs'][1]['AL_MODEL']}</div>
         </div>
@@ -114,5 +129,19 @@
   .loading > div {
     cursor: pointer;
     font-size: 25px;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 10px;
+  }
+
+  .color-dot {
+    height: 10px;
+    width: 10px;
+    border-radius: 50%;
+    display: inline-block;
   }
 </style>
