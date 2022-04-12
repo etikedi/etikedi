@@ -102,6 +102,7 @@ class BattleManager:
                 result_one=battle.results[0],
                 result_two=battle.results[1])
             BattleManager._finished_manager[experiment_id] = manager
+            del BattleManager._manager[experiment_id]
         return BattleManager._finished_manager[experiment_id]
 
     @staticmethod

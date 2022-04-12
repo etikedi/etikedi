@@ -8,6 +8,8 @@ from altair import UrlData
 from ..models import ClassificationBoundariesDTO, DataMapsDTO, VectorSpaceDTO
 from ..utils import timeit
 
+alt.data_transformers.disable_max_rows()
+
 
 @timeit
 def learning_curve_plot(learning_data: pd.DataFrame) -> str:
