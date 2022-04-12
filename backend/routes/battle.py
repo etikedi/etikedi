@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 from typing import List, Dict, Union
 
@@ -97,20 +98,28 @@ async def get_diagrams(experiment_id: int, request: Request):
 
     # learning curve: line chart x=iterations, y = accuracy
     learning_curve = plotting.learning_curve_plot(manager.get_learning_curve_data())
-
-    # confidence: histogram, x=confidence, y=occurrence
-    confidence_plots = plotting.confidence_histograms(manager.get_confidence_his_data())
-
     base_url = str(request.url)
+    # confidence: histogram, x=confidence, y=occurrence
+    conf_data = manager.get_confidence_his_data()
     # data_maps: scatter plot, x=variability, y=confidence
-    data_maps = plotting.data_maps(manager.get_data_map_description(base_url))
-
+    data_maps_data = manager.get_data_map_description(base_url)
     # vector_space: scatter plot x=feature_1, y=feature_2
-    vector_space_plots = plotting.vector_space(manager.get_vector_space_data_description(base_url))
+    vector_space_data = manager.get_vector_space_data_description(base_url)
+    cb_data = manager.get_classification_boundaries_description(base_url)
+    plotting_data = [conf_data, data_maps_data, vector_space_data, cb_data]
+    plotting_jobs = [plotting.confidence_histograms, plotting.data_maps, plotting.vector_space,
+                     plotting.classification_boundaries]
+    # calling executor with with-statement is equal to shutdown(wait=True) -> all futures should be finished
+    # more optimal would be non-waiting asynchronously with await
+    # plotting.<> are stateless read only functions
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(job, data) for (job, data) in zip(plotting_jobs, plotting_data)]
+    results = [f.result() for f in futures]
 
-    classification_boundaries = plotting.classification_boundaries(
-        manager.get_classification_boundaries_description(base_url))
-
+    confidence_plots = results[0]
+    data_maps = results[1]
+    vector_space_plots = results[2]
+    classification_boundaries = results[3]
     return ChartReturnSchema(
         acc=learning_curve,
         conf=confidence_plots,
