@@ -169,8 +169,7 @@ class ActiveBattleHolder:
         sample_df, cb_sample = future.result()
         self.cb_sample = cb_sample
         self.experiments = tuple([
-            ALExperimentProcess(i, self.dataset_id, sample_df, self.config, self.queues[i],
-                                cb_sample) for i in [0, 1]])
+            ALExperimentProcess(i, sample_df, self.config, self.queues[i], cb_sample) for i in [0, 1]])
         for exp in self.experiments:
             exp.start()
         logger.info("Started experiments for ID: " + str(self.experiment_id))

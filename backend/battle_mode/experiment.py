@@ -1,11 +1,11 @@
-from __future__ import annotations  # necessary in order to use ExperimentManager as type hint
+from __future__ import annotations  # necessary in order to use ALExperimentProcess as type hint
 
 import random
 import time
 from math import ceil
 from multiprocessing import Process
 from multiprocessing import Queue
-from typing import List
+from typing import List, Dict, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -27,6 +27,9 @@ from ..models import (
     ExperimentQueueEventType,
     ExperimentQueueEvent)
 from ..utils import timeit
+
+# type-alias
+Lateinit = Optional  # the attributes are not optional but initialisation is postponed to async execution
 
 
 class ALExperimentProcess(Process):
@@ -59,7 +62,9 @@ class ALExperimentProcess(Process):
                     raise ValueError("start_timer() was not called")
                 return max(self._criteria_value - (time.perf_counter_ns() - self._start_time), 0) * 1e-9
 
+            # the increment between consecutive iterations averaged
             incr = sum(self._times[i + 1] - self._times[i] for i in range(it - 1)) / max(it - 1, 1)
+            # assuming linear time increase to train the model
             result = sum([last_training_time + incr * i for i in range(self._total_iterations - it)])
             if result < 0.0:
                 print(f"[Warning] Remaining time is negative: {result}")
@@ -73,50 +78,58 @@ class ALExperimentProcess(Process):
 
     def __init__(self,
                  exp_id: int,
-                 dataset_id: int,
                  samples_df: pd.DataFrame,
                  battle_config: ALBattleConfig,
                  queue: Queue,
                  cb_sample: pd.DataFrame):
         """
-         The dataset is first filtered by hasLabel and split into training and test.
-         The test-set is further split into initially_unlabeled and initially_labeled.
-         As long as the stopping criteria is not met the main training loop is executed.
-         The loop contains of 4 steps:
-          1. Get to_be_labeled samples from the al_strategy,
-          2. train model on new available data,
-          3. test model,
-          4. save current iteration in history.
+        @param exp_id in [0,1] identifies this experiment
+        @param samples_df all samples in the dataset that have at least one label
+            required columns are DB_ID and LABEL each other column should be one feature
+        @param queue the multiprocessing queue to transfer update information and the final results
+        @param cb_sample randomly generated sample for classification boundaries
+            each column should be a feature, each row should be a sample
         """
         super().__init__()
-        self.cb_sample: pd.DataFrame = cb_sample
+        # Randomly generated sample for classification boundaries
         self.cb_sample_as_numpy: np.ndarray = cb_sample.to_numpy()
-        self.cb_sample_predictions = pd.DataFrame()
+        # prediction per iteration for each cb_sample
+        # column = sample, row = iteration, cell = tuple of confidence scores (one for each class)
+        self.cb_sample_predictions: pd.DataFrame = pd.DataFrame()
+        # zero or one to identify print outputs
         self.exp_id = exp_id
         self.battle_config: ALBattleConfig = battle_config
         self.exp_config: AlExperimentConfig = battle_config.exp_configs[exp_id]
-        self.queue = queue
+        self.queue: Queue = queue
         model_class = self.exp_config.AL_MODEL.get_class()
         self.model = model_class() if self.exp_config.AL_MODEL != ALModel.SVC else model_class(probability=True)
         self.stopping_criteria = StoppingCriteria(stopping_criteria=battle_config.STOPPING_CRITERIA.get()) \
             if (battle_config.STOPPING_CRITERIA_VALUE is None) \
             else StoppingCriteria(battle_config.STOPPING_CRITERIA.get(), battle_config.STOPPING_CRITERIA_VALUE)
-        self.batch_size = battle_config.BATCH_SIZE
-        self.dataset_id = dataset_id
+        self.batch_size: int = battle_config.BATCH_SIZE  # number of samples to be labeled each iteration
         # move time intensive data operations outside __init__
+        # all sample in this dataset. Used for train-test split
+        # column = feature, row = sample, required columns = DB_ID and LABEL
         self.samples_df: pd.DataFrame = samples_df
+        # the trainings' subset of self.samples_df (without DB_ID and LABEL]
         self.all_training_samples = None
+        # the trainings' subset of self.samples_df but only the label
         self.all_training_labels = None
-        self.idx2IDTrain = None
-        self.idx2IDTest = None
-        self.unlab_ind = None
-        self.label_ind = None
-        self.label_ind = None
-        self.prediction_history = None
-        self.X_test = None
-        self.y_test = None
-        self.state_saver = None
-        self.rte = None  # RemainingTimeEstimate instance predicting the remaining time
+        # the al-strategy requires the index lists to be from 0 to some n therefore DB_ID can't be used as natural index
+        # these maps save witch DB_ID was replaced by which index
+        self.idx2IDTrain: Lateinit[Dict[int, int]] = None
+        self.idx2IDTest: Lateinit[Dict[int, int]] = None
+        # the alipy Index collection which keep track over which sample are labeled
+        self.unlab_ind: Lateinit[IndexCollection] = None
+        self.label_ind: Lateinit[IndexCollection] = None
+        # for each test sample keep track what the model predicted for each iteration
+        # column = sample_id (DB_ID), row = iteration, cell = tuple of confidence scores (one for each class)
+        self.prediction_history: Lateinit[pd.DataFrame] = None
+        self.X_test: Lateinit[np.ndarray] = None  # all test samples as numpy array (feature matrix)
+        self.y_test: Lateinit[np.ndarray] = None  # all test labels (label vector)
+        self.state_saver: Lateinit[StateIO] = None  # alipy state io to keep track of additional meta information
+        # RemainingTimeEstimate instance predicting the remaining time
+        self.rte: Lateinit[ALExperimentProcess.RemainingTimeEstimate] = None
 
     @timeit
     def _setup(self):
@@ -125,11 +138,8 @@ class ALExperimentProcess(Process):
         all_labeled_samples = labeled_set.drop(labels=['LABEL', 'DB_ID'], axis='columns')
         labels = labeled_set['LABEL']
 
-        self.idx2Label = {idx: label for idx, label in enumerate(set(labels))}
-
-        # fix randomness
-        np.random.seed(self.battle_config.RANDOM_SEED)
-        random.seed(self.battle_config.RANDOM_SEED)
+        # Adjust train-test split and initially labeled such that for each class (label)
+        # there can be at least one sample in the initially labeled training set.
         label_num = len(np.unique(labels))
         number_of_instances = len(all_labeled_samples)
         initially_labeled = self.battle_config.INITIALLY_LABELED
@@ -140,6 +150,14 @@ class ALExperimentProcess(Process):
         if round((1 - train_test_split) * initially_labeled * number_of_instances) < label_num:
             initially_labeled = (1 + label_num) / ((1 - train_test_split) * number_of_instances)
 
+        # fix randomness
+        np.random.seed(self.battle_config.RANDOM_SEED)
+        random.seed(self.battle_config.RANDOM_SEED)
+        # data split:
+        # all_labeled_samples are all samples for the dataset that have at least one label
+        # the index is equal to the id in the dataset
+        #   train_idx union test_idx = all_labeled_samples
+        #       label_idx union unlabel_idx = train_idx
         train_idx, test_idx, label_idx, unlabel_idx = split(
             X=all_labeled_samples,
             y=labels.to_numpy(),
@@ -175,7 +193,7 @@ class ALExperimentProcess(Process):
         self.unlab_ind = IndexCollection([adjusted_idx_map[idx] for idx in unlabel_idx])
         # Indexes of your labeled set
         self.label_ind = IndexCollection([adjusted_idx_map[idx] for idx in label_idx])
-
+        # raw data for predictions
         self.X_test = all_labeled_samples.iloc[test_idx, :].to_numpy()
         self.y_test = labels.iloc[test_idx]
         self.state_saver: StateIO = StateIO(round=0, train_idx=train_idx, test_idx=test_idx,
@@ -184,58 +202,84 @@ class ALExperimentProcess(Process):
         self.rte = ALExperimentProcess.RemainingTimeEstimate(self.battle_config.STOPPING_CRITERIA, self)
 
     def run(self, verbose=0):
-        # initial training
+        """
+        @param verbose: debug-level
+        Main entry-point for async execution.
+        Normal procedure: IN_SETUP -> TRAINING -> COMPLETED
+        """
+        # catch possible exceptions and send them over the queue
         try:
             self._setup()
-            self.queue.put(
-                ExperimentQueueEvent(event_type=ExperimentQueueEventType.SETUP_COMPLETED, value=True), False)
+            setup_completed = ExperimentQueueEvent(event_type=ExperimentQueueEventType.SETUP_COMPLETED, value=True)
+            self.queue.put(setup_completed, False)
             self._train(verbose)
-            self.queue.put(
-                ExperimentQueueEvent(event_type=ExperimentQueueEventType.RESULT, value=self.get_result()), False)
+            training_completed = ExperimentQueueEvent(event_type=ExperimentQueueEventType.RESULT,
+                                                      value=self._get_result())
+            self.queue.put(training_completed, False)
             print(f"[{self.exp_id}] Process finished ")
         except Exception as e:
-            self.queue.put(
-                ExperimentQueueEvent(event_type=ExperimentQueueEventType.FAILED, value=repr(e)), False)
+            error_event = ExperimentQueueEvent(event_type=ExperimentQueueEventType.FAILED, value=repr(e))
+            self.queue.put(error_event, False)
             print(f"[{self.exp_id}] Process failed: {repr(e)}")
             raise e
 
     def _train(self, verbose):
-        self.model.fit(*self.get_training_data())
+        """
+        The main method executed in state TRAINING.
+        @param verbose: debug-level
+        The training-loop consists of:
+            1.query al-strategy which sample should be labeled next.
+            2. update label / unlabel index
+            3. train al-model with new information
+            4. report training time over queue
+            5. get prediction for each test sample
+            6. store meta information in state-io
+            7. store predictions in list
+            8. update stopping criteria
+            9. repeat until stopping criteria is met
+
+        """
+        self.model.fit(*self._get_training_data())
         # test data does not change: has original index equal to all_labeled_samples
 
-        iteration = 1
-        predictions = []
-        cb_sample_predictions = []
+        iteration: int = 1
+        # faster if predictions are stores as list then appending to df each iteration
+        # list-entry = iteration, dict: db_id -> tuple of confidence scores
+        predictions: List[Dict[int, Tuple[float]]] = []
+        cb_sample_predictions = []  # same as predictions just for the classification-boundaries sample
         if self.battle_config.STOPPING_CRITERIA == StoppingCriteriaOption.CPU_TIME:
             self.stopping_criteria.reset()  # reset cpu start time 
             self.rte.start_timer()
-        starting_time = time.time_ns()
+        starting_time = time.time_ns()  # time to measure complete training over all iterations
         while not self.stopping_criteria.is_stop():
-            # query al_strategy for next samples
+            # 1. query al_strategy for next samples
             selected_ind_list = self.al_strategy.select(label_index=self.label_ind,
                                                         unlabel_index=self.unlab_ind,
                                                         model=self.model,
                                                         batch_size=self.batch_size)
+            # 2.
             self.label_ind.update(selected_ind_list)
             self.unlab_ind.difference_update(selected_ind_list)
 
-            # train and test model
+            # 3. train and test model
             start = time.time_ns()
-            self.model.fit(*self.get_training_data())
+            self.model.fit(*self._get_training_data())
             stop = time.time_ns()
             diff_time = stop - start
             estimation = self.rte.remaining_time(diff_time)
-            if iteration > 2:  # estimation not precise enough
-                self.queue.put(
+            if iteration > 2 and estimation >= 0:  # estimation not precise enough
+                self.queue.put(  # 4.
                     ExperimentQueueEvent(event_type=ExperimentQueueEventType.INFO, value=estimation),
                     False)
                 if verbose > 0:
                     print(f"[{self.exp_id}] estimation: {estimation}")
+            # 5. return tuple of confidence scores for each class for each sample in X_test
             pred_proba = self.model.predict_proba(self.X_test)
-            y_pred = _predicted_class(self.model, pred_proba)
+            y_pred = _predicted_class(self.model, pred_proba)  # get label according to the highest confidence score
+            # 6. store meta information in state io
             perf = accuracy_score(y_true=self.y_test.to_list(), y_pred=y_pred)
             state = State(select_index=selected_ind_list, performance=perf)
-            state.add_element(key=StateIOValueKeys.TIME, value=round(diff_time * 1e-9, 4))
+            state.add_element(key=StateIOValueKeys.TIME, value=round(diff_time * 1e-9, 4))  # store time in seconds
             state.add_element(key=StateIOValueKeys.PERC_LABELED,
                               value=len(self.label_ind) / (len(self.unlab_ind) + len(self.label_ind)))
             self.state_saver.add_state(state)
@@ -244,7 +288,8 @@ class ALExperimentProcess(Process):
                 print(f"[{self.exp_id}] Performance: {perf}")
                 print(f"[{self.exp_id}] #Labeled: {len(self.label_ind.index)}")
 
-            # add current iteration to history
+            # 7. add current iteration to history
+            # save samples by db_id
             predictions.append(
                 {self.idx2IDTest[x]: pred for (x, pred) in zip(self.state_saver.test_idx, map(tuple, pred_proba))}
             )
@@ -252,7 +297,7 @@ class ALExperimentProcess(Process):
             cb_sample_predictions.append(list(map(tuple, self.model.predict_proba(self.cb_sample_as_numpy))))
 
             iteration += 1
-            # update stopping_criteria
+            # 8. update stopping_criteria
             self.stopping_criteria.update_information(self.state_saver)
 
         print(f"[{self.exp_id}] Stopped after {iteration} iterations")
@@ -260,16 +305,16 @@ class ALExperimentProcess(Process):
         self.prediction_history = pd.DataFrame(predictions)
         self.cb_sample_predictions = pd.DataFrame(cb_sample_predictions)
 
-    def get_training_data(self):
+    def _get_training_data(self):
         return (
             self.all_training_samples.iloc[self.label_ind.index].to_numpy(),
             self.all_training_labels.iloc[self.label_ind.index].to_numpy())
 
-    def get_result(self) -> ExperimentResults:
-        # pandas dataframe: every column is one sample, every row is one prediction
-        # every cell is a tuple of (predicted_label, certainty)
+    def _get_result(self) -> ExperimentResults:
         assert len(self.state_saver) == len(self.prediction_history)
-        cb_predictions = self.cb_sample_predictions
+        # for each test sample save the correct label
+        # as each prediction for each test sample is a tuple of confidence scores save the correct label as index
+        # such that conf_tuple.index(max(conf_tuple)) = correct_label_as_idx
         correct_label_as_idx = {self.idx2IDTest[idx]: self.model.classes_.tolist().index(label_str)
                                 for idx, label_str in self.y_test.items()}
         assert all([smpl_id in correct_label_as_idx for smpl_id in self.prediction_history.columns])
@@ -278,7 +323,7 @@ class ALExperimentProcess(Process):
 
         result = ExperimentResults(
             raw_predictions=self.prediction_history,
-            cb_predictions=cb_predictions,
+            cb_predictions=self.cb_sample_predictions,
             metric_scores=metric_scores,
             initially_labeled=[self.idx2IDTrain[idx] for idx in self.state_saver.init_L],
             correct_label_as_idx=correct_label_as_idx,
@@ -288,7 +333,10 @@ class ALExperimentProcess(Process):
         return result
 
     def _calc_metrics_scores(self) -> pd.DataFrame:
-        # Calculate Acc, F1, Recall, Precision
+        """
+        Calculate Acc, F1, Recall, Precision
+        @return: pandas dataframe where columns = MetricsDFKeys and each row is one iteration
+        """
         metrics_tmp = []
         for idx, row in self.prediction_history.iterrows():
             y_pred: List = list(map(lambda probas: self.model.classes_[probas.index(max(probas))], row))
@@ -350,7 +398,7 @@ class ALExperimentProcess(Process):
                 else self.all_training_samples.iloc[selected_idx_until_now]
         return avg_dist
 
-    def _convert_states_data(self):
+    def _convert_states_data(self) -> List[MetaData]:
         state_data = []
         for idx, state in enumerate(self.state_saver):
             # transform index of samples back to id in database
