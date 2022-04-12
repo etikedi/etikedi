@@ -1,4 +1,4 @@
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('etikedi-logger')
 logger.setLevel(logging.DEBUG)

@@ -23,7 +23,12 @@ seaborn = "*"
 sqlalchemy = "*"
 json-tricks = "*"
 numba = "*"
+numpy = "*"
 psycopg2-binary = "*"
+alipy = "*"
+altair = "*"
+# Additional ALipy dependencies
+cvxpy = "*"
 
 [dev-packages]
 pylint = "*"
@@ -37,7 +42,6 @@ jupyterlab = "*"
 nb-black = "*"
 
 [requires]
-python_version = "3"
 
 [pipenv]
 allow_prereleases = true

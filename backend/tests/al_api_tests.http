@@ -1,0 +1,69 @@
+### Start experiment
+POST http://localhost:8000/al-wars/start?dataset_id=3
+accept: application/json
+Content-Type: application/json
+
+{
+  "exp_configs": [
+    {
+      "QUERY_STRATEGY": "QueryInstanceUncertainty",
+      "QUERY_STRATEGY_CONFIG": {
+        "query_type": "QueryInstanceUncertainty",
+        "measure": "least_confident"
+      },
+      "AL_MODEL": "DecisionTreeClassifier"
+    },
+    {
+      "QUERY_STRATEGY": "QueryInstanceRandom",
+      "QUERY_STRATEGY_CONFIG": {
+        "query_type": "QueryInstanceRandom"
+      },
+      "AL_MODEL": "DecisionTreeClassifier"
+    }
+  ],
+  "STOPPING_CRITERIA": "all_labeled",
+  "BATCH_SIZE": 10,
+  "PLOT_CONFIG": {
+  }
+}
+
+### check status
+GET http://localhost:8000/al-wars/4/status
+accept: application/json
+
+### get diagrams
+# curl -X 'GET'
+#  'http://localhost:8000/3/al-wars/get_diagrams'
+#  -H 'accept: application/json'
+GET http://localhost:8000/al-wars/0/diagrams
+accept: application/json
+
+### get metrics
+# curl -X 'GET'
+#  'http://localhost:8000/3/al-wars/get_metrics'
+#  -H 'accept: application/json'
+GET http://localhost:8000/al-wars/0/metrics/
+accept: application/json
+
+### get strategies
+# curl -X 'GET'
+#  'http://localhost:8000/3/al-wars/valid_strategies'
+#  -H 'accept: application/json'
+GET http://localhost:8000/al-wars/valid_strategies/0
+accept: application/json
+accept: application/json
+
+### load persisted
+GET http://localhost:8000/al-wars/persisted/0
+accept: application/json
+
+###
+
+
+
+
+
+
+
+
+

@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { Route } from 'tinro'
   import { NotificationDisplay } from '@beyonk/svelte-notifications'
+  import { Modal } from 'svelte-simple-modal'
 
   import Home from './views/Home.svelte'
   import About from './views/About.svelte'
@@ -15,25 +16,26 @@
   })
 </script>
 
-<Nav />
-<main>
-  <Route path="/">
-    <Home />
-  </Route>
-  <Route path="/about">
-    <About />
-  </Route>
-  <Route path="/app/*">
-    <AppWrapper />
-  </Route>
-  <NotificationDisplay />
-</main>
+<Modal>
+  <Nav />
+  <main>
+    <Route path="/">
+      <Home />
+    </Route>
+    <Route path="/about">
+      <About />
+    </Route>
+    <Route path="/app/*">
+      <AppWrapper />
+    </Route>
+    <NotificationDisplay />
+  </main>
+</Modal>
 
 <style>
   main {
     position: relative;
-    max-width: 56em;
-    padding: 2em;
+    padding: 3em 6em;
     margin: 0 auto;
     box-sizing: border-box;
   }

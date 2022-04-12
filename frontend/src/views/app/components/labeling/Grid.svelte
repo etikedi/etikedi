@@ -7,143 +7,92 @@
   import Card from '../../../../ui/Card.svelte'
   import { router } from 'tinro'
   import { data as datasets } from '../../../../store/datasets'
+  import { loadSample, samples_to_label, addLabel } from '../../../../store/samples'
 
   export let sampleCount = 9
 
   const { id } = router.params()
   let dataset, labels, ready
   let samples = []
+  let chosen = {}
 
   $: dataset = $datasets[id]
   $: ready = dataset && samples.length !== 0
   $: if (ready) labels = dataset.labels
 
   onMount(() => {
-    // Load 9 unlabeled samples
-    for (let i = 0; i < sampleCount; i++) {
-      axios({
-        method: 'get',
-        url: `/datasets/${id}/first_sample`
-      })
-        .then(response => {
-          samples[i] = response.data
-        })
-        .catch(err => console.log(err))
-    }
+    loadAndSetSamples()
     // Remove empty entries (caused by backend error) from array
-    samples = samples.filter(el => el != null)
+    // samples = samples.filter((el) => el != null)
   })
 
-  let chosen = []
-  let nextSamples = []
-
-  function choose(sample, index) {
-    if (chosen.find(el => el === sample)) {
-      chosen.splice(chosen.indexOf(sample), 1)
-      document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
-      return
+  async function loadAndSetSamples() {
+    // Fill samples until sampleCount
+    if ($samples_to_label.length < sampleCount) {
+      const neededSamples = sampleCount - $samples_to_label.length
+      for (let i = 0; i < neededSamples; i++) {
+        console.debug('Loading sample...', i + 1)
+        const newSample = await loadSample(id)
+        updateSampleList(newSample)
+      }
+      samples = $samples_to_label
+      for (const sample of samples) {
+        chosen[sample.id] = false
+      }
+    } else {
+      samples = $samples_to_label
     }
-    document.getElementById(`sample${index}`).style.backgroundColor = 'lightskyblue'
-    chosen.push(sample)
+  }
+
+  function updateSampleList(newSample) {
+    $samples_to_label = [...$samples_to_label, newSample]
   }
 
   async function send(label_id) {
+    if (Object.values(chosen).some((bool) => bool === true)) {
+      const sample_ids_to_remove = []
 
-    // Remove empty entries in array
-    samples = samples.filter(el => el != null)
+      /**
+       * TODO: There is a delay of some seconds every time a label is sent
+       * to the server. That's pain.
+       * Anyway, not awaiting it can cause issues, as we've seen in the past.
+       * We should find a way to send the requests sequentially, but allow the
+       * user to rush through all the samples as fast as he wants.
+       * If he finishes before everything is loaded, it's no problem, but just
+       * remove the delay in the labeling process.
+       *
+       */
 
-    const temp = samples
-
-    // Remove background color
-    samples.forEach((sample, index) => {
-      document.getElementById(`sample${index}`).style.backgroundColor = 'initial'
-    })
-
-    // Remove chosen from samples
-    chosen.forEach(el => {
-      temp.splice(temp.indexOf(el), 1)
-    })
-
-    samples = temp
-
-    // Send
-    for (const [index, sample] of chosen.entries()) {
-      await axios({
-        method: 'post',
-        url: `/samples/${sample.id}`,
-        params: {
-          label_id
-        }
-      })
-        .then(res => {
-
-          // Save next sample
-          nextSamples.push(res.data)
-        })
-        .catch(err => console.log(err))
-    }
-    chosen = []
-
-    // If samples are all labeled, set next samples
-    if (Object.values(samples).length === 0) {
-      if (nextSamples.length < sampleCount) {
-
-        // Load missing samples
-        for (let i = 0; i < sampleCount - nextSamples.length; i++) {
-          await axios({
-            method: 'get',
-            url: `/datasets/${id}/first_sample`
-          })
-            .then(response => {
-              nextSamples.push(response.data)
-            })
-            .catch(err => console.log(err))
+      // Send label, save new sample in store
+      for (const [sample_id, isChosen] of Object.entries(chosen)) {
+        if (isChosen) {
+          const newSample = await addLabel(sample_id, label_id)
+          updateSampleList(newSample)
+          sample_ids_to_remove.push(sample_id)
+          // Remove entry of chosen object
+          delete chosen[sample_id]
         }
       }
-      samples = nextSamples
-      nextSamples = []
+
+      // Remove chosen from samples
+      samples = samples.filter((sample) => !sample_ids_to_remove.includes(sample.id.toString(10)))
+
+      // Remove it also from store
+      $samples_to_label = $samples_to_label.filter((sample) => !sample_ids_to_remove.includes(sample.id.toString(10)))
+
+      // If samples are all labeled, set next samples
+      if (samples.length === 0) {
+        if ($samples_to_label.length < sampleCount) {
+          loadAndSetSamples()
+        } else {
+          samples = $samples_to_label
+        }
+      }
+    } else {
+      console.debug('Before you can send a label, please select according samples by clicking on it.')
     }
   }
-
 </script>
-
-<style>
-    .wrapper {
-        display: flex;
-        flex-direction: row;
-
-    }
-
-    ul {
-        padding: 0;
-        margin: 0;
-        width: 150px;
-    }
-
-    .samples {
-        display: grid;
-        justify-content: center;
-        margin: 8px;
-        border-radius: 10px;
-    }
-
-    .w-third-ns {
-        width: 30.33333%;
-    }
-
-    .labels {
-        margin-top: 2em;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .labels > :global(*) {
-        margin: 0.5em;
-    }
-</style>
 
 {#if ready}
   <Card>
@@ -152,8 +101,14 @@
         <div class="cf ph2-ns">
           {#each samples as sample, i}
             {#if sample}
-              <div id="sample{i}" class="fl w-100 w-third-ns pa2 samples" on:click={() => choose(sample, i)}>
-                <Image data={sample.content} />
+              <div
+                id="sample{i}"
+                class="fl w-100 w-third-ns pa2 samples"
+                on:click={() => (chosen[sample.id] = !chosen[sample.id])}
+              >
+                <div class="select-wrapper" class:chosen={chosen[sample.id]}>
+                  <Image data={sample.content} />
+                </div>
               </div>
             {/if}
           {/each}
@@ -167,3 +122,52 @@
     </div>
   </Card>
 {/if}
+
+<style>
+  .chosen {
+    background-color: var(--clr-primary-light-alt);
+  }
+
+  .select-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 8.5em;
+    width: 8.5em;
+  }
+
+  .wrapper {
+    display: flex;
+    flex-direction: row;
+  }
+
+  ul {
+    padding: 0;
+    margin: 0;
+    width: 150px;
+  }
+
+  .samples {
+    display: grid;
+    justify-content: center;
+    margin: 8px;
+    border-radius: 10px;
+  }
+
+  .w-third-ns {
+    width: 30.33333%;
+  }
+
+  .labels {
+    margin-top: 2em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .labels > :global(*) {
+    margin: 0.5em;
+  }
+</style>

@@ -1,8 +1,9 @@
 import base64
-from typing import Union, Optional, List
+import json
+from typing import Union, Optional, List, Dict
 
-from pydantic import BaseModel as Schema, validator
-from sqlalchemy import ForeignKey, Column, Integer, VARCHAR
+from pydantic import BaseModel, validator
+from sqlalchemy import ForeignKey, Column, Integer, VARCHAR, Text
 from sqlalchemy.orm import relationship
 
 from .. import AssociationCurrentLabel
@@ -24,6 +25,9 @@ class Sample(Base):
 
     dataset_id = Column(Integer, ForeignKey("dataset.id"), nullable=False)
     dataset = relationship("Dataset", back_populates="samples", lazy=True)
+
+    # save features as json string
+    features = Column(Text(), nullable=False)
 
     labels = relationship(
         "Label",
@@ -47,15 +51,22 @@ class Sample(Base):
     __mapper_args__ = {"polymorphic_identity": "sample",
                        "polymorphic_on": "type"}
 
-
     def __str__(self):
         return "Sample {} in {}".format(self.id, self.dataset)
 
     def __repr__(self):
         return str(self)
 
+    def feature_dict(self) -> Dict:
+        json_features = self.features
+        dict_features: Dict = json.loads(json_features)
+        return dict_features
 
-class SampleDTO(Schema):
+    def extract_feature_list(self) -> List:
+        return list(self.feature_dict().values())
+
+
+class SampleDTO(BaseModel):
     id: int
     dataset_id: int
     type: str
@@ -85,6 +96,6 @@ class SampleDTOwLabel(SampleDTO):
         return current_associations
 
 
-class UnlabelDTO(Schema):
+class UnlabelDTO(BaseModel):
     label_id: Optional[int]
     all: bool = False

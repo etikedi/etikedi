@@ -1,7 +1,7 @@
 from fastapi import status, APIRouter, HTTPException, Depends
 from sqlalchemy.exc import IntegrityError
 
-from ..config import db
+from ..config import db, SQLAlchemyError
 from ..models import Sample, SampleDTO, User, UnlabelDTO, Label, Association, Dataset
 from ..utils import can_assign, get_current_active_user, get_current_active_admin
 from ..worker import manager
@@ -50,9 +50,10 @@ def post_sample(sample_id: int, label_id: int, user: User = Depends(get_current_
     dataset = db.query(Sample).get(sample_id).dataset
 
     worker = manager.get_or_else_load(dataset)
-    worker.add_sample_label(sample_id=sample_id, label_id=label_id)
+    worker.add_sample_label(sample_id=sample_id)
 
-    next_sample = worker.get_next_sample()
+    next_sample_id = worker.get_next_sample_id()
+    next_sample = db.get(Sample, next_sample_id)
     if not next_sample:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -110,5 +111,5 @@ def unlabel(sample_id: int, data: UnlabelDTO, user=Depends(get_current_active_us
 
     # remove association from AL
     worker = manager.get_or_else_load(sample.dataset)
-    for label_id in label_ids:
-        worker.remove_sample_label(sample_id=sample_id, label_id=label_id)
+    for _ in label_ids:
+        worker.remove_sample_label(sample_id=sample_id)

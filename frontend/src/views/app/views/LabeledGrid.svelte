@@ -1,23 +1,21 @@
 <script>
-  import { onMount } from 'svelte'
   import axios from 'axios'
+  import { onMount } from 'svelte'
   import { router } from 'tinro'
-
-  import Select from '../../../ui/Select.svelte'
-  import Button from '../../../ui/Button.svelte'
-  import Card from '../../../ui/Card.svelte'
-  import Input from '../../../ui/Input.svelte'
-  import CheckboxList from '../../../ui/CheckboxList.svelte'
-  import Image from '../components/labeling/Image.svelte'
-  import Table from '../components/labeling/Table.svelte'
-
   import { data as datasets } from '../../../store/datasets'
   import { data as users, load } from '../../../store/users'
+  import Button from '../../../ui/Button.svelte'
+  import Card from '../../../ui/Card.svelte'
+  import CheckboxList from '../../../ui/CheckboxList.svelte'
+  import Input from '../../../ui/Input.svelte'
+  import Select from '../../../ui/Select.svelte'
+  import Image from '../components/labeling/Image.svelte'
+  import Table from '../components/labeling/Table.svelte'
 
   const mappings = {
     tables: Table,
     image: Image,
-    text: Table
+    text: Table,
   }
 
   const { id } = router.params()
@@ -30,12 +28,11 @@
   $: samplesReady = samples.length !== 0
 
   $: if (ready) {
-    console.log(dataset)
     labels = dataset.labels
     filterOptions = [
       { name: 'Label', label: 'labels', options: labels },
       { name: 'User', label: 'users', options: $users },
-      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] }
+      { name: 'Divided  labels', label: 'divided_labels', options: [true, false] },
     ]
   }
 
@@ -60,8 +57,8 @@
       url: `/datasets/${id}/samples`,
       params: {
         labeled: true,
-        ...params
-      }
+        ...params,
+      },
     })
       .then((response) => {
         samples.push(...response.data)
@@ -84,8 +81,8 @@
       method: 'delete',
       url: `/samples/${sample_id}`,
       data: {
-        all: true
-      }
+        all: true,
+      },
     })
       .then((res) => {
         // Do something with next sample
@@ -97,8 +94,8 @@
       method: 'post',
       url: `/samples/${sample_id}`,
       params: {
-        label_id: current.associations[0].id
-      }
+        label_id: current.associations[0].id,
+      },
     })
       .then((res) => {
         // Do something with next sample
@@ -181,64 +178,64 @@
 {/if}
 
 <style>
-    .wrapper {
-        display: grid;
-        grid-template-columns: 1fr 5fr;
-    }
+  .wrapper {
+    display: grid;
+    grid-template-columns: 1fr 5fr;
+  }
 
-    .menu {
-        display: flex;
-        flex-direction: column;
-    }
+  .menu {
+    display: flex;
+    flex-direction: column;
+  }
 
-    ul {
-        padding: 0;
-        margin: 0;
-        width: 150px;
-    }
+  ul {
+    padding: 0;
+    margin: 0;
+    width: 150px;
+  }
 
-    .samples {
-        padding-left: 15px;
-        align-self: center;
-        display: grid;
-    }
+  .samples {
+    padding-left: 15px;
+    align-self: center;
+    display: grid;
+  }
 
-    .sample {
-        display: grid;
-        justify-self: center;
-    }
+  .sample {
+    display: grid;
+    justify-self: center;
+  }
 
-    .sample hr {
-        border: 1px solid grey;
-    }
+  .sample hr {
+    border: 1px solid grey;
+  }
 
-    .reassign {
-        margin-top: 30px;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-    }
+  .reassign {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+  }
 
-    .reassign button {
-        background-color: transparent;
-        border: none;
-    }
+  .reassign button {
+    background-color: transparent;
+    border: none;
+  }
 
-    .icon {
-        font-size: 1.75em;
-        cursor: pointer;
-    }
+  .icon {
+    font-size: 1.75em;
+    cursor: pointer;
+  }
 
-    .content {
-        justify-self: center;
-        overflow: auto;
-    }
+  .content {
+    justify-self: center;
+    overflow: auto;
+  }
 
-    .page {
-        justify-self: center;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-    }
+  .page {
+    justify-self: center;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
 </style>

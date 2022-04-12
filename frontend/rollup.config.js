@@ -1,6 +1,7 @@
 import svelte from 'rollup-plugin-svelte'
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
+import json from '@rollup/plugin-json'
 import livereload from 'rollup-plugin-livereload'
 import { terser } from 'rollup-plugin-terser'
 import sveltePreprocess from 'svelte-preprocess'
@@ -40,6 +41,7 @@ export default {
     file: 'public/build/bundle.js',
   },
   plugins: [
+    json(),
     svelte({
       preprocess: sveltePreprocess(),
       compilerOptions: {
@@ -48,7 +50,6 @@ export default {
       },
     }),
     css({ output: 'bundle.css' }),
-
     resolve({
       browser: true,
       dedupe: ['svelte'],

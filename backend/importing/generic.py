@@ -19,7 +19,7 @@ def import_dataset(
     features: IO,
     content: IO,
     user: User = None,
-    ensure_incomplete=True,
+    ensure_incomplete=False,
 ) -> Tuple[Dataset, int]:
     if not user:
         try:
@@ -38,8 +38,7 @@ def import_dataset(
         features.rollover()
         df = pd.read_csv(features._file).set_index("ID")
     else:
-        raise ValueError(
-            "The features argument must be either a Path or FileStorage")
+        raise ValueError("The features argument must be either a Path or FileStorage")
 
     try:
         if isinstance(content, SpooledTemporaryFile):
@@ -48,8 +47,7 @@ def import_dataset(
         else:
             zip_file = ZipFile(content, "r")
     except AttributeError:
-        raise ValueError(
-            "The content argument must be either a Path or FileStorage")
+        raise ValueError("The content argument must be either a Path or FileStorage")
 
     feature_df = df.drop(["LABEL"], axis=1)
 
@@ -60,37 +58,49 @@ def import_dataset(
     )
 
     all_labels = {
-        label_name: Label(name=label_name, dataset=dataset)
+        label_name: Label(name=str(label_name), dataset=dataset)
         for label_name in df["LABEL"].unique()
     }
     db.add_all(all_labels.values())
     db.commit()
 
     total, samples, associations = len(df.index), [], []
-    for index, (identifier, label_name) in enumerate(df["LABEL"].iteritems()):
+    # iterate over rows in dataframe (identifier = ID Column = index of row
+    for identifier, row in df.iterrows():
+        label_name = row["LABEL"]
         content = zip_file.read(f"{int(identifier)}.raw")
-
         sample = sample_class()
         sample.dataset = dataset
 
-        # get type of content and convert to text if needed
-        content_type = sample_class.content.property.columns[0].type
-        if isinstance(content_type, Text):
-            content = content.decode('utf-8')
-
-        sample.content = content
-        samples.append(sample)
-
-        if label_name and label_name in all_labels:
-            associations.append(
-                Association(sample=sample,
-                            label=all_labels[label_name], user=user)
+        # get features from dataframe (all columns expect ID and LABEL
+        sample_features = row.drop("LABEL")
+        # test if features exist for sample
+        if sample_features.empty:
+            logger.error(
+                f"Missing sample id in feature set: {identifier}, skipping sample"
             )
+        else:
+            # save as json
+            sample.features = sample_features.to_json()
+            # get type of content and convert to text if needed
+            content_type = sample_class.content.property.columns[0].type
+            if isinstance(content_type, Text):
+                content = content.decode("utf-8")
 
-        if index % 1000 == 0:
+            sample.content = content
+            samples.append(sample)
+
+            if label_name and label_name in all_labels:
+                associations.append(
+                    Association(sample=sample, label=all_labels[label_name], user=user)
+                )
+
+        # save intermediate state
+        if identifier % 1000 == 0:
             logger.info(
-                "{:.2f}% imported ({}/{})".format((index /
-                                                   total) * 100, index, total)
+                "{:.2f}% imported ({}/{})".format(
+                    (identifier / total) * 100, identifier, total
+                )
             )
             db.add_all(samples)
             db.commit()
@@ -105,8 +115,7 @@ def import_dataset(
     db.add_all(associations)
     db.commit()
 
-    number_of_samples = db.query(Sample).filter(
-        Sample.dataset == dataset).count()
+    number_of_samples = db.query(Sample).filter(Sample.dataset == dataset).count()
     if ensure_incomplete:
         number_of_associations = (
             db.query(Association.sample_id)

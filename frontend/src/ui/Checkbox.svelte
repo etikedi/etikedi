@@ -26,6 +26,7 @@
     -webkit-appearance: none;
     box-sizing: border-box;
     background-color: var(--clr-white);
+    cursor: pointer;
   }
 
   label:hover,

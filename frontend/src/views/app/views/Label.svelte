@@ -12,6 +12,7 @@
 
   import { data as datasets } from '../../../store/datasets'
   import Grid from '../components/labeling/Grid.svelte'
+  import { addLabel, loadSample, samples_to_label } from '../../../store/samples'
 
   const mappings = {
     tables: Table,
@@ -27,19 +28,33 @@
   let last = null
 
   $: dataset = $datasets[id]
+  $: sample = $samples_to_label[0]
   $: ready = dataset && sample != null
 
   onMount(() => {
-    axios({
-      method: 'get',
-      url: `/datasets/${id}/first_sample`,
-    }).then((response) => (sample = response.data))
+    if (!$samples_to_label || $samples_to_label.length === 0) {
+      load()
+    }
 
     window.document.addEventListener('keypress', keyPress)
     return () => {
       window.document.removeEventListener('keypress', keyPress)
     }
   })
+
+  async function load() {
+    const newSample = await loadSample(id)
+    updateSampleList(newSample)
+  }
+
+  function updateSampleList(newSample) {
+    $samples_to_label = [...$samples_to_label, newSample]
+  }
+
+  function shiftSample() {
+    $samples_to_label.shift()
+    $samples_to_label = [...$samples_to_label]
+  }
 
   function keyPress(e: KeyboardEvent) {
     const i = parseInt(e.key)
@@ -49,19 +64,14 @@
     }
   }
 
-  async function send(selected: string) {
+  async function send(label_id: string) {
     if (!ready) return
-    const id = sample.id
+    const sample_id = sample.id
     sample = null
-    const { data } = await axios({
-      method: 'post',
-      url: `/samples/${id}`,
-      params: {
-        label_id: selected,
-      },
-    })
-    last = [id, selected]
-    sample = data
+    const newSample = await addLabel(sample_id, label_id)
+    shiftSample()
+    updateSampleList(newSample)
+    last = [sample_id, label_id]
   }
 
   async function undo() {

@@ -1,0 +1,35 @@
+### Start experiment
+POST http://localhost:8000/al-wars/start?dataset_id={{dataset_id}}
+accept: application/json
+Content-Type: application/json
+
+{
+  "exp_configs": [
+    {
+      "QUERY_STRATEGY": "QueryInstanceUncertainty",
+      "QUERY_STRATEGY_CONFIG": {
+        "query_type": "QueryInstanceUncertainty",
+        "measure": "{{UNC_FUNCTION}}"
+      },
+      "AL_MODEL": "{{LEARNER_MODEL}}"
+    },
+    {
+      "QUERY_STRATEGY": "{{STRAT_B}}",
+      "QUERY_STRATEGY_CONFIG": {
+        "query_type": "{{STRAT_B}}"
+      },
+      "AL_MODEL": "{{LEARNER_MODEL}}"
+    }
+  ],
+  "STOPPING_CRITERIA": "all_labeled",
+  "BATCH_SIZE": 5,
+  "PLOT_CONFIG": 
+  {
+    "CLASSIFICATION_BOUNDARIES": 
+    {
+        "NBR_OF_RANDOM_SAMPLE": 2000,
+        "MAX_X_BINS": 100,
+        "MAX_Y_BINS": 100
+    }
+  }
+}

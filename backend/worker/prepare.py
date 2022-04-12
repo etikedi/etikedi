@@ -7,7 +7,7 @@ from pandas import DataFrame
 
 from ..config import db
 from ..models import Association, Sample, Dataset
-from .types import *
+from .etiTypes import *
 
 
 def prepare_dataset_for_active_learning(dataset: Dataset) -> Tuple[DataFrame, Dict[SampleID, InternalSampleID], Dict[InternalSampleID, SampleID]]:

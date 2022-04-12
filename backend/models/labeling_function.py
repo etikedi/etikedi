@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel as Schema
+from pydantic import BaseModel
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -17,13 +17,13 @@ class LabelingFunction(Base):
     dataset = relationship("Dataset", back_populates="labeling_functions")
 
 
-class LabelingFunctionDTO(Schema):
+class LabelingFunctionDTO(BaseModel):
     id: int
     function_body: str
 
     class Config:
         orm_mode = True
 
-class TestRunResponse(Schema):
+class TestRunResponse(BaseModel):
     result: List[str]
     sample: SampleDTO
