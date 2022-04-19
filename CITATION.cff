@@ -1,0 +1,74 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  ALWars: Combat-Based Evaluation of Active Learning
+  Strategies
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Julius
+    family-names: Gonsior
+    email: julius.gonsior@tu-dresden.de
+    affiliation: Technische Universität Dresden
+    orcid: 'https://orcid.org/0000-0002-5985-4348'
+  - given-names: Jakob
+    family-names: Krude
+    email: jakob.krude@tu-dresden.de
+    affiliation: Technische Universität Dresden
+  - given-names: Janik
+    family-names: Schönfelder
+    email: janik.schonfelder@tu-dresden.de
+    affiliation: Technische Universität Dresden
+  - given-names: Maik
+    family-names: Thiele
+    email: maik.thiele@htw-dresden.de
+    affiliation: Hochschule für Technik und Wirtschaft Dresden
+    orcid: 'https://orcid.org/0000-0002-1665-977X'
+  - given-names: Wolfgang
+    family-names: Lehner
+    email: wolfgang.lehner@tu-dresden.de
+    affiliation: Technische Universität Dresden
+    orcid: 'https://orcid.org/0000-0001-8107-2775'
+identifiers:
+  - type: doi
+    value: 10.1007/978-3-030-99739-7\_36
+  - type: url
+    value: >-
+      https://link.springer.com/chapter/10.1007/978-3-030-99739-7_36
+repository-code: 'https://github.com/etikedi/etikedi'
+repository-artifact: 'https://wwwdb.inf.tu-dresden.de/'
+abstract: >-
+  The demand for annotated datasets for supervised
+  machine learning (ML) projects is growing rapidly.
+  Annotating a dataset often requires domain experts
+  and is a timely and costly process. A premier
+  method to reduce this overhead drastically is
+  Active Learning (AL). Despite a tremendous
+  potential for annotation cost savings, AL is still
+  not used universally in ML projects. The large
+  number of available AL strategies has significantly
+  risen during the past years leading to an increased
+  demand for thorough evaluations of AL strategies.
+  Existing evaluations show in many cases
+  contradicting results, without clear superior
+  strategies. To help researchers in taming the AL
+  zoo we present ALWars: an interactive system with a
+  rich set of features to compare AL strategies in a
+  novel replay view mode of all AL episodes with many
+  available visualization and metrics. Under the hood
+  we support a rich variety of AL strategies by
+  supporting the API of the powerful AL framework
+  ALiPy [21], amounting to over 25 AL strategies
+  out-of-the-box.
+keywords:
+  - Active Learning
+  - Python
+  - GUI
+  - Machine Learning
+  - Demo
+license: AGPL-3.0
+date-released: '2022-04-05'
