@@ -35,7 +35,7 @@
 <style>
   main {
     position: relative;
-    padding: 3em 6em;
+    padding: 3em 6em 6em 6em;
     margin: 0 auto;
     box-sizing: border-box;
   }

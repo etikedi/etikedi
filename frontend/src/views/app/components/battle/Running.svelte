@@ -2,6 +2,7 @@
   import { notifier } from '@beyonk/svelte-notifications'
   import { onDestroy } from 'svelte'
   import { Moon } from 'svelte-loading-spinners'
+  import { router } from 'tinro'
   import { formatTime } from '../../../../lib/human'
   import {
     getFinishedExperiments,
@@ -41,7 +42,10 @@
         await getFinishedExperiments()
         await getRunningExperiments()
       } else if (typeof status === 'string') {
+        clearOneTimer(battle_id)
+        await terminate(battle_id)
         notifier.danger(status)
+        router.goto('./dashboard')
       }
     }, 3000)
   }
@@ -113,7 +117,7 @@
 <style>
   .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     column-gap: 30px;
     row-gap: 20px;
   }

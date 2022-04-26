@@ -9,7 +9,9 @@
     currentlyViewing,
     diagrams,
     getDiagrams,
+    getFinishedExperiments,
     getMetrics,
+    getRunningExperiments,
     getStatus,
     getValidStrategies,
     metricData,
@@ -151,9 +153,19 @@
         clearInterval(interval)
         await getData()
       } else if (typeof status === 'string') {
+        clearInterval(interval)
+        await terminate(battle_id)
         notifier.danger(status)
+        router.goto('./dashboard')
       }
     }, 3000)
+  }
+
+  async function terminate(battle_id, notify?: boolean) {
+    await terminateExperiment(id, battle_id)
+    if (notify) notifier.success('The battle was terminated.', 4000)
+    await getFinishedExperiments()
+    await getRunningExperiments()
   }
 
   async function getData() {
