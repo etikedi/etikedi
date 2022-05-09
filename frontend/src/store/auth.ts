@@ -3,9 +3,10 @@ import axios from 'axios'
 import JWTDecode from 'jwt-decode'
 
 import { devProdSwitch } from '../lib/utils'
+import * as process from 'process';
 
-// TODO: Add prod url
-axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', 'http://localhost:8000/')
+const productionUrl: string = process.env.PRODUCTION_URL || 'http://localhost:8000/'
+axios.defaults.baseURL = devProdSwitch('http://localhost:8000/', productionUrl)
 axios.defaults.headers['Accept'] = 'application/json'
 axios.defaults.withCredentials = false
 

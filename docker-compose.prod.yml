@@ -1,9 +1,60 @@
-version: '3'
-
 services:
+
+  proxy:
+    image: traefik:v2.2
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    command:
+      - --log.level=DEBUG
+      - --providers.docker
+      - --providers.docker.exposedbydefault=false
+    ports:
+      - 80:80
+      - 8080:8080
+
   frontend:
     image: tu-dresden/etikedi-frontend
     build:
       context: ./frontend
+    environment:
+      PRODUCTION_URL: 'http://141.76.47.115:8000/rest'
+    volumes:
+      - ./frontend:/etikedi/frontend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`141.76.47.115`)"
+      - "traefik.http.routers.frontend.priority=1"
+
+  backend:
+    image: tu-dresden/etikedi-backend
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: db
+    expose:
+      - 8000
+    volumes:
+      - ./backend:/etikedi/backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=PathPrefix(`/rest`)"
+      - "traefik.http.routers.backend.priority=2"
+      - "traefik.http.middlewares.prefix-backend.stripprefix.prefixes=/rest"
+      - "traefik.http.middlewares.prefix-backend.stripprefix.forceSlash=false"
+      - "traefik.http.routers.backend.middlewares=prefix-backend@docker"
+
+
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: etikedi
     ports:
-      - 80:80
+      - 5432:5432
+    volumes:
+      - data:/var/lib/postgresql/data
+
+volumes:
+  data:

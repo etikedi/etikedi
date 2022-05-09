@@ -19,6 +19,7 @@
     "@rollup/plugin-typescript": "^6.0.0",
     "@smui/slider": "^6.0.0-beta.13",
     "@tsconfig/svelte": "^1.0.0",
+    "@types/node": "^17.0.31",
     "@types/sanitize-html": "^1.27.0",
     "rollup": "^2.3.4",
     "rollup-plugin-css-only": "^3.0.0",
